@@ -22,7 +22,6 @@ from typing import Dict, Tuple, List
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import settings
 
 #### Extron Global Scripter Modules
 

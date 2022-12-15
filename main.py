@@ -20,13 +20,18 @@ import json
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from uofi_guiControl import *
-from uofi_activityControls import *
-from uofi_pinCode import *
-from uofi_sourceControls import *
+from uofi_gui.activityControls import ActivityController
+from uofi_gui.pinControl import PINController
+from uofi_gui.uiObjects import (BuildButtons, BuildButtonGroups, BuildKnobs,
+                                BuildLabels, BuildLevels, BuildSliders)
 
-import utilityFunctions
+
+from uofi_gui.sourceControls import *
+
+
+import utilityFunctions as utFn
 import settings
+import vars
 
 #### Extron Global Scripter Modules
 
@@ -34,29 +39,29 @@ import settings
 ##
 ## Begin Device/Processor Definition -------------------------------------------
 
-settings.CtlProc_Main = ProcessorDevice('CTL001')
+vars.CtlProc_Main = ProcessorDevice('CTL001')
 
 ## End Device/Processor Definition ---------------------------------------------
 ##
 ## Begin Device/User Interface Definition --------------------------------------
 
-settings.TP_Main = UIDevice('TP001')
+vars.TP_Main = UIDevice('TP001')
 
 #### Build Buttons & Button Groups
-TP_Btns = BuildButtons(settings.TP_Main, jsonPath='controls.json')
-TP_Btn_Grps = BuildButtonGroups(TP_Btns, jsonPath="controls.json")
+vars.TP_Btns = BuildButtons(vars.TP_Main, jsonPath='controls.json')
+vars.TP_Btn_Grps = BuildButtonGroups(vars.TP_Btns, jsonPath="controls.json")
 
 #### Build Knobs
-TP_Knobs = BuildKnobs(settings.TP_Main, jsonPath='controls.json')
+vars.TP_Knobs = BuildKnobs(vars.TP_Main, jsonPath='controls.json')
 
 #### Build Levels
-TP_Lvls = BuildLevels(settings.TP_Main, jsonPath='controls.json')
+vars.TP_Lvls = BuildLevels(vars.TP_Main, jsonPath='controls.json')
 
 #### Build Sliders
-TP_Slds = BuildSliders(settings.TP_Main, jsonPath='controls.json')
+vars.TP_Slds = BuildSliders(vars.TP_Main, jsonPath='controls.json')
 
 #### Build Labels
-TP_Lbls = BuildLabels(settings.TP_Main, jsonPath='controls.json')
+vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath='controls.json')
 
 ## End Device/User Interface Definition ----------------------------------------
 ##
@@ -65,103 +70,6 @@ TP_Lbls = BuildLabels(settings.TP_Main, jsonPath='controls.json')
 ## End Communication Interface Definition --------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
-
-def Initialize() -> bool:
-    #### Set initial page & room name
-    settings.TP_Main.ShowPage('Splash')
-    TP_Btns['Room-Label'].SetText(settings.roomName)
-    
-    #### Build Common Use UI Dictionaries ======================================
-    settings.TransitionDict = \
-        {
-            "label": TP_Lbls['PowerTransLabel-State'],
-            "level": TP_Lvls['PowerTransIndicator'],
-            "count": TP_Lbls['PowerTransLabel-Count'],
-            "start": {
-                "init": StartupActions,
-                "sync": StartUpSyncedActions
-              },
-            "switch": {
-                "init": SwitchActions,
-                "sync": SwitchSyncedActions
-              },
-            "shutdown": {
-                "init": ShutdownActions,
-                "sync": ShutdownSyncedActions
-              }
-        }
-        
-    settings.SourceButtons = \
-        {
-            "select": TP_Btn_Grps['Source-Select'],
-            "indicator": TP_Btn_Grps['Source-Indicator'],
-            "arrows": [
-                TP_Btns['SourceMenu-Prev'],
-                TP_Btns['SourceMenu-Next']
-              ]
-        }
-        
-    settings.ActModBtns = {"select": TP_Btn_Grps['Activity-Select'],
-                           "indicator": TP_Btn_Grps['Activity-Indicator'],
-                           "end": TP_Btns['Shutdown-EndNow'],
-                           "cancel": TP_Btns['Shutdown-Cancel']}
-    
-    settings.PinButtons = \
-        {
-            "numPad": [
-                TP_Btns['PIN-0'],
-                TP_Btns['PIN-1'],
-                TP_Btns['PIN-2'],
-                TP_Btns['PIN-3'],
-                TP_Btns['PIN-4'],
-                TP_Btns['PIN-5'],
-                TP_Btns['PIN-6'],
-                TP_Btns['PIN-7'],
-                TP_Btns['PIN-8'],
-                TP_Btns['PIN-9']
-              ],
-            "backspace": TP_Btns['PIN-Del'],
-            "cancel": TP_Btns['PIN-Cancel']
-        }
-        
-    for dest in settings.destinations:
-        settings.AdvDestinationDict[dest['id']] = \
-            GetBtnsForDest(TP_Btns, dest['id'])
-        settings.AdvDestinationDict[dest['id']]['label'] = \
-            TP_Lbls['DispAdv-{p},{r}'.format(p = dest['adv-layout']['pos'],
-                                             r = dest['adv-layout']['row'])]
-    
-    #### =======================================================================
-    
-    #### PIN Code Module
-    InitPINModule(settings.TP_Main,
-                  TP_Btns['Header-Settings'],
-                  settings.PinButtons,
-                  TP_Lbls['PIN-Label'],
-                  settings.techPIN, 
-                  'Tech')
-
-    #### Activity Control Module
-    InitActivityModule(settings.TP_Main,
-                       settings.ActModBtns,
-                       TP_Lbls['ShutdownConf-Count'],
-                       TP_Lvls['ShutdownConfIndicator'],
-                       SystemStart,
-                       SystemSwitch,
-                       SystemShutdown)
-
-    #### Source Control Module
-    InitSourceModule(settings.TP_Main,
-                     TP_Btn_Grps['Source-Select'],
-                     TP_Btn_Grps['Source-Indicator'],
-                     [TP_Btns['SourceMenu-Prev'], TP_Btns['SourceMenu-Next']],
-                     settings.AdvDestinationDict,
-                     SwitchSources)
-    
-    ## DO ADDITIONAL INITIALIZATION ITEMS HERE
-    
-    print('System Initialized')
-    return True
 
 def StartupActions() -> None:
     pass
@@ -180,6 +88,94 @@ def ShutdownActions() -> None:
 
 def ShutdownSyncedActions(count: int) -> None:
     pass
+
+def Initialize() -> bool:
+    #### Set initial page & room name
+    vars.TP_Main.ShowPage('Splash')
+    vars.TP_Btns['Room-Label'].SetText(settings.roomName)
+    
+    #### Build Common Use UI Dictionaries ======================================
+    vars.TransitionDict = \
+        {
+            "label": vars.TP_Lbls['PowerTransLabel-State'],
+            "level": vars.TP_Lvls['PowerTransIndicator'],
+            "count": vars.TP_Lbls['PowerTransLabel-Count'],
+            "start": {
+                "init": StartupActions,
+                "sync": StartUpSyncedActions
+              },
+            "switch": {
+                "init": SwitchActions,
+                "sync": SwitchSyncedActions
+              },
+            "shutdown": {
+                "init": ShutdownActions,
+                "sync": ShutdownSyncedActions
+              }
+        }
+        
+    vars.SourceButtons = \
+        {
+            "select": vars.TP_Btn_Grps['Source-Select'],
+            "indicator": vars.TP_Btn_Grps['Source-Indicator'],
+            "arrows": [
+                vars.TP_Btns['SourceMenu-Prev'],
+                vars.TP_Btns['SourceMenu-Next']
+              ]
+        }
+        
+    vars.ActModBtns = {"select": vars.TP_Btn_Grps['Activity-Select'],
+                       "indicator": vars.TP_Btn_Grps['Activity-Indicator'],
+                       "end": vars.TP_Btns['Shutdown-EndNow'],
+                       "cancel": vars.TP_Btns['Shutdown-Cancel']}
+    
+    vars.PinButtons = \
+        {
+            "numPad": [
+                vars.TP_Btns['PIN-0'],
+                vars.TP_Btns['PIN-1'],
+                vars.TP_Btns['PIN-2'],
+                vars.TP_Btns['PIN-3'],
+                vars.TP_Btns['PIN-4'],
+                vars.TP_Btns['PIN-5'],
+                vars.TP_Btns['PIN-6'],
+                vars.TP_Btns['PIN-7'],
+                vars.TP_Btns['PIN-8'],
+                vars.TP_Btns['PIN-9']
+              ],
+            "backspace": vars.TP_Btns['PIN-Del'],
+            "cancel": vars.TP_Btns['PIN-Cancel']
+        }
+    
+    #### =======================================================================
+    
+    #### PIN Code Module
+    vars.PINCtl = PINController(vars.TP_Main,
+                                vars.TP_Btns['Header-Settings'],
+                                vars.PinButtons,
+                                vars.TP_Lbls['PIN-Label'],
+                                settings.techPIN, 
+                                'Tech')
+
+    #### Activity Control Module
+    vars.ActCtl = ActivityController(vars.TP_Main,
+                                     vars.ActModBtns,
+                                     vars.TransitionDict,
+                                     vars.TP_Lbls['ShutdownConf-Count'],
+                                     vars.TP_Lvls['ShutdownConfIndicator'])
+
+    #### Source Control Module
+    vars.SrcCtl = SourceController(vars.TP_Main,
+                                   vars.SourceButtons['select'],
+                                   vars.SourceButtons['indicator'],
+                                   vars.SourceButtons['arrowBtns'],
+                                   settings.sources,
+                                   settings.destinations)
+    
+    ## DO ADDITIONAL INITIALIZATION ITEMS HERE
+    
+    print('System Initialized')
+    return True
 
 ## End Function Definitions ----------------------------------------------------
 ##

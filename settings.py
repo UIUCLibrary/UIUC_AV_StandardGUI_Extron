@@ -10,7 +10,7 @@ startupTimer = 10             # Max startup timer duration
 switchTimer = 20              # Max switch timer duration
 shutdownTimer = 30,           # Max shutdown timer duration
 shutdownConfTimer = 30        # Shutdown confirmation duration
-activitySplash = 15           # Duration to show activity splash pages for
+activitySplashTimer = 15      # Duration to show activity splash pages for
 defaultSource = "PC001"       # Default source id on activity switch
 primaryDestination = "PRJ001" # Primary destination
 micCtl = 1                    # Microphone control
@@ -33,6 +33,7 @@ sources = \
          "name": "Room PC",
          "icon": 2,
          "input": 3,
+         "alert": "Ensure the PC is awake.",
          "src-ctl": "PC",
          "adv-src-ctl": None
       },
@@ -41,6 +42,7 @@ sources = \
          "name": "HDMI 1",
          "icon": 1,
          "input": 1,
+         "alert": "Ensure all cables and adapters to your HDMI device are fully seated.",
          "src-ctl": "HDMI",
          "adv-src-ctl": None
       },
@@ -49,6 +51,7 @@ sources = \
          "name": "HDMI 2",
          "icon": 1,
          "input": 2,
+         "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
          "src-ctl": "HDMI",
          "adv-src-ctl": None
       },
@@ -57,6 +60,7 @@ sources = \
          "name": "Inst. Wireless",
          "icon": 3,
          "input": 4,
+         "alert": "Contact Library IT for Assistance with this Wireless Device",
          "src-ctl": "WPD",
          "adv-src-ctl": "WPD"
       },
@@ -65,6 +69,7 @@ sources = \
          "name": "North Wireless",
          "icon": 3,
          "input": 5,
+         "alert": "Contact Library IT for Assistance with this Wireless Device",
          "src-ctl": "WPD",
          "adv-src-ctl": "WPD"
       },
@@ -73,6 +78,7 @@ sources = \
          "name": "South Wireless",
          "icon": 3,
          "input": 6,
+         "alert": "Contact Library IT for Assistance with this Wireless Device",
          "src-ctl": "WPD",
          "adv-src-ctl": "WPD"
       }
@@ -139,60 +145,3 @@ techPIN = "1867"           # PIN Code to access tech pages, must be a string
                            # fewer than 10 characters of 0-9
 
 ##==============================================================================
-##
-##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-## DO NOT MODIFY - System Variables
-
-activity = "off"
-source = "none"
-sourceOffset = 0
-activityDict = \
-   {
-      "share": "Sharing", 
-      "adv_share": "Adv. Sharing",
-      "group_work": "Group Work"
-   }
-adv_share_layout = None
-
-ModalPageList = \
-   [
-      "Modal-Scheduler",
-      "Modal-ScnCtl",
-      "Modal-SrcCtl-Camera",
-      "Modal-SrcCtl-WPD",
-      "Modal-SrcErr"
-   ]
-PopoverPageList = \
-   [
-      "Popover-Ctl-Alert",
-      "Popover-Ctl-Audio_1",
-      "Popover-Ctl-Camera_0",
-      "Popover-Ctl-Camera_1",
-      "Popover-Ctl-Camera_2",
-      "Popover-Ctl-Help",
-      "Popover-Ctl-Lights_0",
-      "Popover-Room"
-   ]
-PopupGroupList = \
-   [
-      "Tech-Popups",
-      "Tech-Menus",
-      "Activity-Menus",
-      "Activity-Open-Menus",
-      "Source-Menus",
-      "Source-Controls",
-      "Audio-Controls",
-      "Activity-Controls"
-   ]
-
-CtlProc_Main = None
-TP_Main = None
-TransitionDict = {}
-SourceButtons = {}
-ActModBtns = {}
-AdvDestinationDict = {}
-PinButtons = {}
-MatrixBtns = {}
-MatrixCtls = {}
-
-##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

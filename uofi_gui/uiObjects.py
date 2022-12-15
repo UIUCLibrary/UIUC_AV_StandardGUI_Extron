@@ -16,13 +16,11 @@ print(Version()) ## Sanity check ControlScript Import
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
 import json
-from typing import Dict, Tuple, List, Union
+from typing import Dict, Tuple, List, Union, Callable
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
-import settings
 
 #### Extron Global Scripter Modules
 

@@ -16,16 +16,16 @@ print(Version()) ## Sanity check ControlScript Import
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
 import json
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Union
 import re
 
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
+import utilityFunctions as utFn
 import settings
-import uofi_sourceControls
+import uofi_gui.sourceControls as srcCtl
 
 #### Extron Global Scripter Modules
 
@@ -60,9 +60,9 @@ def InitManualMatrix(UIHost: UIDevice,
         
         # send switch commands
         if matrix_mode == "untie":
-            uofi_sourceControls.MatrixSwitchSources(0, output)
+            srcCtl.MatrixSwitchSources(0, output)
         else:
-            uofi_sourceControls.MatrixSwitchSources(input, output, matrix_mode)
+            srcCtl.MatrixSwitchSources(input, output, matrix_mode)
         
         # set pressed button's feedback
         button.SetState(stateDict[matrix_mode])
@@ -111,7 +111,7 @@ def InitManualMatrix(UIHost: UIDevice,
         for matrixBtn in matrixBtns:
             matrixBtn.SetState(0)
 
-        uofi_sourceControls.MatrixSwitchSources(0, 'all')
+        srcCtl.MatrixSwitchSources(0, 'all')
 
     for inLbl in inputLabels:
         inLbl.SetText('Not Connected')
