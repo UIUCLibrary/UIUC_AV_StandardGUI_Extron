@@ -23,6 +23,7 @@ from typing import Dict, Tuple, List, Callable, Union
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 from uofi_gui.sourceControls.IO import RelayTuple, LayoutTuple, MatrixTuple, Source, Destination
+from uofi_gui.sourceControls.matrix import MatrixController, MatrixRow
 
 import utilityFunctions
 import vars
@@ -37,9 +38,8 @@ import settings
 class SourceController:
     def __init__(self, 
                  UIHost: UIDevice, 
-                 sourceBtns: MESet, 
-                 sourceInds: MESet, 
-                 arrowBtns: List[Button],
+                 sourceDict: Dict[str, Union[MESet, List[Button]]],
+                 matrixDict: Dict[str, Union[List[Button], MESet, Button]],
                  sources: List,
                  destinations: List) -> None:
         """Initializes Source Switching module
@@ -86,13 +86,14 @@ class SourceController:
         self.SelectedSource = None
         
         # Private Properties
-        self._sourceBtns = sourceBtns
-        self._sourceInds = sourceInds
-        self._arrowBtns = arrowBtns
+        self._sourceBtns = sourceDict['select']
+        self._sourceInds = sourceDict['indicator']
+        self._arrowBtns = sourceDict['arrows']
         self._offset = 0
         self._advLayout = self.GetAdvShareLayout()
         self._none_source = Source('none', 'None', 0, 0)
         self._DisplaySrcList = self.UpdateDisplaySourceList()
+        self._Matrix = MatrixController(self, matrixDict['btns'], matrixDict['ctls'], matrixDict['del'])
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
             dest.AssignAdvUI(self._GetUIForAdvDest(dest))
@@ -346,7 +347,8 @@ class SourceController:
             srcObj = self.GetSource(id = src, name = src)
         elif type(src) == Source:
             srcObj = src
-            
+        
+        # TODO: Update Matrix (send matrix tie commands to the matrix rows being affected)
         if type(dest) == str and dest == 'All':
             for d in self.Destinations:
                 d.AssignSource(srcObj)
@@ -360,6 +362,8 @@ class SourceController:
                     destObj = self.GetDestination(id = d, name = d)
                     destObj.AssignSource(srcObj)
                     # TODO: send source change command
+                    
+        
 
     def MatrixSwitch(self, src: Union[Source, str, int], dest: Union[str, List[Union[Destination, str, int]]]='All', mode: str='AV') -> None:
         if type(dest) == str and dest != 'All':
@@ -374,7 +378,7 @@ class SourceController:
             srcNum = int
         else:
             raise TypeError("Source must be a source object, source name string, source Id string, or switcher input integer")
-        
+        # TODO: Update Matrix (send matrix tie commands to the matrix rows being affected)
         if type(dest) == str and dest == 'All':
             for d in self.Destinations:
                 d.AssignSource(None)

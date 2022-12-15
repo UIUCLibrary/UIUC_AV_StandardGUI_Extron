@@ -88,6 +88,7 @@ class Destination:
         self._AdvAudBtn = None
         self._AdvAlertBtn = None
         self._AdvScnBtn = None
+        self._MatrixRow = None
         
     def AssignSource(self, source: Source) -> None:
         self.AssignedSource = source

@@ -16,7 +16,8 @@ print(Version()) ## Sanity check ControlScript Import
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
 import json
-from typing import Dict, Tuple, List, Union
+from typing import Dict, Tuple, List, Union, Callable
+from collections import namedtuple
 import re
 
 ## End Python Imports ----------------------------------------------------------
@@ -25,112 +26,148 @@ import re
 #### Custom Code Modules
 import utilityFunctions as utFn
 import settings
-import uofi_gui.sourceControls as srcCtl
+from uofi_gui.sourceControls import SourceController, MatrixTuple
 
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
 ##
-## Begin Function Definitions --------------------------------------------------
+## Begin Class Definitions -----------------------------------------------------
 
-matrix_mode = 'AV'
-stateDict = {
-    'AV': 3,
-    'Aud': 2,
-    'Vid': 1,
-    'untie': 0
-}
+class MatrixController:
+    def __init__(self,
+                 srcCtl: SourceController,
+                 matrixBtns: List[Button],
+                 matrixCtls: MESet,
+                 matrixDelAll: Button,
+                 inputLabels: List[Label],
+                 outputLabels: List[Label]) -> None:
+        self.SourceController = srcCtl
+        self.Mode = 'AV'
+        
+        matrixRows = {}
+        for btn in matrixBtns:
+            row = btn.Name[-1]
+            if type(matrixRows[row]) != List:
+                matrixRows[row] = [btn]
+            else:
+                matrixRows[row].append(btn)
 
-def InitManualMatrix(UIHost: UIDevice,
-                     matrixBtns: List[Button],
-                     matrixCtls: MESet,
-                     matrixDelAll: Button,
-                     inputLabels: List[Label],
-                     outputLabels: List[Label]):
-    
-    @event(matrixBtns, 'Pressed')
-    def matrixSelectHandler(button: Button, action: str):
-        global matrix_mode, stateDict
+        self._rows = {}
+        for r in matrixRows:
+            self._rows[int(r)] = MatrixRow(self, matrixRows[r], int(r))
         
-        regex = r"Tech-Matrix-(\d+),(\d+)"
-        re_match = re.match(regex, button.Name)
-        # 0 is full match, 1 is input, 2 is output
-        input = re_match.group(1)
-        output = re_match.group(2)
+        for dest in self.SourceController.Destinations:
+            dest._MatrixRow = self._rows[dest.Output]
+            
+        self._ctls = matrixCtls
+        self._del = matrixDelAll
+        self._inputLbls = inputLabels
+        self._outputLbls = outputLabels
+        self._stateDict = {
+            'AV': 3,
+            'Aud': 2,
+            'Vid': 1,
+            'untie': 0
+        }
         
-        # send switch commands
-        if matrix_mode == "untie":
-            srcCtl.MatrixSwitchSources(0, output)
-        else:
-            srcCtl.MatrixSwitchSources(input, output, matrix_mode)
+        @event(self._ctls.Objects, 'Pressed')
+        def matrixModeHandler(button: Button, action: str):
+            if button.Name.endswith('AV'):
+                self.Mode = 'AV'
+            elif button.Name.endswith('Audio'):
+                self.Mode = 'Aud'
+            elif button.Name.endswith('Vid'):
+                self.Mode = 'Vid'
+            elif button.Name.endswith('Untie'):
+                self.Mode = 'untie'
         
-        # set pressed button's feedback
-        button.SetState(stateDict[matrix_mode])
-        button.SetText(matrix_mode)
+        @event(self._del, 'Pressed')
+        def matrixDelAllTiesHandler(button: Button, action: str):
+            for row in self._rows:
+                for btn in row.Objects:
+                    btn.SetState(0)
+
+            self.SourceController.MatrixSwitch(self.SourceController._none_source)
+            
+        for inLbl in self._inputLbls:
+            inLbl.SetText('Not Connected')
+        for src in self.SourceController.Sources:
+            self._inputLbls[src.Input - 1].SetText(src.Name)
+            
+        for outLbl in self._outputLbls:
+            outLbl.SetText('Not Connected')
+        for dest in self.SourceController.Destinations:
+            self._outputLbls[dest.Output - 1].SetText(dest.Name)
         
-        # fix other buttons in output row
-        if matrix_mode != 'untie':
-            for btn in matrixBtns:
-                re_affected_match = re.match(regex, btn.Name)
-                # 0 is full match, 1 is input, 2 is output
-                # Match any button in same output row other than the button which triggered the matrix action
-                if re_affected_match.group(2) == output and re_affected_match.group(1) != input:
-                    if matrix_mode == 'AV':
-                        btn.SetState(0) # untie everything else in output row
+class MatrixRow:
+    def __init__(self,
+                 Matrix: MatrixController,
+                 rowBtns: List[Button],
+                 output: int) -> None:
+        
+        self.Matrix = Matrix
+        self.MatrixOutput = output
+        self.VidSelect = 0
+        self.AudSelect = 0
+        self.Objects = rowBtns
+        
+        # Overload matrix row buttons with Input property
+        for btn in self.Objects:
+            regex = r"Tech-Matrix-(\d+),(\d+)"
+            re_match = re.match(regex, btn.Name)
+            # 0 is full match, 1 is input, 2 is output
+            btn.Input = re_match.group(1)
+        
+        @event(self.Objects, 'Pressed')
+        def matrixSelectHandler(button: Button, action: str):
+            # send switch commands
+            if self.Matrix.Mode == "untie":
+                self.Matrix.SourceController.MatrixSwitch(0, self.MatrixOutput, self.Matrix.Mode)
+            else:
+                self.Matrix.SourceController.MatrixSwitch(btn.Input, self.MatrixOutput, self.Matrix.Mode)
+            
+            # set pressed button's feedback
+            button.SetState(self.Matrix._stateDict[self.Matrix.Mode])
+            button.SetText(self.Matrix.Mode)
+            
+            self._UpdateRowBtns(button, self.Matrix.Mode)
+        
+    def _UpdateRowBtns(self, modBtn: Button, tieType: str="AV") -> None:
+        for btn in self.Objects:
+            if btn != modBtn:
+                if tieType == 'AV':
+                    btn.SetState(0) # untie everything else in output row
+                    btn.SetText('')
+                elif tieType == 'Aud':
+                    if btn.State == 2: # Button has Audio tie, untie button
+                        btn.SetState(0)
                         btn.SetText('')
-                    elif matrix_mode == 'Aud':
-                        if btn.State == 2: # Button has Audio tie, untie button
-                            btn.SetState(0)
-                            btn.SetText('')
-                        elif btn.State == 3: # Button has AV tie, untie audio only
-                            btn.SetState(1)
-                            btn.SetText('Vid')
-                    elif matrix_mode == 'Vid':
-                        if btn.State == 1: # Button has Video tie, untie button
-                            btn.SetState(0)
-                            btn.SetText('')
-                        elif btn.State == 3: # Button has AV tie, untie video only
-                            btn.SetState(2)
-                            btn.SetText('Aud')
-            
+                    elif btn.State == 3: # Button has AV tie, untie audio only
+                        btn.SetState(1)
+                        btn.SetText('Vid')
+                elif tieType == 'Vid':
+                    if btn.State == 1: # Button has Video tie, untie button
+                        btn.SetState(0)
+                        btn.SetText('')
+                    elif btn.State == 3: # Button has AV tie, untie video only
+                        btn.SetState(2)
+                        btn.SetText('Aud')
     
-    @event(matrixCtls.Objects, 'Pressed')
-    def matrixModeHandler(button: Button, action: str):
-        global matrix_mode
-        if button.Name.endswith('AV'):
-            matrix_mode = 'AV'
-        elif button.Name.endswith('Audio'):
-            matrix_mode = 'Aud'
-        elif button.Name.endswith('Vid'):
-            matrix_mode = 'Vid'
-        elif button.Name.endswith('Untie'):
-            matrix_mode = 'untie'
-            
-    @event(matrixDelAll, 'Pressed')
-    def matrixDelAllTiesHandler(button: Button, action: str):
-        for matrixBtn in matrixBtns:
-            matrixBtn.SetState(0)
-
-        srcCtl.MatrixSwitchSources(0, 'all')
-
-    for inLbl in inputLabels:
-        inLbl.SetText('Not Connected')
-    for src in settings.sources:
-        inputLabels[src['input'] - 1].SetText(src['name'])
+    def MakeTie(self, input: int, tieType: str="AV") -> None:
+        if not (tieType == 'AV' or tieType == 'Aud' or tieType == 'Vid'):
+            raise ValueError("TieType must be one of 'AV', 'Aud', or 'Vid'")
         
-    for outLbl in outputLabels:
-        outLbl.SetText('Not Connected')
-    for dest in settings.destinations:
-        outputLabels[dest['output'] - 1].SetText(dest['Name'])
+        modBtn = self.Objects[input]
+        modBtn.SetState(self.Matrix._stateDict[tieType])
+        modBtn.SetText(tieType)
         
-    # TODO: figure out how best to use device feedback to ensure the Matrix display stays updated
+        self._UpdateRowBtns(modBtn, tieType)
     
+## End Class Definitions -------------------------------------------------------
+##
+## Begin Function Definitions --------------------------------------------------    
 
 ## End Function Definitions ----------------------------------------------------
-##
-## Begin Script Definition -----------------------------------------------------
-if __name__ == "__main__": ## this module does not run as a script
-    pass
-## End Script Definition -------------------------------------------------------
 
 

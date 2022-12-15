@@ -51,6 +51,5 @@ ActModBtns = {}
 AdvDestinationDict = {}
 PinButtons = {}
 MatrixBtns = {}
-MatrixCtls = {}
 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
