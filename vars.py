@@ -1,5 +1,6 @@
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ## DO NOT MODIFY - System Variables
+TESTING = True
 
 ModalPageList = \
    [
@@ -44,12 +45,5 @@ TP_Knobs = {}
 TP_Lvls = {}
 TP_Slds = {}
 TP_Lbls = {}
-
-TransitionDict = {}
-SourceButtons = {}
-ActModBtns = {}
-AdvDestinationDict = {}
-PinButtons = {}
-MatrixBtns = {}
 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

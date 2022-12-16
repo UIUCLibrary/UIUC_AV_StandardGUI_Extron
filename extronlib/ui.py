@@ -37,13 +37,15 @@ class Button:
         self.BlinkState = 'Not blinking'
         self.Enabled = True
         self.Host = Host
-        if type(ID) == 'int':
+        if type(ID) == type(1):
             self.ID = ID
             self.Name = 'Dummy Name'
-        else:
+        elif type(ID) == type(''):
             self.ID = self._dummy_ID
             self._dummy_ID += 1
             self.Name = ID
+        else:
+            raise ValueError("ID must be either an int ID or string Name")
         self.PressedState = False
         self.State = 0
         self.Visible = True
@@ -135,13 +137,15 @@ class Label:
         """
         
         self.Host = Host
-        if type(ID) == 'int':
+        if type(ID) == type(1):
             self.ID = ID
             self.Name = 'Dummy Name'
-        else:
+        elif type(ID) == type(''):
             self.ID = self._dummy_ID
             self._dummy_ID += 1
             self.Name = ID
+        else:
+            raise ValueError("ID must be either an int ID or string Name")
         self.Visible = True
         self._text = "Dummy Label Text"
             
@@ -168,13 +172,15 @@ class Level:
             ID (int, string) – ID or Name of the UIObject
         """
         self.Host = UIHost
-        if type(ID) == 'int':
+        if type(ID) == type(1):
             self.ID = ID
             self.Name = 'Dummy Name'
-        else:
+        elif type(ID) == type(''):
             self.ID = self._dummy_ID
             self._dummy_ID += 1
             self.Name = ID
+        else:
+            raise ValueError("ID must be either an int ID or string Name")
         self.Level = 0
         self.Max = 100
         self.Min = 0
@@ -248,13 +254,15 @@ class Slider:
         self.Enabled = True
         self.Fill = 0
         self.Host = UIHost
-        if type(ID) == 'int':
+        if type(ID) == type(1):
             self.ID = ID
             self.Name = 'Dummy Name'
-        else:
+        elif type(ID) == type(''):
             self.ID = self._dummy_ID
             self._dummy_ID += 1
             self.Name = ID
+        else:
+            raise ValueError("ID must be either an int ID or string Name")
         self.Max = 100
         self.Min = 0
         self.Step = 1

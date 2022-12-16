@@ -15,7 +15,8 @@ print(Version()) ## Sanity check ControlScript Import
 
 from typing import Dict, Tuple, List, Callable, Union
 from collections import namedtuple
-from uofi_gui.sourceControls import SourceController
+#from uofi_gui.sourceControls import SourceController
+
 import vars
 
 RelayTuple = namedtuple('RelayTuple', ['Up', 'Down'])
@@ -24,7 +25,7 @@ MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
 class Source:
     def __init__(self,
-                 SrcCtl: SourceController,
+                 SrcCtl, #: SourceController,
                  id: str,
                  name: str,
                  icon: int,
@@ -62,7 +63,7 @@ class Source:
         
 class Destination:
     def __init__(self,
-                 SrcCtl: SourceController,
+                 SrcCtl, #: SourceController,
                  id: str,
                  name: str,
                  output: int,
@@ -80,7 +81,16 @@ class Destination:
         self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
         
         self._type = destType
-        self._relay = RelayTuple(Up=rly[0], Down=rly[1])
+        
+        if type(rly) == type([]):
+            if len(rly) != 2:
+                raise ValueError("Relay list must contain two values")
+            self._relay = RelayTuple(Up=rly[0], Down=rly[1])
+        elif rly == None:
+            self._relay = None
+        else:
+            raise TypeError('Relay must be an object of type List. Type {} provided'.format(type(rly)))
+        
         self._AssignedVidInput = 0
         self._AssignedAudInput = 0
         self._AdvSelectBtn = None
@@ -89,12 +99,14 @@ class Destination:
         self._AdvAlertBtn = None
         self._AdvScnBtn = None
         self._MatrixRow = None
+        self._AlertTimer = None
         
     def AssignSource(self, source: Source) -> None:
-        self.AssignedSource = source
-        self._AssignedVidInput = source.Input
-        self._AssignedAudInput = source.Input
-        self.UpdateAdvUI()
+        if type(source) == Source:
+            self.AssignedSource = source
+            self._AssignedVidInput = source.Input
+            self._AssignedAudInput = source.Input
+            self.UpdateAdvUI()
         
     def AssignMatrix(self, input: int, tieType: str='AV') -> None:
         if tieType != 'Aud' or tieType != 'Vid' or tieType != 'AV':
@@ -131,7 +143,7 @@ class Destination:
             
         # Source Control Buttons
         self._AdvCtlBtn.SetVisible(False)
-        self._AdvCtlBtn.Enabled(False)
+        self._AdvCtlBtn.SetEnable(False)
         
         @event(self._AdvCtlBtn, 'Pressed')
         def advSrcCtrHandler(button, action):
@@ -172,36 +184,37 @@ class Destination:
         
         # Destination Alert Buttons
         self._AdvAlertBtn.SetVisible(False)
-        self._AdvAlertBtn.Enabled(False)
+        self._AdvAlertBtn.SetEnable(False)
         
         @event(self._AdvAlertBtn, 'Pressed')
         def destAlertHandler(button, action):
             vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
             self.SourceController.UIHost.ShowPopup('Modal-SrcErr')
             
-        @Timer(2)
-        def SourceAlertHandler(timer, count) -> None:
+        def _SourceAlertHandler(timer, count) -> None:
             # Does current source for this destination have an alert flag
             if self.AssignedSource.AlertFlag:
                 self._AdvAlertBtn.SetVisible(True)
-                self._AdvAlertBtn.Enabled(True)
+                self._AdvAlertBtn.SetEnable(True)
                 self._AdvAlertBtn.SetBlinking('Medium', [0,1])
                 if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
                     vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
             else:
                 self._AdvAlertBtn.SetVisible(False)
-                self._AdvAlertBtn.Enabled(False)
+                self._AdvAlertBtn.SetEnable(False)
                 self._AdvAlertBtn.SetState(1)
                 if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
                     vars.TP_Lbls['SourceAlertLabel'] = ''
         
+        self._AlertTimer = Timer(2, _SourceAlertHandler)
+        
         # Screen Control Buttons
         if self._type == "proj+scn":
             self._AdvScnBtn.SetVisible(True)
-            self._AdvScnBtn.Enabled(True)
+            self._AdvScnBtn.SetEnable(True)
         else:
             self._AdvScnBtn.SetVisible(False)
-            self._AdvScnBtn.Enabled(False)
+            self._AdvScnBtn.SetEnable(False)
             
         @event(self._AdvScnBtn, 'Pressed')
         def destScnHandler(button, action):
@@ -213,13 +226,15 @@ class Destination:
     def UpdateAdvUI(self) -> None:
         curSource = self.SourceController.SelectedSource
         
-        self._AdvSelectBtn.SetText(curSource.Name)
+        if self._AdvSelectBtn != None:
+            self._AdvSelectBtn.SetText(curSource.Name)
         
-        if curSource.advSrcCtl == None:
-            self._AdvCtlBtn.SetVisible(False)
-            self._AdvCtlBtn.Enabled(False)
-        else:
-            self._AdvCtlBtn.SetVisible(True)
-            self._AdvCtlBtn.Enabled(True)
+        if self._AdvCtlBtn != None:
+            if curSource._advSourceControlPage == None:
+                self._AdvCtlBtn.SetVisible(False)
+                self._AdvCtlBtn.SetEnable(False)
+            else:
+                self._AdvCtlBtn.SetVisible(True)
+                self._AdvCtlBtn.SetEnable(True)
             
         # TODO: Update other Adv UI Buttons

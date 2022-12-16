@@ -8,7 +8,7 @@ activityMode = 3              # Activity mode popup to display
    # 3 - Share, Adv. Share, and Group Work
 startupTimer = 10             # Max startup timer duration
 switchTimer = 20              # Max switch timer duration
-shutdownTimer = 30,           # Max shutdown timer duration
+shutdownTimer = 30            # Max shutdown timer duration
 shutdownConfTimer = 30        # Shutdown confirmation duration
 activitySplashTimer = 15      # Duration to show activity splash pages for
 defaultSource = "PC001"       # Default source id on activity switch

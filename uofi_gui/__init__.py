@@ -1,1 +1,1 @@
-__all__ = ["activityControls", "sourceControls"]
+__all__ = ["activityControls", "sourceControls", "pinControl"]

@@ -26,7 +26,7 @@ import re
 #### Custom Code Modules
 import utilityFunctions as utFn
 import settings
-from uofi_gui.sourceControls import SourceController, MatrixTuple
+# from uofi_gui.sourceControls import SourceController, MatrixTuple
 
 #### Extron Global Scripter Modules
 
@@ -36,7 +36,7 @@ from uofi_gui.sourceControls import SourceController, MatrixTuple
 
 class MatrixController:
     def __init__(self,
-                 srcCtl: SourceController,
+                 srcCtl, #: SourceController,
                  matrixBtns: List[Button],
                  matrixCtls: MESet,
                  matrixDelAll: Button,
@@ -48,17 +48,10 @@ class MatrixController:
         matrixRows = {}
         for btn in matrixBtns:
             row = btn.Name[-1]
-            if type(matrixRows[row]) != List:
+            if row not in matrixRows:
                 matrixRows[row] = [btn]
             else:
                 matrixRows[row].append(btn)
-
-        self._rows = {}
-        for r in matrixRows:
-            self._rows[int(r)] = MatrixRow(self, matrixRows[r], int(r))
-        
-        for dest in self.SourceController.Destinations:
-            dest._MatrixRow = self._rows[dest.Output]
             
         self._ctls = matrixCtls
         self._del = matrixDelAll
@@ -70,6 +63,13 @@ class MatrixController:
             'Vid': 1,
             'untie': 0
         }
+        
+        self._rows = {}
+        for r in matrixRows:
+            self._rows[int(r)] = MatrixRow(self, matrixRows[r], int(r))
+        
+        for dest in self.SourceController.Destinations:
+            dest._MatrixRow = self._rows[dest.Output]
         
         @event(self._ctls.Objects, 'Pressed')
         def matrixModeHandler(button: Button, action: str):
@@ -84,7 +84,7 @@ class MatrixController:
         
         @event(self._del, 'Pressed')
         def matrixDelAllTiesHandler(button: Button, action: str):
-            for row in self._rows:
+            for row in self._rows.values():
                 for btn in row.Objects:
                     btn.SetState(0)
 
@@ -117,7 +117,7 @@ class MatrixRow:
             regex = r"Tech-Matrix-(\d+),(\d+)"
             re_match = re.match(regex, btn.Name)
             # 0 is full match, 1 is input, 2 is output
-            btn.Input = re_match.group(1)
+            btn.Input = int(re_match.group(1))
         
         @event(self.Objects, 'Pressed')
         def matrixSelectHandler(button: Button, action: str):

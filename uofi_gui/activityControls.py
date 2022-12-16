@@ -22,7 +22,7 @@ from typing import Dict, Tuple, List, Union, Callable
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 import utilityFunctions as utFn
-import uofi_gui.sourceControls as srcCtl
+# import uofi_gui.sourceControls as srcCtl
 import vars
 import settings
 

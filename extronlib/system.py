@@ -361,7 +361,7 @@ class MESet:
                                     extronlib.interface.SWACReceptacleInterface,
                                     extronlib.interface.SWPowerInterface,
                                     extronlib.interface.TallyInterface]) -> None:
-        if type(obj) == 'int':
+        if type(obj) == int:
             self._activeIndex = obj
         else:
             self._activeIndex = self.Objects.index(obj)

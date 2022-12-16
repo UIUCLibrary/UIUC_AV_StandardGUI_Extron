@@ -39,6 +39,7 @@ class SourceController:
     def __init__(self, 
                  UIHost: UIDevice, 
                  sourceDict: Dict[str, Union[MESet, List[Button]]],
+                 advUIList: List[Union[Button, Label]],
                  matrixDict: Dict[str, Union[List[Button], MESet, Button]],
                  sources: List,
                  destinations: List) -> None:
@@ -83,17 +84,25 @@ class SourceController:
                                                  dest['adv-layout']))
         
         self.PrimaryDestination = self.GetDestination(id = settings.primaryDestination)
-        self.SelectedSource = None
+        
         
         # Private Properties
         self._sourceBtns = sourceDict['select']
         self._sourceInds = sourceDict['indicator']
         self._arrowBtns = sourceDict['arrows']
         self._offset = 0
+        self._advUI = advUIList
         self._advLayout = self.GetAdvShareLayout()
-        self._none_source = Source('none', 'None', 0, 0)
-        self._DisplaySrcList = self.UpdateDisplaySourceList()
-        self._Matrix = MatrixController(self, matrixDict['btns'], matrixDict['ctls'], matrixDict['del'])
+        self._none_source = Source('none', 'None', 0, 0, 0, '')
+        self.SelectedSource = self._none_source
+        self._DisplaySrcList = None
+        self.UpdateDisplaySourceList()
+        self._Matrix = MatrixController(self, 
+                                        matrixDict['btns'], 
+                                        matrixDict['ctls'], 
+                                        matrixDict['del'], 
+                                        matrixDict['labels']['input'], 
+                                        matrixDict['labels']['output'])
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
             dest.AssignAdvUI(self._GetUIForAdvDest(dest))
@@ -113,7 +122,7 @@ class SourceController:
 
             # advanced share doesn't switch until destination has been selected
             # all other activities switch immediately
-            if vars.ActCtl.CurrentActivity != "adv_share": 
+            if vars.ActCtl != None and vars.ActCtl.CurrentActivity != "adv_share": 
                 self.SwitchSources(self.SelectedSource)
                 # TODO: Format Source Control Popup
                 page = self.SelectedSource._sourceControlPage 
@@ -159,16 +168,29 @@ class SourceController:
             raise LookupError("Provided Destination Object ({}) not found in Destinations."
                             .format(dest.Name))
         
-        try:           
-            destDict['select'] = vars.TP_Btns['Disp-Select-{p},{r}'.format(p = location.Pos, r = location.Row)]
-            destDict['ctl'] = vars.TP_Btns['Disp-Ctl-{p},{r}'.format(p = location.Pos, r = location.Row)]
-            destDict['aud'] = vars.TP_Btns['Disp-Aud-{p},{r}'.format(p = location.Pos, r = location.Row)]
-            destDict['alert'] = vars.TP_Btns['Disp-Alert-{p},{r}'.format(p = location.Pos, r = location.Row)]
-            destDict['scn'] = vars.TP_Btns['Disp-Scn-{p},{r}'.format(p = location.Pos, r = location.Row)]
-            destDict['label'] = vars.TP_Lbls['DispAdv-{p},{r}'.format(p = location.Pos, r = location.Row)]
-            return destDict
-        except:
-            raise KeyError("At least one destination button not found.")
+        for item in self._advUI:
+            if item.Name == 'Disp-Select-{p},{r}'.format(p = location.Pos, r = location.Row):
+                destDict['select'] = item
+            if item.Name == 'Disp-Ctl-{p},{r}'.format(p = location.Pos, r = location.Row):
+                destDict['ctl'] = item
+            if item.Name == 'Disp-Aud-{p},{r}'.format(p = location.Pos, r = location.Row):
+                destDict['aud'] = item
+            if item.Name == 'Disp-Alert-{p},{r}'.format(p = location.Pos, r = location.Row):
+                destDict['alert'] = item
+            if item.Name == 'Disp-Scn-{p},{r}'.format(p = location.Pos, r = location.Row):
+                destDict['scn'] = item
+            if item.Name == 'DispAdv-{p},{r}'.format(p = location.Pos, r = location.Row):
+                destDict['label'] = item
+            if len(destDict) == 6:
+                # for d in destDict.values():
+                #     self._advUI.remove(d)
+                break
+        
+        if len(destDict) < 6:
+            raise KeyError("At least one destination button not found. ({}, {})".format(location, destDict))
+        
+        return destDict
+            
     
     def _GetPositionByBtnName(self, btnName: str) -> LayoutTuple:
         btnLoc = btnName[-3:]
@@ -179,7 +201,7 @@ class SourceController:
         layout = {}
         for dest in self.Destinations:
             r = str(dest.AdvLayoutPosition.Row)
-            if type(layout[r]) == type([]):
+            if r in layout:
                 layout[r].append(dest)
             else:
                 layout[r] = [dest]
@@ -187,7 +209,7 @@ class SourceController:
         rows = []
         i = 0
         while i < len(layout.keys()):
-            rows.append(len(layout[str(i)]))
+            rows.append(str(len(layout[str(i)])))
             i += 1
             
         return "Source-Control-Adv_{}".format(",".join(rows))
@@ -232,7 +254,7 @@ class SourceController:
                 if src.Id == id:
                     return src
         if name != None:
-            for src in self.Source:
+            for src in self.Sources:
                 if src.Name == name:
                     return src
     
@@ -275,10 +297,10 @@ class SourceController:
             List: The list of currently displayable source definitions
         """    
         srcList = []
-        srcNone = {"id": "none", "name": "None", "icon": 0, "input": 0}
         
-        if vars.ActCtl.CurrentActivity == 'adv_share':
-            srcList.append(self._none_source)
+        if type(vars.ActCtl) is not type(None):
+            if vars.ActCtl.CurrentActivity == 'adv_share':
+                srcList.append(self._none_source)
         srcList.extend(self.Sources)
         
         self._DisplaySrcList = srcList
@@ -295,7 +317,7 @@ class SourceController:
             offState = int('{}0'.format(self._DisplaySrcList[offsetIter].Icon))
             onState = int('{}1'.format(self._DisplaySrcList[offsetIter].Icon))
             self._sourceBtns.SetStates(btn, offState, onState)
-            btn.SetText[self._DisplaySrcList[offsetIter].Name]
+            btn.SetText(self._DisplaySrcList[offsetIter].Name)
             offsetIter += 1
             
         if len(self._DisplaySrcList) <= 5:
@@ -303,23 +325,23 @@ class SourceController:
         else:
             # enable/disable previous arrow
             if self._offset == 0:
-                self._arrowBtns[0].setEnable(False)
+                self._arrowBtns[0].SetEnable(False)
                 self._arrowBtns[0].SetState(2)
             else:
-                self._arrowBtns[0].setEnable(True)
+                self._arrowBtns[0].SetEnable(True)
                 self._arrowBtns[0].SetState(0)
             # enable/disable next arrow
             if (self._offset + 5) >= len(self._DisplaySrcList):
-                self._arrowBtns[1].setEnable(False)
+                self._arrowBtns[1].SetEnable(False)
                 self._arrowBtns[1].SetState(2)
             else:
-                self._arrowBtns[1].setEnable(True)
+                self._arrowBtns[1].SetEnable(True)
                 self._arrowBtns[1].SetState(0)
             
             self.UIHost.ShowPopup('Menu-Source-5+')
             
         # reset currently selected source
-        currentSourceIndex = self.GetSourceIndexByID(vars.ActCtl.CurrentActivity)
+        currentSourceIndex = self.GetSourceIndexByID(self.SelectedSource.Id)
         
         btnIndex = currentSourceIndex - self._offset
         if btnIndex > 4:
@@ -371,32 +393,54 @@ class SourceController:
         
         if type(src) == str:
             srcObj = self.GetSource(id = src, name = src)
+            if srcObj == None:
+                raise KeyError("No source object found for ID/Name: {} {}".format(src, type(src)))
             srcNum = srcObj.Input
         elif type(src) == Source:
+            srcObj = src
             srcNum = src.Input
         elif type(src) == int:
+            srcObj = None
             srcNum = int
         else:
             raise TypeError("Source must be a source object, source name string, source Id string, or switcher input integer")
+        
         # TODO: Update Matrix (send matrix tie commands to the matrix rows being affected)
         if type(dest) == str and dest == 'All':
             for d in self.Destinations:
-                d.AssignSource(None)
-                d.AssignMatrix(srcNum, mode)
+                if srcObj == None:
+                    d.AssignMatrix(srcNum, mode)
+                else:
+                    d.AssignSource(srcObj)
             # TODO: send source change command
+        # DEBUG: check the below settings for consistency of assignment to the destination objects
+        # I suspect there are issues with the AssignSource calls when in a mode other than 'AV'
         elif type(dest) == List:
             for d in dest:
                 if type(d) == Destination:
-                    d.AssignSource(None)
-                    d.AssignMatrix(srcNum, mode)
+                    if srcObj == None:
+                        d.AssignMatrix(srcNum, mode)
+                    else:
+                        d.AssignSource(srcObj)
                     # TODO: send source change command
                 elif type(d) == str:
                     destObj = self.GetDestination(id = d, name = d)
-                    destObj.AssignSource(srcObj)
+                    if srcObj == None:
+                        destObj.AssignMatrix(srcNum, mode)
+                    else:
+                        destObj.AssignSource(srcObj)
                     # TODO: send source change command
                 elif type(d) == int:
+                    destObj = None
+                    for d2 in self.Destinations:
+                        if d == d2.Output:
+                            destObj = d2
+                    if destObj != None:
+                        if srcObj == None:
+                            destObj.AssignMatrix(srcNum, mode)
+                        else:
+                            destObj.AssignSource(srcObj)
                     # TODO: send source change command
-                    pass
             
     # def GetSourceByAdvShareLoc(self, location: LayoutTuple) -> str:
     #     for dest in settings.destinations:

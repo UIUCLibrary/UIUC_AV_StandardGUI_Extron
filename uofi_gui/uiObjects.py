@@ -21,7 +21,7 @@ from typing import Dict, Tuple, List, Union, Callable
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-
+import vars
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
@@ -85,7 +85,8 @@ def BuildButtons(UIHost: UIDevice,
             btnDict[button['Name']] = Button(UIHost, button['ID'],
                                                 holdTime = button['holdTime'],
                                                 repeatTime = button['repeatTime'])
-    
+        if vars.TESTING:
+            btnDict[button['Name']].Name = button['Name']
     ## return btnDict
     return btnDict
 
@@ -218,6 +219,9 @@ def BuildLevels(UIHost: UIDevice,
     ## format level info into lvlDict
     for lvl in jsonObj['levels']:
         lvlDict[lvl['Name']] = Level(UIHost, lvl['ID'])
+        
+        if vars.TESTING:
+            lvlDict[lvl['Name']].Name = lvl['Name']
     
     ## return lvlDict
     return lvlDict
@@ -260,6 +264,9 @@ def BuildSliders(UIHost: UIDevice,
     ## format slider info into sliderDict
     for slider in jsonObj['sliders']:
         sliderDict[slider['Name']] = Slider(UIHost, slider['ID'])
+        
+        if vars.TESTING:
+            sliderDict[slider['Name']].Name = slider['Name']
     
     ## return sliderDict
     return sliderDict
@@ -302,13 +309,11 @@ def BuildLabels(UIHost: UIDevice,
     ## format label info into labelDict
     for lbl in jsonObj['labels']:
         labelDict[lbl['Name']] = Label(UIHost, lbl['ID'])
+        
+        if vars.TESTING:
+            labelDict[lbl['Name']].Name = lbl['Name']
     
     ## return labelDict
     return labelDict
 
 ## End Function Definitions ----------------------------------------------------
-##
-## Begin Script Definition -----------------------------------------------------
-if __name__ == "__main__": ## this module does not run as a script
-    pass
-## End Script Definition -------------------------------------------------------

@@ -80,9 +80,10 @@ class PINController:
         
         self.maskPIN()
 
-        @event(pinBtns['numPad'], 'Pressed')
+        @event(self._pinPadBtns['numPad'], 'Pressed')
         def UpdatePIN(button, action):
-            val = button['ID'] - 9000
+            print(type(button))
+            val = button.ID - 9000
                 # pin button IDs should start at 9000 and be in numerical order
             self._currentPIN = self._currentPIN + str(val)
             self.maskPIN() #remask pin after change
