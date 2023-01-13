@@ -2,10 +2,10 @@ import unittest
 
 ## test imports ----------------------------------------------------------------
 import extronlib.device
-import uofi_gui.uiObjects as ui
+import uofi_gui.uiObjects as UI
 ## -----------------------------------------------------------------------------
 
-class GUIControl_BuiltButtons_TestClass(unittest.TestCase): 
+class UIObjects_BuiltButtons_TestClass(unittest.TestCase): 
     def setUp(self) -> None:
         self.Host = extronlib.device.UIDevice('TP001')
         self.test_dict = \
@@ -47,25 +47,25 @@ class GUIControl_BuiltButtons_TestClass(unittest.TestCase):
         self.test_bad_path = 'no_such_file.json'
     
     def test_BuildButtons_Path(self):
-        btnDict = ui.BuildButtons(self.Host, jsonPath=self.test_path)
+        btnDict = UI.BuildButtons(self.Host, jsonPath=self.test_path)
         self.assertEqual(type(btnDict), type({}))
 
     def test_BuildButtons_Dict(self):
-        btnDict = ui.BuildButtons(self.Host, jsonObj=self.test_dict)
+        btnDict = UI.BuildButtons(self.Host, jsonObj=self.test_dict)
         print(btnDict)
         self.assertEqual(type(btnDict), type({}))
         
     def test_BuildButtons_BadPath(self):
         with self.assertRaises(ValueError, msg='Specified file does not exist'):
-            ui.BuildButtons(self.Host, jsonPath=self.test_bad_path)
+            UI.BuildButtons(self.Host, jsonPath=self.test_bad_path)
             
     def test_BuildButtons_NoDict(self):
         with self.assertRaises(ValueError, msg='Either jsonObj or jsonPath must be specified'):
-            ui.BuildButtons(self.Host)
+            UI.BuildButtons(self.Host)
             
     def test_BuildButtons_BadHost(self):
         with self.assertRaises(TypeError, msg='UIHost must be an extronlib.device.UIDevice object'):
-            ui.BuildButtons('host', jsonPath=self.test_path)
+            UI.BuildButtons('host', jsonPath=self.test_path)
     
 if __name__ == '__main__':
     unittest.main()

@@ -24,7 +24,7 @@ from uofi_gui.activityControls import ActivityController
 from uofi_gui.pinControl import PINController
 from uofi_gui.uiObjects import (BuildButtons, BuildButtonGroups, BuildKnobs,
                                 BuildLabels, BuildLevels, BuildSliders)
-from uofi_gui.sourceControls import SourceController
+from uofi_gui.sourceControls import SourceController, ACTIVITY_CONTROLLER
 
 
 import utilityFunctions as utFn
@@ -72,7 +72,7 @@ vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath='controls.json')
 def StartupActions() -> None:
     pass
 
-def StartUpSyncedActions(count: int) -> None:
+def StartupSyncedActions(count: int) -> None:
     pass
 
 def SwitchActions() -> None:
@@ -100,7 +100,7 @@ def Initialize() -> bool:
             "count": vars.TP_Lbls['PowerTransLabel-Count'],
             "start": {
                 "init": StartupActions,
-                "sync": StartUpSyncedActions
+                "sync": StartupSyncedActions
               },
             "switch": {
                 "init": SwitchActions,
@@ -286,6 +286,7 @@ def Initialize() -> bool:
                                    MatrixDict,
                                    settings.sources,
                                    settings.destinations)
+    SOURCE_CONTROLLER = vars.SrcCtl
     
     #### Activity Control Module
     vars.ActCtl = ActivityController(vars.TP_Main,
@@ -293,6 +294,7 @@ def Initialize() -> bool:
                                      TransitionDict,
                                      vars.TP_Lbls['ShutdownConf-Count'],
                                      vars.TP_Lvls['ShutdownConfIndicator'])
+    ACTIVITY_CONTROLLER = vars.ActCtl
     
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     

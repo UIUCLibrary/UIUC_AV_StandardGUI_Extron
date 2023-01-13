@@ -26,12 +26,13 @@ from uofi_gui.sourceControls.IO import RelayTuple, LayoutTuple, MatrixTuple, Sou
 from uofi_gui.sourceControls.matrix import MatrixController, MatrixRow
 
 import utilityFunctions
-import vars
 import settings
 
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
+##
+ACTIVITY_CONTROLLER = None
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
@@ -122,7 +123,7 @@ class SourceController:
 
             # advanced share doesn't switch until destination has been selected
             # all other activities switch immediately
-            if vars.ActCtl != None and vars.ActCtl.CurrentActivity != "adv_share": 
+            if ACTIVITY_CONTROLLER != None and ACTIVITY_CONTROLLER.CurrentActivity != "adv_share": 
                 self.SwitchSources(self.SelectedSource)
                 # TODO: Format Source Control Popup
                 page = self.SelectedSource._sourceControlPage 
@@ -298,8 +299,8 @@ class SourceController:
         """    
         srcList = []
         
-        if type(vars.ActCtl) is not type(None):
-            if vars.ActCtl.CurrentActivity == 'adv_share':
+        if type(ACTIVITY_CONTROLLER) is not type(None):
+            if ACTIVITY_CONTROLLER.CurrentActivity == 'adv_share':
                 srcList.append(self._none_source)
         srcList.extend(self.Sources)
         
@@ -314,11 +315,14 @@ class SourceController:
         
         offsetIter = self._offset
         for btn in self._sourceBtns.Objects:
-            offState = int('{}0'.format(self._DisplaySrcList[offsetIter].Icon))
-            onState = int('{}1'.format(self._DisplaySrcList[offsetIter].Icon))
-            self._sourceBtns.SetStates(btn, offState, onState)
-            btn.SetText(self._DisplaySrcList[offsetIter].Name)
-            offsetIter += 1
+            if offsetIter < len(self._DisplaySrcList):
+                offState = int('{}0'.format(self._DisplaySrcList[offsetIter].Icon))
+                onState = int('{}1'.format(self._DisplaySrcList[offsetIter].Icon))
+                self._sourceBtns.SetStates(btn, offState, onState)
+                btn.SetText(self._DisplaySrcList[offsetIter].Name)
+                offsetIter += 1
+            else:
+                break
             
         if len(self._DisplaySrcList) <= 5:
             self.UIHost.ShowPopup('Menu-Source-{}'.format(len(self._DisplaySrcList)))
@@ -457,8 +461,10 @@ class SourceController:
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-
+def UpdateActivityController(ActCtl):
+    ACTIVITY_CONTROLLER = ActCtl
     
+
 # def SourceNameToIndex(name: str, srcList: List = settings.sources) -> int:
 #     """Get Source Index from Name. Will fail for the 'none' source if using
 #     config.sources.

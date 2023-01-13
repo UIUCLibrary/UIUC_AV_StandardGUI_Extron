@@ -23,12 +23,13 @@ from typing import Dict, Tuple, List, Union, Callable
 #### Custom Code Modules
 import utilityFunctions as utFn
 # import uofi_gui.sourceControls as srcCtl
-import vars
 import settings
 
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
+##
+SOURCE_CONTROLLER = None
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
@@ -157,9 +158,9 @@ class ActivityController:
                 if self.CurrentActivity == 'share' or self.CurrentActivity == 'group-work':
                     @Wait(self.splashTime) 
                     def activitySplash():
-                        page = vars.SrcCtl.SelectedSource._sourceControlPage 
+                        page = SOURCE_CONTROLLER.SelectedSource._sourceControlPage 
                         if page == 'PC':
-                            page = '{p}_{c}'.format(p=page, c=len(vars.cameras))
+                            page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
                         self.UIHost.ShowPopup("Source-Control-{}".format(page))
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -243,8 +244,8 @@ class ActivityController:
         self._startTimer.Restart()
 
         # STARTUP ONLY ITEMS HERE - function in main
-        vars.SrcCtl.SelectSource(settings.defaultSource)
-        vars.SrcCtl.SwitchSources(vars.SrcCtl.SelectedSource, 'All')
+        SOURCE_CONTROLLER.SelectSource(settings.defaultSource)
+        SOURCE_CONTROLLER.SwitchSources(SOURCE_CONTROLLER.SelectedSource, 'All')
         self._transition['start']['init']()
         
     def SystemSwitch(self, activity: str) -> None:
@@ -267,10 +268,10 @@ class ActivityController:
         if activity == "share":
             self.UIHost.HidePopupGroup('Activity-Controls')
             # get input assigned to the primaryDestination
-            curSrc = vars.SrcCtl.PrimaryDestination.AssignedSource
+            curSrc = SOURCE_CONTROLLER.PrimaryDestination.AssignedSource
             
             # update source selection to match primaryDestination
-            for dest in vars.SrcCtl.Destinations:
+            for dest in SOURCE_CONTROLLER.Destinations:
                 if dest.AssignedSource != curSrc:
                     dest.AssignSource(curSrc)
             
@@ -283,7 +284,7 @@ class ActivityController:
         elif activity == "adv_share":
             self.UIHost.ShowPopup("Activity-Control-AdvShare")
             
-            self.UIHost.ShowPopup(vars.SrcCtl.GetAdvShareLayout())
+            self.UIHost.ShowPopup(SOURCE_CONTROLLER.GetAdvShareLayout())
             # TODO: get inputs assigned to destination outputs, update destination
             # buttons for these assignments
             self.UIHost.ShowPopup("Audio-Control-{}".format(settings.micCtl))
@@ -291,10 +292,10 @@ class ActivityController:
         elif  activity == "group_work":
             self.UIHost.ShowPopup("Activity-Control-Group")
             self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
-            for dest in vars.SrcCtl.Destinations:
-                vars.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
+            for dest in SOURCE_CONTROLLER.Destinations:
+                SOURCE_CONTROLLER.SwitchSources(dest.GroupWorkSource, [dest])
             
-        vars.SrcCtl.ShowSelectedSource()
+        SOURCE_CONTROLLER.ShowSelectedSource()
 
     def SystemShutdown(self) -> None:
         self.CurrentActivity = 'off'
@@ -315,6 +316,8 @@ class ActivityController:
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+def UpdateSourceContoller(SrcCtl):
+    SOURCE_CONTROLLER = SrcCtl
 
 ## End Function Definitions ----------------------------------------------------
 

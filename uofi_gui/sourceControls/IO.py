@@ -30,9 +30,9 @@ class Source:
                  name: str,
                  icon: int,
                  input: int,
-                 alert: int,
-                 srcCtl: str=None,
-                 advSrcCtl: str=None) -> None:
+                 alert: str='',
+                 srcCtlPg: str=None,
+                 advSrcCtlPg: str=None) -> None:
         
         self.SourceController = SrcCtl
         self.Id = id
@@ -43,8 +43,8 @@ class Source:
         self.AlertFlag = False
         
         self._defaultAlert = alert
-        self._sourceControlPage = srcCtl
-        self._advSourceControlPage = advSrcCtl
+        self._sourceControlPage = srcCtlPg
+        self._advSourceControlPage = advSrcCtlPg
         
     def AppendAlert(self, msg: str, raiseFlag: bool=False) -> None:
         self.AlertText = "{existing}\n{append}".format(existing = self.AlertText, append = msg)

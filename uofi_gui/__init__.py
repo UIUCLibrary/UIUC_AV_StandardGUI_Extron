@@ -1,1 +1,1 @@
-__all__ = ["activityControls", "sourceControls", "pinControl"]
+__all__ = ["activityControls", "sourceControls", "pinControl", "uiObjects"]
