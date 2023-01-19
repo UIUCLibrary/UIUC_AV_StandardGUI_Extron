@@ -17,12 +17,19 @@ print(Version()) ## Sanity check ControlScript Import
 from datetime import datetime
 import json
 from typing import Dict, Tuple, List, Union, Callable
+'''
+Since we can't load modules through Global Scripter directly, we will instead
+upload modules to the SFTP path on the controller. Create a new directory at
+the root of the SFTP called 'modules' and upload modules there. Modules in this
+directory may be imported after the sys.path.import call. 
+'''
+import sys
+sys.path.insert(0, "/var/nortxe/uf/admin/modules/")
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions as utFn
-import uofi_gui.sourceControls as srcCtl
+import utilityFunctions
 import vars
 import settings
 
@@ -167,7 +174,7 @@ class ActivityController:
     def _ConfimationHandler(self, timer: Timer, count: int) -> None:
         timeTillShutdown = self.confirmationTime - count
 
-        self._confTimeLbl.SetText(utFn.TimeIntToStr(timeTillShutdown))
+        self._confTimeLbl.SetText(utilityFunctions.TimeIntToStr(timeTillShutdown))
         self._confTimeLvl.SetLevel(count)
         if count >= self.confirmationTime:
             timer.Stop()
@@ -177,7 +184,7 @@ class ActivityController:
             timeRemaining = self.startupTime - count
 
             self._transition['count'].SetText(
-                utFn.TimeIntToStr(timeRemaining))
+                utilityFunctions.TimeIntToStr(timeRemaining))
             self._transition['level'].SetLevel(count)
 
             # TIME SYNCED SWITCH ITEMS HERE - function in main
@@ -195,7 +202,7 @@ class ActivityController:
         timeRemaining = self.switchTime - count
 
         self._transition['count'].SetText(
-            utFn.TimeIntToStr(timeRemaining))
+            utilityFunctions.TimeIntToStr(timeRemaining))
         self._transition['level'].SetLevel(count)
 
         # TIME SYNCED SWITCH ITEMS HERE - function in Main
@@ -213,7 +220,7 @@ class ActivityController:
     def _ShutdownTimerHandler(self, timer: Timer, count: int) -> None:
         timeRemaining = self.shutdownTime - count
 
-        self._transition['count'].SetText(utFn.TimeIntToStr(timeRemaining))
+        self._transition['count'].SetText(utilityFunctions.TimeIntToStr(timeRemaining))
         self._transition['level'].SetLevel(count)
 
         # TIME SYNCED SHUTDOWN ITEMS HERE - function in main

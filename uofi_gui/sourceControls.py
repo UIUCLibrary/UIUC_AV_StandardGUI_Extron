@@ -17,15 +17,15 @@ print(Version()) ## Sanity check ControlScript Import
 from datetime import datetime
 import json
 from typing import Dict, Tuple, List, Callable, Union
+from collections import namedtuple
+import re
 
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from uofi_gui.sourceControls.IO import RelayTuple, LayoutTuple, MatrixTuple, Source, Destination
-from uofi_gui.sourceControls.matrix import MatrixController, MatrixRow
 
-import utilityFunctions
+#import utilityFunctions
 import vars
 import settings
 
@@ -34,7 +34,211 @@ import settings
 ## End User Import -------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
+RelayTuple = namedtuple('RelayTuple', ['Up', 'Down'])
+LayoutTuple = namedtuple('LayoutTuple', ['Row', 'Pos'])
+MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
+
+class Source:
+    def __init__(self,
+                 SrcCtl, #: SourceController,
+                 id: str,
+                 name: str,
+                 icon: int,
+                 input: int,
+                 alert: int,
+                 srcCtl: str=None,
+                 advSrcCtl: str=None) -> None:
+        
+        self.SourceController = SrcCtl
+        self.Id = id
+        self.Name = name
+        self.Icon = icon
+        self.Input = input
+        self.AlertText = alert
+        self.AlertFlag = False
+        
+        self._defaultAlert = alert
+        self._sourceControlPage = srcCtl
+        self._advSourceControlPage = advSrcCtl
+        
+    def AppendAlert(self, msg: str, raiseFlag: bool=False) -> None:
+        self.AlertText = "{existing}\n{append}".format(existing = self.AlertText, append = msg)
+        if raiseFlag:
+            self.AlertFlag = True
+        
+    def OverrideAlert(self, msg: str, raiseFlag: bool=False) -> None:
+        self.AlertText = msg
+        if raiseFlag:
+            self.AlertFlag = True
+        
+    def ResetAlert(self, raiseFlag: bool=False) -> None:
+        self.AlertText = self._defaultAlert
+        if raiseFlag:
+            self.AlertFlag = True
+        
+class Destination:
+    def __init__(self,
+                 SrcCtl, #: SourceController,
+                 id: str,
+                 name: str,
+                 output: int,
+                 destType: str,
+                 rly: List,
+                 groupWrkSrc: str,
+                 advLayout: Dict[str, int]) -> None:
+        
+        self.SourceController = SrcCtl
+        self.Id = id
+        self.Name = name
+        self.Output = output
+        self.AdvLayoutPosition = LayoutTuple(Row=advLayout['row'], Pos=advLayout['pos'])
+        self.AssignedSource = None
+        self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
+        
+        self._type = destType
+        self._relay = RelayTuple(Up=rly[0], Down=rly[1])
+        self._AssignedVidInput = 0
+        self._AssignedAudInput = 0
+        self._AdvSelectBtn = None
+        self._AdvCtlBtn = None
+        self._AdvAudBtn = None
+        self._AdvAlertBtn = None
+        self._AdvScnBtn = None
+        self._MatrixRow = None
+        
+    def AssignSource(self, source: Source) -> None:
+        self.AssignedSource = source
+        self._AssignedVidInput = source.Input
+        self._AssignedAudInput = source.Input
+        self.UpdateAdvUI()
+        
+    def AssignMatrix(self, input: int, tieType: str='AV') -> None:
+        if tieType != 'Aud' or tieType != 'Vid' or tieType != 'AV':
+            raise ValueError("TieType must either be 'AV', 'Aud', or 'Vid'")
+        self.AssignedSource = None
+        self.UpdateAdvUI()
+        if tieType == 'Vid' or tieType == 'AV':
+            self._AssignedVidInput = input
+        if tieType == 'Aud' or tieType == 'AV':
+            self._AssignedAudInput = input
+            
+    def GetMatrix(self) -> None:
+        return MatrixTuple(Vid=self._AssignedVidInput, Aud=self._AssignedAudInput)
+    
+    def AssignAdvUI(self, ui: Dict[str, Union[Button, Label]]) -> None:
+        self._AdvSelectBtn = ui['select']
+        self._AdvCtlBtn = ui['ctl']
+        self._AdvAudBtn = ui['aud']
+        self._AdvAlertBtn = ui['alert']
+        self._AdvScnBtn = ui['scn']
+        self._AdvLabel = ui['label']
+        
+        # set distination label text
+        self._AdvLabel.SetText(self.Name)
+        
+        # clear selected source text
+        self._AdvSelectBtn.SetText("") 
+        
+        @event(self._AdvSelectBtn, 'Pressed')
+        def advSelectHandler(button, action):
+            curSource = self.SourceController.SelectedSource
+            self.SourceController.SwitchSources(curSource, [self])
+            self.UpdateAdvUI()
+            
+        # Source Control Buttons
+        self._AdvCtlBtn.SetVisible(False)
+        self._AdvCtlBtn.Enabled(False)
+        
+        @event(self._AdvCtlBtn, 'Pressed')
+        def advSrcCtrHandler(button, action):
+            # configure source control page
+            # TODO: configure the source control page
+            
+            # show source control page
+            self.SourceController.UIHost.ShowPage(self.AssignedSource._advSourceControlPage)
+        
+        # Destination Audio Buttons
+        self._AdvAudBtn.SetState(1)
+        
+        @event(self._AdvAudBtn, ['Tapped', 'Released'])
+        def advAudHandler(button, action):
+            if action == "Tapped":
+                # TODO: handle system audio changes
+                if button.State == 0: # system audio unmuted
+                    pass # deselect this destination as the system audio follow
+                elif button.State == 1: # system audio muted
+                    pass # select this destination as the system audio follow, deselect any other destination as the system audio follow
+                elif button.State == 2: # local audio unmuted
+                    pass # mute local audio
+                elif button.State == 3: # local audio muted
+                    pass # unmute local audio
+            elif action == "Released":
+                if (button.State == 0 or button.State == 1) \
+                and self._type == 'mon':
+                    # TODO: if this destination is the system audio follow, unfollow
+                    muteState = 0 # TODO: get current mute state of the destination monitor
+                    if muteState:
+                        # TODO: set destination to unmute
+                        button.SetState(2)
+                    else:
+                        # TODO: set mute
+                        button.SetState(3)
+                elif (button.State == 2 or button.State == 3):
+                    button.SetState(1)
+        
+        # Destination Alert Buttons
+        self._AdvAlertBtn.SetVisible(False)
+        self._AdvAlertBtn.Enabled(False)
+        
+        @event(self._AdvAlertBtn, 'Pressed')
+        def destAlertHandler(button, action):
+            vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
+            self.SourceController.UIHost.ShowPopup('Modal-SrcErr')
+            
+        @Timer(2)
+        def SourceAlertHandler(timer, count) -> None:
+            # Does current source for this destination have an alert flag
+            if self.AssignedSource.AlertFlag:
+                self._AdvAlertBtn.SetVisible(True)
+                self._AdvAlertBtn.Enabled(True)
+                self._AdvAlertBtn.SetBlinking('Medium', [0,1])
+                if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
+                    vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
+            else:
+                self._AdvAlertBtn.SetVisible(False)
+                self._AdvAlertBtn.Enabled(False)
+                self._AdvAlertBtn.SetState(1)
+                if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
+                    vars.TP_Lbls['SourceAlertLabel'] = ''
+        
+        # Screen Control Buttons
+        if self._type == "proj+scn":
+            self._AdvScnBtn.SetVisible(True)
+            self._AdvScnBtn.Enabled(True)
+        else:
+            self._AdvScnBtn.SetVisible(False)
+            self._AdvScnBtn.Enabled(False)
+            
+        @event(self._AdvScnBtn, 'Pressed')
+        def destScnHandler(button, action):
+            # Configure Screen Control Modal
+            # TODO: Configure screen control modal
+            # Show Screen Control Modal
+            self.SourceController.UIHost.ShowPopup('Modal-ScnCtl')
+    
+    def UpdateAdvUI(self) -> None:
+        curSource = self.SourceController.SelectedSource
+        
+        self._AdvSelectBtn.SetText(curSource.Name)
+        
+        if curSource.advSrcCtl == None:
+            self._AdvCtlBtn.SetVisible(False)
+            self._AdvCtlBtn.Enabled(False)
+        else:
+            self._AdvCtlBtn.SetVisible(True)
+            self._AdvCtlBtn.Enabled(True)
+            
 class SourceController:
     def __init__(self, 
                  UIHost: UIDevice, 
@@ -398,187 +602,142 @@ class SourceController:
                     # TODO: send source change command
                     pass
             
-    # def GetSourceByAdvShareLoc(self, location: LayoutTuple) -> str:
-    #     for dest in settings.destinations:
-    #         if dest['adv-layout']['pos'] == pos \
-    #         and dest['adv-layout']['row'] == row:
-    #             srcID = GetSourceByDestination(dest['id'])
-    #     if srcID == None:
-    #         raise LookupError("Button position ({p},{r}) not found"
-    #                           .format(p = pos, r = row))
-    #     return srcID
 
+        # TODO: Update other Adv UI Buttons
+
+class MatrixController:
+    def __init__(self,
+                 srcCtl: SourceController,
+                 matrixBtns: List[Button],
+                 matrixCtls: MESet,
+                 matrixDelAll: Button,
+                 inputLabels: List[Label],
+                 outputLabels: List[Label]) -> None:
+        self.SourceController = srcCtl
+        self.Mode = 'AV'
+        
+        matrixRows = {}
+        for btn in matrixBtns:
+            row = btn.Name[-1]
+            if type(matrixRows[row]) != List:
+                matrixRows[row] = [btn]
+            else:
+                matrixRows[row].append(btn)
+
+        self._rows = {}
+        for r in matrixRows:
+            self._rows[int(r)] = MatrixRow(self, matrixRows[r], int(r))
+        
+        for dest in self.SourceController.Destinations:
+            dest._MatrixRow = self._rows[dest.Output]
+            
+        self._ctls = matrixCtls
+        self._del = matrixDelAll
+        self._inputLbls = inputLabels
+        self._outputLbls = outputLabels
+        self._stateDict = {
+            'AV': 3,
+            'Aud': 2,
+            'Vid': 1,
+            'untie': 0
+        }
+        
+        @event(self._ctls.Objects, 'Pressed')
+        def matrixModeHandler(button: Button, action: str):
+            if button.Name.endswith('AV'):
+                self.Mode = 'AV'
+            elif button.Name.endswith('Audio'):
+                self.Mode = 'Aud'
+            elif button.Name.endswith('Vid'):
+                self.Mode = 'Vid'
+            elif button.Name.endswith('Untie'):
+                self.Mode = 'untie'
+        
+        @event(self._del, 'Pressed')
+        def matrixDelAllTiesHandler(button: Button, action: str):
+            for row in self._rows:
+                for btn in row.Objects:
+                    btn.SetState(0)
+
+            self.SourceController.MatrixSwitch(self.SourceController._none_source)
+            
+        for inLbl in self._inputLbls:
+            inLbl.SetText('Not Connected')
+        for src in self.SourceController.Sources:
+            self._inputLbls[src.Input - 1].SetText(src.Name)
+            
+        for outLbl in self._outputLbls:
+            outLbl.SetText('Not Connected')
+        for dest in self.SourceController.Destinations:
+            self._outputLbls[dest.Output - 1].SetText(dest.Name)
+        
+class MatrixRow:
+    def __init__(self,
+                 Matrix: MatrixController,
+                 rowBtns: List[Button],
+                 output: int) -> None:
+        
+        self.Matrix = Matrix
+        self.MatrixOutput = output
+        self.VidSelect = 0
+        self.AudSelect = 0
+        self.Objects = rowBtns
+        
+        # Overload matrix row buttons with Input property
+        for btn in self.Objects:
+            regex = r"Tech-Matrix-(\d+),(\d+)"
+            re_match = re.match(regex, btn.Name)
+            # 0 is full match, 1 is input, 2 is output
+            btn.Input = re_match.group(1)
+        
+        @event(self.Objects, 'Pressed')
+        def matrixSelectHandler(button: Button, action: str):
+            # send switch commands
+            if self.Matrix.Mode == "untie":
+                self.Matrix.SourceController.MatrixSwitch(0, self.MatrixOutput, self.Matrix.Mode)
+            else:
+                self.Matrix.SourceController.MatrixSwitch(btn.Input, self.MatrixOutput, self.Matrix.Mode)
+            
+            # set pressed button's feedback
+            button.SetState(self.Matrix._stateDict[self.Matrix.Mode])
+            button.SetText(self.Matrix.Mode)
+            
+            self._UpdateRowBtns(button, self.Matrix.Mode)
+        
+    def _UpdateRowBtns(self, modBtn: Button, tieType: str="AV") -> None:
+        for btn in self.Objects:
+            if btn != modBtn:
+                if tieType == 'AV':
+                    btn.SetState(0) # untie everything else in output row
+                    btn.SetText('')
+                elif tieType == 'Aud':
+                    if btn.State == 2: # Button has Audio tie, untie button
+                        btn.SetState(0)
+                        btn.SetText('')
+                    elif btn.State == 3: # Button has AV tie, untie audio only
+                        btn.SetState(1)
+                        btn.SetText('Vid')
+                elif tieType == 'Vid':
+                    if btn.State == 1: # Button has Video tie, untie button
+                        btn.SetState(0)
+                        btn.SetText('')
+                    elif btn.State == 3: # Button has AV tie, untie video only
+                        btn.SetState(2)
+                        btn.SetText('Aud')
+    
+    def MakeTie(self, input: int, tieType: str="AV") -> None:
+        if not (tieType == 'AV' or tieType == 'Aud' or tieType == 'Vid'):
+            raise ValueError("TieType must be one of 'AV', 'Aud', or 'Vid'")
+        
+        modBtn = self.Objects[input]
+        modBtn.SetState(self.Matrix._stateDict[tieType])
+        modBtn.SetText(tieType)
+        
+        self._UpdateRowBtns(modBtn, tieType)
 
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
-
-
-    
-# def SourceNameToIndex(name: str, srcList: List = settings.sources) -> int:
-#     """Get Source Index from Name. Will fail for the 'none' source if using
-#     config.sources.
-
-#     Args:
-#         name (str): Source name string
-#         srcList (List, optional): List of source data. Defaults to config.sources
-    
-#     Raises:
-#         LookupError: raised if ID is not found in list
-
-#     Returns:
-#         int: Returns source dict index
-#     """    
-#     i = 0
-#     for src in srcList:
-#         if name == src['name']:
-#             return i
-#         i += 1
-#     ## if we get here then there was no valid index for the name
-#     raise LookupError("Provided name ({}) not found".format(name))
-
-# def SourceNameToID(name: str, srcList: List = settings.sources) -> str:
-#     """Get Source ID from Source Name. Will fail for the 'none' source if using
-#     config.sources
-
-#     Args:
-#         name (str): Source name string
-#         srcList (List, optional): List of source data. Defaults to config.sources
-    
-#     Raises:
-#         LookupError: raised if ID is not found in list
-
-#     Returns:
-#         str: Returns source ID string
-#     """
-    
-#     for src in srcList:
-#         if name == src['name']:
-#             return src['id']
-#         i += 1
-#     ## if we get here then there was no valid match for the name
-#     raise LookupError("Provided name ({}) not found".format(name))
-
-# def SourceIDToName(id: str, srcList: List = settings.sources) -> str:
-#     """Get Source Name from Source ID. Will fail for the 'none' source if using
-#     config.sources
-
-#     Args:
-#         id (str): Source ID string
-#         srcList (List, optional): List of source data. Defaults to config.sources
-
-#     Raises:
-#         LookupError: raised if ID is not found in list
-
-#     Returns:
-#         str: Returns source Name string
-#     """
-#     if id == "none": return "None"    
-#     for src in srcList:
-#         if id == src['id']:
-#             return src['name']
-#         i += 1
-#     ## if we get here then there was no valid match for the id and an exception should be raised
-#     raise LookupError("Provided ID ({}) not found".format(id))
-
-
-
-# def DestNameToIndex(name: str, destList: List = settings.destinations) -> int:
-#     """Get Destination Index from Name. Will fail for the 'none' destination if
-#     using config.sources.
-
-#     Args:
-#         name (str): Destination name string
-#         destList (List, optional): List of destination data. Defaults to
-#             config.destinations
-    
-#     Raises:
-#         LookupError: raised if ID is not found in list
-
-#     Returns:
-#         int: Returns destination dict index
-#     """    
-#     i = 0
-#     for dest in destList:
-#         if name == dest['name']:
-#             return i
-#         i += 1
-#     ## if we get here then there was no valid index for the name
-#     raise LookupError("Provided name ({}) not found".format(name))
-
-# def DestNameToID(name: str, destList: List = settings.destinations) -> str:
-#     """Get Destination ID from Destination Name. Will fail for the 'none'
-#     destination if using config.sources
-
-#     Args:
-#         name (str): Destination name string
-#         destList (List, optional): List of destination data. Defaults to
-#             config.destinations
-    
-#     Raises:
-#         LookupError: raised if ID is not found in list
-
-#     Returns:
-#         str: Returns destination ID string
-#     """
-    
-#     for dest in destList:
-#         if name == dest['name']:
-#             return dest['id']
-#         i += 1
-#     ## if we get here then there was no valid match for the name
-#     raise LookupError("Provided name ({}) not found".format(name))
-
-# def DestIDToName(id: str, destList: List = settings.destinations) -> str:
-#     """Get Destination Name from Destination ID. Will fail for the 'none'
-#     destination if using config.sources
-
-#     Args:
-#         id (str): Destination ID string
-#         destList (List, optional): List of destination data. Defaults to
-#             config.destinations.
-
-#     Raises:
-#         LookupError: raised if ID is not found in list
-
-#     Returns:
-#         str: Returns destination Name string
-#     """
-#     if id == "none": return "None"    
-#     for dest in destList:
-#         if id == dest['id']:
-#             return dest['name']
-#         i += 1
-#     ## if we get here then there was no valid match for the id
-#     raise LookupError("Provided ID ({}) not found".format(id))
-        
-# def GetSourceByDestination(dest: str) -> str:
-#     """Get source ID based on destination ID
-
-#     Args:
-#         dest (str): The string ID of the destination of which to find the
-#             current source
-
-#     Returns:
-#         str: The string ID of the source sent to the provided destination
-#     """    
-    
-#     # get switcher output from config.destinations for provided dest
-#     swDest = settings.destinations[DestIDToIndex(dest)]['output']
-    
-#     # get tied input for dest output
-#     #### TODO: query the switcher for input tied to swDest store as swSrc
-#     swSrc = None
-    
-#     # iterate over settings.sources to match switcher input to source
-#     for src in settings.sources:
-#         if swSrc == src['input']:
-#             # return source id string
-#             return src['id']
-    
-#     raise LookupError("Source for destination ({}) could not be found"
-#                       .format(dest))
-
 
 
 ## End Function Definitions ----------------------------------------------------
