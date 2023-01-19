@@ -16,10 +16,20 @@ print(Version()) ## Sanity check ControlScript Import
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
 import json
+
+'''
+Since we can't load modules through Global Scripter directly, we will instead
+upload modules to the SFTP path on the controller. Create a new directory at
+the root of the SFTP called 'modules' and upload modules there. Modules in this
+directory may be imported after the sys.path.import call. 
+'''
+import sys
+sys.path.insert(0, "/var/nortxe/uf/admin/modules/")
+
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
-#### Custom Code Modules
+#### Custom Code Modules (SFTP Modules)
 from uofi_gui.activityControls import ActivityController
 from uofi_gui.pinControl import PINController
 from uofi_gui.uiObjects import (BuildButtons, BuildButtonGroups, BuildKnobs,
@@ -28,6 +38,8 @@ from uofi_gui.sourceControls import SourceController, ACTIVITY_CONTROLLER
 
 
 import utilityFunctions as utFn
+
+#### System configuration modules (GS Modules)
 import settings
 import vars
 
@@ -45,21 +57,22 @@ vars.CtlProc_Main = ProcessorDevice('CTL001')
 
 vars.TP_Main = UIDevice('TP001')
 
+settings.ctlJSON = '/user/controls.json'
 #### Build Buttons & Button Groups
-vars.TP_Btns = BuildButtons(vars.TP_Main, jsonPath='controls.json')
-vars.TP_Btn_Grps = BuildButtonGroups(vars.TP_Btns, jsonPath="controls.json")
+vars.TP_Btns = BuildButtons(vars.TP_Main, jsonPath=settings.ctlJSON)
+vars.TP_Btn_Grps = BuildButtonGroups(vars.TP_Btns, jsonPath=settings.ctlJSON)
 
 #### Build Knobs
-vars.TP_Knobs = BuildKnobs(vars.TP_Main, jsonPath='controls.json')
+vars.TP_Knobs = BuildKnobs(vars.TP_Main, jsonPath=settings.ctlJSON)
 
 #### Build Levels
-vars.TP_Lvls = BuildLevels(vars.TP_Main, jsonPath='controls.json')
+vars.TP_Lvls = BuildLevels(vars.TP_Main, jsonPath=settings.ctlJSON)
 
 #### Build Sliders
-vars.TP_Slds = BuildSliders(vars.TP_Main, jsonPath='controls.json')
+vars.TP_Slds = BuildSliders(vars.TP_Main, jsonPath=settings.ctlJSON)
 
 #### Build Labels
-vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath='controls.json')
+vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath=settings.ctlJSON)
 
 ## End Device/User Interface Definition ----------------------------------------
 ##
@@ -296,9 +309,25 @@ def Initialize() -> bool:
                                      vars.TP_Lvls['ShutdownConfIndicator'])
     ACTIVITY_CONTROLLER = vars.ActCtl
     
+    #### Source Control Module
+    sourceDict = {'select': vars.SourceButtons['select'],
+                  'indicator': vars.SourceButtons['indicator'],
+                  'arrows': vars.SourceButtons['arrowBtns']
+                 }
+    matrixDict = {
+                  'btns': vars.MatrixBtns,
+                  'ctls': vars.TP_Btn_Grps['Tech-Matrix-Mode'],
+                  'del': vars.TP_Btns['Tech-Matrix-DeleteTies']
+                 }
+    vars.SrcCtl = SourceController(vars.TP_Main,
+                                   sourceDict,
+                                   matrixDict,
+                                   settings.sources,
+                                   settings.destinations)
+    
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     
-    print('System Initialized')
+    ProgramLog('System Initialized', 'info')
     return True
 
 ## End Function Definitions ----------------------------------------------------

@@ -1,6 +1,7 @@
 ##==============================================================================
 ## These are per system configuration variables, modify these as required
 
+ctlJSON = '/user/controls.json' # location of controls json file
 roomName = 'Test Room'        # Room Name - update for each project
 activityMode = 3              # Activity mode popup to display
    # 1 - Share only
