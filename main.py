@@ -34,7 +34,7 @@ from uofi_gui.activityControls import ActivityController
 from uofi_gui.pinControl import PINController
 from uofi_gui.uiObjects import (BuildButtons, BuildButtonGroups, BuildKnobs,
                                 BuildLabels, BuildLevels, BuildSliders)
-from uofi_gui.sourceControls import SourceController, ACTIVITY_CONTROLLER
+from uofi_gui.sourceControls import SourceController
 
 
 import utilityFunctions as utFn
@@ -102,6 +102,7 @@ def ShutdownSyncedActions(count: int) -> None:
 
 def Initialize() -> bool:
     #### Set initial page & room name
+    vars.TP_Main.HideAllPopups()
     vars.TP_Main.ShowPage('Splash')
     vars.TP_Btns['Room-Label'].SetText(settings.roomName)
     
@@ -135,10 +136,13 @@ def Initialize() -> bool:
               ]
         }
         
-    ActModBtns = {"select": vars.TP_Btn_Grps['Activity-Select'],
-                       "indicator": vars.TP_Btn_Grps['Activity-Indicator'],
-                       "end": vars.TP_Btns['Shutdown-EndNow'],
-                       "cancel": vars.TP_Btns['Shutdown-Cancel']}
+    ActModBtns = \
+        {
+            "select": vars.TP_Btn_Grps['Activity-Select'],
+            "indicator": vars.TP_Btn_Grps['Activity-Indicator'],
+            "end": vars.TP_Btns['Shutdown-EndNow'],
+            "cancel": vars.TP_Btns['Shutdown-Cancel']
+        }
     
     PinButtons = \
         {
@@ -240,48 +244,7 @@ def Initialize() -> bool:
                     ]
             }
         }
-    
-    AdvShareLayout = \
-        [
-            vars.TP_Btns['Disp-Select-0,0'],
-            vars.TP_Btns['Disp-Ctl-0,0'],
-            vars.TP_Btns['Disp-Aud-0,0'],
-            vars.TP_Btns['Disp-Alert-0,0'],
-            vars.TP_Btns['Disp-Scn-0,0'],
-            vars.TP_Lbls['DispAdv-0,0'],
-            vars.TP_Btns['Disp-Select-1,0'],
-            vars.TP_Btns['Disp-Ctl-1,0'],
-            vars.TP_Btns['Disp-Aud-1,0'],
-            vars.TP_Btns['Disp-Alert-1,0'],
-            vars.TP_Btns['Disp-Scn-1,0'],
-            vars.TP_Lbls['DispAdv-1,0'],
-            vars.TP_Btns['Disp-Select-0,1'],
-            vars.TP_Btns['Disp-Ctl-0,1'],
-            vars.TP_Btns['Disp-Aud-0,1'],
-            vars.TP_Btns['Disp-Alert-0,1'],
-            vars.TP_Btns['Disp-Scn-0,1'],
-            vars.TP_Lbls['DispAdv-0,1'],
-            vars.TP_Btns['Disp-Select-1,1'],
-            vars.TP_Btns['Disp-Ctl-1,1'],
-            vars.TP_Btns['Disp-Aud-1,1'],
-            vars.TP_Btns['Disp-Alert-1,1'],
-            vars.TP_Btns['Disp-Scn-1,1'],
-            vars.TP_Lbls['DispAdv-1,1'],
-            vars.TP_Btns['Disp-Select-2,1'],
-            vars.TP_Btns['Disp-Ctl-2,1'],
-            vars.TP_Btns['Disp-Aud-2,1'],
-            vars.TP_Btns['Disp-Alert-2,1'],
-            vars.TP_Btns['Disp-Scn-2,1'],
-            vars.TP_Lbls['DispAdv-2,1'],
-            vars.TP_Btns['Disp-Select-3,1'],
-            vars.TP_Btns['Disp-Ctl-3,1'],
-            vars.TP_Btns['Disp-Aud-3,1'],
-            vars.TP_Btns['Disp-Alert-3,1'],
-            vars.TP_Btns['Disp-Scn-3,1'],
-            vars.TP_Lbls['DispAdv-3,1']
-        ]
-    
-    
+        
     #### =======================================================================
     
     #### PIN Code Module
@@ -292,42 +255,25 @@ def Initialize() -> bool:
                                 settings.techPIN, 
                                 'Tech')
     
-    #### Source Control Module
-    vars.SrcCtl = SourceController(vars.TP_Main,
-                                   SourceButtons,
-                                   AdvShareLayout,
-                                   MatrixDict,
-                                   settings.sources,
-                                   settings.destinations)
-    SOURCE_CONTROLLER = vars.SrcCtl
-    
     #### Activity Control Module
     vars.ActCtl = ActivityController(vars.TP_Main,
                                      ActModBtns,
                                      TransitionDict,
                                      vars.TP_Lbls['ShutdownConf-Count'],
                                      vars.TP_Lvls['ShutdownConfIndicator'])
-    ACTIVITY_CONTROLLER = vars.ActCtl
+    # ACTIVITY_CONTROLLER = vars.ActCtl
     
     #### Source Control Module
-    sourceDict = {'select': vars.SourceButtons['select'],
-                  'indicator': vars.SourceButtons['indicator'],
-                  'arrows': vars.SourceButtons['arrowBtns']
-                 }
-    matrixDict = {
-                  'btns': vars.MatrixBtns,
-                  'ctls': vars.TP_Btn_Grps['Tech-Matrix-Mode'],
-                  'del': vars.TP_Btns['Tech-Matrix-DeleteTies']
-                 }
     vars.SrcCtl = SourceController(vars.TP_Main,
-                                   sourceDict,
-                                   matrixDict,
+                                   SourceButtons,
+                                   MatrixDict,
                                    settings.sources,
                                    settings.destinations)
+    # SOURCE_CONTROLLER = vars.SrcCtl
     
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     
-    ProgramLog('System Initialized', 'info')
+    utFn.Log('System Initialized')
     return True
 
 ## End Function Definitions ----------------------------------------------------

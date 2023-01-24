@@ -631,6 +631,12 @@
       "repeatTime": null
     },
     {
+      "Name": "Activity-Splash-Close",
+      "ID": 11997,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
       "Name": "Popover-Close",
       "ID": 11998,
       "holdTime": null,

@@ -7,10 +7,9 @@ import extronlib.system
 import extronlib.ui
 import uofi_gui.sourceControls as SrcCtl
 import uofi_gui.activityControls as ActCtl
-import uofi_gui.sourceControls.matrix as MtxCtl
-import uofi_gui.sourceControls.IO as IO
 import uofi_gui.uiObjects as UI
 import settings
+import vars
 ## -----------------------------------------------------------------------------
 
 class SourceController_TestClass(unittest.TestCase): # rename for module to be tested
@@ -113,48 +112,8 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
                         ]
                 }
             }
-        self.AdvShareLayout = \
-            [
-                self.TP_Btns['Disp-Select-0,0'],
-                self.TP_Btns['Disp-Ctl-0,0'],
-                self.TP_Btns['Disp-Aud-0,0'],
-                self.TP_Btns['Disp-Alert-0,0'],
-                self.TP_Btns['Disp-Scn-0,0'],
-                self.TP_Lbls['DispAdv-0,0'],
-                self.TP_Btns['Disp-Select-1,0'],
-                self.TP_Btns['Disp-Ctl-1,0'],
-                self.TP_Btns['Disp-Aud-1,0'],
-                self.TP_Btns['Disp-Alert-1,0'],
-                self.TP_Btns['Disp-Scn-1,0'],
-                self.TP_Lbls['DispAdv-1,0'],
-                self.TP_Btns['Disp-Select-0,1'],
-                self.TP_Btns['Disp-Ctl-0,1'],
-                self.TP_Btns['Disp-Aud-0,1'],
-                self.TP_Btns['Disp-Alert-0,1'],
-                self.TP_Btns['Disp-Scn-0,1'],
-                self.TP_Lbls['DispAdv-0,1'],
-                self.TP_Btns['Disp-Select-1,1'],
-                self.TP_Btns['Disp-Ctl-1,1'],
-                self.TP_Btns['Disp-Aud-1,1'],
-                self.TP_Btns['Disp-Alert-1,1'],
-                self.TP_Btns['Disp-Scn-1,1'],
-                self.TP_Lbls['DispAdv-1,1'],
-                self.TP_Btns['Disp-Select-2,1'],
-                self.TP_Btns['Disp-Ctl-2,1'],
-                self.TP_Btns['Disp-Aud-2,1'],
-                self.TP_Btns['Disp-Alert-2,1'],
-                self.TP_Btns['Disp-Scn-2,1'],
-                self.TP_Lbls['DispAdv-2,1'],
-                self.TP_Btns['Disp-Select-3,1'],
-                self.TP_Btns['Disp-Ctl-3,1'],
-                self.TP_Btns['Disp-Aud-3,1'],
-                self.TP_Btns['Disp-Alert-3,1'],
-                self.TP_Btns['Disp-Scn-3,1'],
-                self.TP_Lbls['DispAdv-3,1']
-            ]
         self.Controller = SrcCtl.SourceController(self.Host,
                                              self.SourceButtons,
-                                             self.AdvShareLayout,
                                              self.MatrixDict,
                                              settings.sources,
                                              settings.destinations)
@@ -528,7 +487,7 @@ class MatrixController_TestClass(unittest.TestCase):
                                                   settings.sources,
                                                   settings.destinations)
         
-        self.MatrixController = MtxCtl.MatrixController(self.Controller,
+        self.MatrixController = SrcCtl.MatrixController(self.Controller,
                                                         self.MatrixDict['btns'],
                                                         self.MatrixDict['ctls'],
                                                         self.MatrixDict['del'],
@@ -690,12 +649,11 @@ class Source_TestClass(unittest.TestCase):
             
         self.Controller = SrcCtl.SourceController(self.Host,
                                                   self.SourceButtons,
-                                                  self.AdvShareLayout,
                                                   self.MatrixDict,
                                                   settings.sources,
                                                   settings.destinations)
         
-        self.Source = IO.Source(self.Controller,
+        self.Source = SrcCtl.Source(self.Controller,
                                 'WPD001',
                                 'Wireless',
                                 3,
@@ -823,54 +781,64 @@ class Destination_TestClass(unittest.TestCase):
                         ]
                 }
             }
-        self.AdvShareLayout = \
-            [
-                self.TP_Btns['Disp-Select-0,0'],
-                self.TP_Btns['Disp-Ctl-0,0'],
-                self.TP_Btns['Disp-Aud-0,0'],
-                self.TP_Btns['Disp-Alert-0,0'],
-                self.TP_Btns['Disp-Scn-0,0'],
-                self.TP_Lbls['DispAdv-0,0'],
-                self.TP_Btns['Disp-Select-1,0'],
-                self.TP_Btns['Disp-Ctl-1,0'],
-                self.TP_Btns['Disp-Aud-1,0'],
-                self.TP_Btns['Disp-Alert-1,0'],
-                self.TP_Btns['Disp-Scn-1,0'],
-                self.TP_Lbls['DispAdv-1,0'],
-                self.TP_Btns['Disp-Select-0,1'],
-                self.TP_Btns['Disp-Ctl-0,1'],
-                self.TP_Btns['Disp-Aud-0,1'],
-                self.TP_Btns['Disp-Alert-0,1'],
-                self.TP_Btns['Disp-Scn-0,1'],
-                self.TP_Lbls['DispAdv-0,1'],
-                self.TP_Btns['Disp-Select-1,1'],
-                self.TP_Btns['Disp-Ctl-1,1'],
-                self.TP_Btns['Disp-Aud-1,1'],
-                self.TP_Btns['Disp-Alert-1,1'],
-                self.TP_Btns['Disp-Scn-1,1'],
-                self.TP_Lbls['DispAdv-1,1'],
-                self.TP_Btns['Disp-Select-2,1'],
-                self.TP_Btns['Disp-Ctl-2,1'],
-                self.TP_Btns['Disp-Aud-2,1'],
-                self.TP_Btns['Disp-Alert-2,1'],
-                self.TP_Btns['Disp-Scn-2,1'],
-                self.TP_Lbls['DispAdv-2,1'],
-                self.TP_Btns['Disp-Select-3,1'],
-                self.TP_Btns['Disp-Ctl-3,1'],
-                self.TP_Btns['Disp-Aud-3,1'],
-                self.TP_Btns['Disp-Alert-3,1'],
-                self.TP_Btns['Disp-Scn-3,1'],
-                self.TP_Lbls['DispAdv-3,1']
-            ]
+            
+        ActModBtns = \
+            {
+                "select": self.TP_Btn_Grps['Activity-Select'],
+                "indicator": self.TP_Btn_Grps['Activity-Indicator'],
+                "end": self.TP_Btns['Shutdown-EndNow'],
+                "cancel": self.TP_Btns['Shutdown-Cancel']
+            }
+        TransitionDict = \
+            {
+                "label": self.TP_Lbls['PowerTransLabel-State'],
+                "level": self.TP_Lvls['PowerTransIndicator'],
+                "count": self.TP_Lbls['PowerTransLabel-Count'],
+                "start": {
+                    "init": StartupActions,
+                    "sync": StartupSyncedActions
+                },
+                "switch": {
+                    "init": SwitchActions,
+                    "sync": SwitchSyncedActions
+                },
+                "shutdown": {
+                    "init": ShutdownActions,
+                    "sync": ShutdownSyncedActions
+                }
+            }
+            
+        def StartupActions() -> None:
+            pass
+
+        def StartupSyncedActions(count: int) -> None:
+            pass
+
+        def SwitchActions() -> None:
+            pass
+
+        def SwitchSyncedActions(count: int) -> None:
+            pass
+
+        def ShutdownActions() -> None:
+            pass
+
+        def ShutdownSyncedActions(count: int) -> None:
+            pass    
+            
+        vars.ActCtl = ActCtl.ActivityController(vars.TP_Main,
+                                     ActModBtns,
+                                     TransitionDict,
+                                     self.TP_Lbls['ShutdownConf-Count'],
+                                     self.TP_Lvls['ShutdownConfIndicator'])
             
         self.Controller = SrcCtl.SourceController(self.Host,
                                                   self.SourceButtons,
-                                                  self.AdvShareLayout,
                                                   self.MatrixDict,
                                                   settings.sources,
                                                   settings.destinations)
         
-        self.Destination = IO.Destination(self.Controller,
+        self.Destination = SrcCtl.Destination(self.Controller,
                                           'PRJ001',
                                           'Projector',
                                           3,
@@ -887,13 +855,13 @@ class Destination_TestClass(unittest.TestCase):
         self.assertIs(type(self.Destination.Id), type('a'))
         self.assertIs(type(self.Destination.Name), type('a'))
         self.assertIs(type(self.Destination.Output), type(1))
-        self.assertIs(type(self.Destination.AdvLayoutPosition), IO.LayoutTuple)
+        self.assertIs(type(self.Destination.AdvLayoutPosition), SrcCtl.LayoutTuple)
         self.assertIs(type(self.Destination.AssignedSource), type(None)) # in a brand new source object this shouldn't be set to an IO.Source object yet
-        self.assertIs(type(self.Destination.GroupWorkSource), IO.Source)
+        self.assertIs(type(self.Destination.GroupWorkSource), SrcCtl.Source)
     
     def test_Destination_PrivateProperties(self):
         self.assertIs(type(self.Destination._type), type(''))
-        self.assertIs(type(self.Destination._relay), IO.RelayTuple)
+        self.assertIs(type(self.Destination._relay), SrcCtl.RelayTuple)
         self.assertIs(type(self.Destination._AssignedVidInput), type(1))
         self.assertIs(type(self.Destination._AssignedAudInput), type(1))
         self.assertIs(type(self.Destination._AdvSelectBtn), type(None))
@@ -1061,14 +1029,14 @@ class MatrixRow_TestClass(unittest.TestCase):
                                                   settings.sources,
                                                   settings.destinations)
         
-        self.MatrixController = MtxCtl.MatrixController(self.Controller,
+        self.MatrixController = SrcCtl.MatrixController(self.Controller,
                                                         self.MatrixDict['btns'],
                                                         self.MatrixDict['ctls'],
                                                         self.MatrixDict['del'],
                                                         self.MatrixDict['labels']['input'],
                                                         self.MatrixDict['labels']['output'])
 
-        self.MatrixRow = MtxCtl.MatrixRow(self.MatrixController,
+        self.MatrixRow = SrcCtl.MatrixRow(self.MatrixController,
                                           self.MatrixDict['btns'][0:11],
                                           3)
     

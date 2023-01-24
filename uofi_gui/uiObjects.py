@@ -85,7 +85,7 @@ def BuildButtons(UIHost: UIDevice,
             btnDict[button['Name']] = Button(UIHost, button['ID'],
                                                 holdTime = button['holdTime'],
                                                 repeatTime = button['repeatTime'])
-        if vars.TESTING:
+        if hasattr(vars, 'TESTING'):
             btnDict[button['Name']].Name = button['Name']
     ## return btnDict
     return btnDict
@@ -220,7 +220,7 @@ def BuildLevels(UIHost: UIDevice,
     for lvl in jsonObj['levels']:
         lvlDict[lvl['Name']] = Level(UIHost, lvl['ID'])
         
-        if vars.TESTING:
+        if hasattr(vars, 'TESTING'):
             lvlDict[lvl['Name']].Name = lvl['Name']
     
     ## return lvlDict
@@ -265,7 +265,7 @@ def BuildSliders(UIHost: UIDevice,
     for slider in jsonObj['sliders']:
         sliderDict[slider['Name']] = Slider(UIHost, slider['ID'])
         
-        if vars.TESTING:
+        if hasattr(vars, 'TESTING'):
             sliderDict[slider['Name']].Name = slider['Name']
     
     ## return sliderDict
@@ -310,7 +310,7 @@ def BuildLabels(UIHost: UIDevice,
     for lbl in jsonObj['labels']:
         labelDict[lbl['Name']] = Label(UIHost, lbl['ID'])
         
-        if vars.TESTING:
+        if hasattr(vars, 'TESTING'):
             labelDict[lbl['Name']].Name = lbl['Name']
     
     ## return labelDict

@@ -37,7 +37,7 @@ import settings
 
 ## End User Import -------------------------------------------------------------
 ##
-SOURCE_CONTROLLER = None
+# SOURCE_CONTROLLER = None
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
@@ -83,24 +83,28 @@ class ActivityController:
             bool: True on success or False on failure
         """
         # Public Properties ====================================================
+        utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
         self.CurrentActivity = 'off'
         self.startupTime = settings.startupTimer
         self.switchTime = settings.switchTimer
-        self.shutdownTime = settings.shutdownTimer
+        self.shutdownTime = int(settings.shutdownTimer)
         self.confirmationTime = settings.shutdownConfTimer
         self.splashTime = settings.activitySplashTimer
         
         # Private Properties ===================================================
+        utilityFunctions.Log('Set Private Properties')
         self._activityBtns = activityBtns
         self._confTimeLbl = confTimeLbl
         self._confTimeLvl = confTimeLvl
         self._transition = transitionDict
         
         # Inital Class Setup ===================================================
+        utilityFunctions.Log('Show Activity Popups, Mode: {}'.format(settings.activityMode))
         self.UIHost.ShowPopup('Menu-Activity-{}'.format(settings.activityMode))
         self.UIHost.ShowPopup('Menu-Activity-open-{}'.format(settings.activityMode))
         
+        utilityFunctions.Log("Create Timers")
         self._confirmationTimer = Timer(1, self._ConfimationHandler)
         self._confirmationTimer.Stop()
         
@@ -113,6 +117,9 @@ class ActivityController:
         self._shutdownTimer = Timer(1, self._ShutdownTimerHandler)
         self._shutdownTimer.Stop()
         
+        self._activitySplashTimer = Timer(1, self._activitySplashWaitHandler)
+        self._activitySplashTimer.Stop()
+        
         self._activityBtns['select'].SetCurrent(0)
         self._activityBtns['indicator'].SetCurrent(0)
 
@@ -120,15 +127,18 @@ class ActivityController:
         self._confTimeLvl.SetLevel(0)
 
         # Class Event Definitions ==============================================
+        utilityFunctions.Log("Create Class Events")
         @event(self._activityBtns['select'].Objects, 'Pressed')
         def ActivityChange(button, action):
             if button.Name == "ActivitySelect-Off":
-                self._activityBtns['indicator'].SetCurrent(0)
+                utilityFunctions.Log('Off mode selected - show confirmation')
                 if self.CurrentActivity != 'off':
                     self._confirmationTimer.Restart()
+                    self._confTimeLbl.SetText(utilityFunctions.TimeIntToStr(self.confirmationTime))
                     self.UIHost.ShowPopup('Shutdown-Confirmation')
-                self.CurrentActivity = 'off'
             elif button.Name == "ActivitySelect-Share":
+                utilityFunctions.Log('Share mode selected')
+                self._activityBtns['select'].SetCurrent(button)
                 self._activityBtns['indicator'].SetCurrent(1)
                 if self.CurrentActivity == 'off':
                     self.SystemStart('share')
@@ -136,6 +146,8 @@ class ActivityController:
                     self.SystemSwitch('share')
                 self.CurrentActivity = 'share'
             elif button.Name == "ActivitySelect-AdvShare":
+                utilityFunctions.Log('Adv. Share mode selected')
+                self._activityBtns['select'].SetCurrent(button)
                 self._activityBtns['indicator'].SetCurrent(2)
                 if self.CurrentActivity == 'off':
                     self.SystemStart('adv_share')
@@ -143,6 +155,8 @@ class ActivityController:
                     self.SystemSwitch('adv_share')
                 self.CurrentActivity = 'adv_share'
             elif button.Name == "ActivitySelect-GroupWork":
+                utilityFunctions.Log('Group Work mode selected')
+                self._activityBtns['select'].SetCurrent(button)
                 self._activityBtns['indicator'].SetCurrent(3)
                 if self.CurrentActivity == 'off':
                     self.SystemStart('group_work')
@@ -152,6 +166,7 @@ class ActivityController:
         
         @event(self._activityBtns['end'], 'Pressed')
         def EndNow(button, action):
+            utilityFunctions.Log("Ending Session Now")
             self._confirmationTimer.Stop()
             self.SystemShutdown()
         
@@ -163,15 +178,31 @@ class ActivityController:
         @event(self._switchTimer, 'StateChanged')        
         def SwitchTimerStateHandler(timer, state):
             if state == 'Stopped':
-                if self.CurrentActivity == 'share' or self.CurrentActivity == 'group-work':
-                    @Wait(self.splashTime) 
-                    def activitySplash():
-                        page = SOURCE_CONTROLLER.SelectedSource._sourceControlPage 
-                        if page == 'PC':
-                            page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
-                        self.UIHost.ShowPopup("Source-Control-{}".format(page))
+                if self.CurrentActivity == 'share' or self.CurrentActivity == 'group_work':
+                    self._activitySplashTimer.Restart() 
+
+        @event(vars.TP_Btns['Splash'], 'Pressed')
+        def SplashScreenHandler(button, action):
+            self.UIHost.ShowPage('Opening')
+        
+        @event(vars.TP_Btns['Activity-Splash-Close'], 'Pressed')
+        def CloseTipHandler(button, action):
+            self._activitySplashCloseHandler(self._activitySplashTimer)
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def _activitySplashWaitHandler(self, timer: Timer, count: int):
+        timeTillClose = self.splashTime - count
+        vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(timeTillClose))
+        
+        if count > self.splashTime:
+            self._activitySplashCloseHandler(timer)
+            
+    def _activitySplashCloseHandler(self, timer: Timer):
+        timer.Stop()
+        page = vars.SrcCtl.SelectedSource._sourceControlPage 
+        if page == 'PC':
+            page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
+        self.UIHost.ShowPopup("Source-Control-{}".format(page))
     
     def _ConfimationHandler(self, timer: Timer, count: int) -> None:
         timeTillShutdown = self.confirmationTime - count
@@ -196,8 +227,7 @@ class ActivityController:
 
             if count >= self.startupTime:
                 timer.Stop()
-                print('System started in {} mode'.format(self._selectedActivity))
-                ProgramLog('System started in {} mode'.format(self._selectedActivity), 'info')
+                utilityFunctions.Log('System started in {} mode'.format(self._selectedActivity))
                 self.SystemSwitch(self._selectedActivity)
                 
     def _SwitchTimerHandler(self, timer: Timer, count: int) -> None:
@@ -215,8 +245,7 @@ class ActivityController:
         if count >= self.switchTime:
             timer.Stop()
             self.UIHost.HidePopup('Power-Transition')
-            print('System configured in {} mode'.format(self.CurrentActivity))
-            ProgramLog('System configured in {} mode'.format(self.CurrentActivity),
+            utilityFunctions.Log('System configured in {} mode'.format(self.CurrentActivity),
                     'info')
     
     def _ShutdownTimerHandler(self, timer: Timer, count: int) -> None:
@@ -233,12 +262,12 @@ class ActivityController:
         if count >= self.shutdownTime:
             timer.Stop()
             self.UIHost.HidePopup('Power-Transition')
-            print('System shutdown')
-            ProgramLog('System shutdown', 'info')
+            utilityFunctions.Log('System shutdown', 'info')
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def SystemStart(self, activity: str) -> None:
+        utilityFunctions.Log("System Start function activated", stack=True)
         self._selectedActivity = activity
         
         self._transition['label'].SetText(
@@ -246,17 +275,22 @@ class ActivityController:
         self._transition['level'].SetRange(0, self.startupTime, 1)
         self._transition['level'].SetLevel(0)
 
+        self._transition['count'].SetText(
+                utilityFunctions.TimeIntToStr(self.startupTime))
         self.UIHost.ShowPopup('Power-Transition')
         self.UIHost.ShowPage('Main')
 
+        utilityFunctions.Log('Startup Timer Restarting')
         self._startTimer.Restart()
 
         # STARTUP ONLY ITEMS HERE - function in main
-        SOURCE_CONTROLLER.SelectSource(settings.defaultSource)
-        SOURCE_CONTROLLER.SwitchSources(SOURCE_CONTROLLER.SelectedSource, 'All')
+        utilityFunctions.Log('Performing unsynced Startup functions')
+        vars.SrcCtl.SelectSource(settings.defaultSource)
+        vars.SrcCtl.SwitchSources(vars.SrcCtl.SelectedSource, 'All')
         self._transition['start']['init']()
         
     def SystemSwitch(self, activity: str) -> None:
+        utilityFunctions.Log("System Switch function activated", stack=True)
         self._selectedActivity = activity
         
         self._transition['label'].SetText(
@@ -265,21 +299,30 @@ class ActivityController:
         self._transition['level'].SetRange(0, self.switchTime, 1)
         self._transition['level'].SetLevel(0)
 
+        self._transition['count'].SetText(
+                utilityFunctions.TimeIntToStr(self.switchTime))
         self.UIHost.ShowPopup('Power-Transition')
         self.UIHost.ShowPage('Main')
 
         self.CurrentActivity = self._selectedActivity
+        
+        utilityFunctions.Log('Activity Switch Timer Restarting')
         self._switchTimer.Restart()
 
         # configure system for current activity
-        self.UIHost.HidePopupGroup('Source-Controls')
+        utilityFunctions.Log('Performing unsynced Activity Switch functions')
+        # self.UIHost.HidePopupGroup(5) # Source-Controls Group
         if activity == "share":
-            self.UIHost.HidePopupGroup('Activity-Controls')
+            utilityFunctions.Log('Configuring for Share mode')
+            self.UIHost.HidePopupGroup(8) # Activity-Controls Group
             # get input assigned to the primaryDestination
-            curSrc = SOURCE_CONTROLLER.PrimaryDestination.AssignedSource
+            curSrc = vars.SrcCtl.PrimaryDestination.AssignedSource
+            # TODO: set assigned source to the default source if the none source
+            #       is assigned to the primary destination. Also set the system
+            #       as privacy muted
             
             # update source selection to match primaryDestination
-            for dest in SOURCE_CONTROLLER.Destinations:
+            for dest in vars.SrcCtl.Destinations:
                 if dest.AssignedSource != curSrc:
                     dest.AssignSource(curSrc)
             
@@ -287,25 +330,37 @@ class ActivityController:
             
             # show activity splash screen, will be updated config.activitySplash
             # seconds after the activity switch timer stops
+            vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
             self.UIHost.ShowPopup("Source-Control-Splash-Share")
             
         elif activity == "adv_share":
+            utilityFunctions.Log('Configuring for Advanced Share mode')
             self.UIHost.ShowPopup("Activity-Control-AdvShare")
             
-            self.UIHost.ShowPopup(SOURCE_CONTROLLER.GetAdvShareLayout())
+            self.UIHost.ShowPopup(vars.SrcCtl.GetAdvShareLayout())
             # TODO: get inputs assigned to destination outputs, update destination
             # buttons for these assignments
             self.UIHost.ShowPopup("Audio-Control-{}".format(settings.micCtl))
         
         elif  activity == "group_work":
+            utilityFunctions.Log('Configuring for Group Work mode')
             self.UIHost.ShowPopup("Activity-Control-Group")
             self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
-            for dest in SOURCE_CONTROLLER.Destinations:
-                SOURCE_CONTROLLER.SwitchSources(dest.GroupWorkSource, [dest])
-            
-        SOURCE_CONTROLLER.ShowSelectedSource()
+            for dest in vars.SrcCtl.Destinations:
+                vars.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
+                
+            # show activity splash screen, will be updated config.activitySplash
+            # seconds after the activity switch timer stops
+            vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
+            self.UIHost.ShowPopup("Source-Control-Splash-GrpWrk")
+
+        vars.SrcCtl.UpdateSourceMenu()
+        vars.SrcCtl.ShowSelectedSource()
 
     def SystemShutdown(self) -> None:
+        utilityFunctions.Log("System Switch function activated", stack=True)
+        self._activityBtns['select'].SetCurrent(0)
+        self._activityBtns['indicator'].SetCurrent(0)
         self.CurrentActivity = 'off'
 
         self._transition['label']\
@@ -313,19 +368,24 @@ class ActivityController:
         self._transition['level'].SetRange(0, self.shutdownTime, 1)
         self._transition['level'].SetLevel(0)
         
+        self._transition['count'].SetText(
+                utilityFunctions.TimeIntToStr(self.shutdownTime))
         self.UIHost.ShowPopup('Power-Transition')
+        self.UIHost.HidePopup("Shutdown-Confirmation")
         self.UIHost.ShowPage('Opening')
 
+        utilityFunctions.Log('Shutdown timer restarting')
         self._shutdownTimer.Restart()        
         
         # SHUTDOWN ITEMS HERE - function in main
+        utilityFunctions.Log('Performing unsynced Shutdown functions')
         self._transition['shutdown']['init']()
 
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
-def UpdateSourceContoller(SrcCtl):
-    SOURCE_CONTROLLER = SrcCtl
+# def UpdateSourceContoller(SrcCtl):
+#     SOURCE_CONTROLLER = SrcCtl
 
 ## End Function Definitions ----------------------------------------------------
 

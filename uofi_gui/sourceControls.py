@@ -25,7 +25,7 @@ import re
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 
-#import utilityFunctions
+import utilityFunctions
 import vars
 import settings
 
@@ -97,7 +97,10 @@ class Destination:
         self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
         
         self._type = destType
-        self._relay = RelayTuple(Up=rly[0], Down=rly[1])
+        if type(rly) != type(None):
+            self._relay = RelayTuple(Up=rly[0], Down=rly[1])
+        else:
+            self._relay = RelayTuple(Up=None, Down=None)
         self._AssignedVidInput = 0
         self._AssignedAudInput = 0
         self._AdvSelectBtn = None
@@ -148,7 +151,7 @@ class Destination:
             
         # Source Control Buttons
         self._AdvCtlBtn.SetVisible(False)
-        self._AdvCtlBtn.Enabled(False)
+        self._AdvCtlBtn.SetEnable(False)
         
         @event(self._AdvCtlBtn, 'Pressed')
         def advSrcCtrHandler(button, action):
@@ -189,7 +192,7 @@ class Destination:
         
         # Destination Alert Buttons
         self._AdvAlertBtn.SetVisible(False)
-        self._AdvAlertBtn.Enabled(False)
+        self._AdvAlertBtn.SetEnable(False)
         
         @event(self._AdvAlertBtn, 'Pressed')
         def destAlertHandler(button, action):
@@ -199,15 +202,15 @@ class Destination:
         @Timer(2)
         def SourceAlertHandler(timer, count) -> None:
             # Does current source for this destination have an alert flag
-            if self.AssignedSource.AlertFlag:
+            if self.AssignedSource != None and self.AssignedSource.AlertFlag:
                 self._AdvAlertBtn.SetVisible(True)
-                self._AdvAlertBtn.Enabled(True)
+                self._AdvAlertBtn.SetEnable(True)
                 self._AdvAlertBtn.SetBlinking('Medium', [0,1])
                 if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
                     vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
             else:
                 self._AdvAlertBtn.SetVisible(False)
-                self._AdvAlertBtn.Enabled(False)
+                self._AdvAlertBtn.SetEnable(False)
                 self._AdvAlertBtn.SetState(1)
                 if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
                     vars.TP_Lbls['SourceAlertLabel'] = ''
@@ -215,10 +218,10 @@ class Destination:
         # Screen Control Buttons
         if self._type == "proj+scn":
             self._AdvScnBtn.SetVisible(True)
-            self._AdvScnBtn.Enabled(True)
+            self._AdvScnBtn.SetEnable(True)
         else:
             self._AdvScnBtn.SetVisible(False)
-            self._AdvScnBtn.Enabled(False)
+            self._AdvScnBtn.SetEnable(False)
             
         @event(self._AdvScnBtn, 'Pressed')
         def destScnHandler(button, action):
@@ -232,12 +235,12 @@ class Destination:
         
         self._AdvSelectBtn.SetText(curSource.Name)
         
-        if curSource.advSrcCtl == None:
+        if curSource._advSourceControlPage == None:
             self._AdvCtlBtn.SetVisible(False)
-            self._AdvCtlBtn.Enabled(False)
+            self._AdvCtlBtn.SetEnable(False)
         else:
             self._AdvCtlBtn.SetVisible(True)
-            self._AdvCtlBtn.Enabled(True)
+            self._AdvCtlBtn.SetEnable(True)
             
 class SourceController:
     def __init__(self, 
@@ -262,6 +265,7 @@ class SourceController:
         """
         
         # Public Properties
+        utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
         
         self.Sources = []
@@ -290,23 +294,34 @@ class SourceController:
         self.SelectedSource = None
         
         # Private Properties
+        utilityFunctions.Log('Set Private Properties')
         self._sourceBtns = sourceDict['select']
         self._sourceInds = sourceDict['indicator']
         self._arrowBtns = sourceDict['arrows']
         self._offset = 0
         self._advLayout = self.GetAdvShareLayout()
-        self._none_source = Source('none', 'None', 0, 0)
+        self._none_source = Source(self, 'none', 'None', 0, 0, None, None)
         self._DisplaySrcList = self.UpdateDisplaySourceList()
-        self._Matrix = MatrixController(self, matrixDict['btns'], matrixDict['ctls'], matrixDict['del'])
+        self._Matrix = MatrixController(self,
+                                        matrixDict['btns'],
+                                        matrixDict['ctls'],
+                                        matrixDict['del'],
+                                        matrixDict['labels']['input'],
+                                        matrixDict['labels']['output'])
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
+            
             dest.AssignAdvUI(self._GetUIForAdvDest(dest))
         
         # Configure Source Selection Buttons
+        utilityFunctions.Log('Create Class Events')
         @event(self._sourceBtns.Objects, 'Pressed')
         def sourceBtnHandler(button, action):
             # capture last character of button.Name and convert to index
             btnIndex = int(button.Name[-1:]) - 1
+            
+            # Update button state
+            self._sourceBtns.SetCurrent(button)
             
             # Update source indicator
             self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
@@ -324,7 +339,7 @@ class SourceController:
                 if page == 'PC':
                     page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
                 self.UIHost.ShowPopup("Source-Control-{}".format(page))
-        
+
         @event(self._arrowBtns, 'Pressed')
         def sourcePageHandler(button, action):
             # capture last 4 characters of button.Name
@@ -336,7 +351,13 @@ class SourceController:
                 self._offset += 1
             # update the displayed source menu
             self.UpdateSourceMenu()
-    
+
+        @event(vars.TP_Btns['Modal-Close'], 'Pressed')
+        def modalCloseHandler(button, action):
+            self.UIHost.HidePopup('Modal-SrcCtl-WPD')
+            self.UIHost.HidePopup('Modal-SrcCtl-Camera')
+            self.UIHost.HidePopup('Modal-SrcErr')
+            self.UIHost.HidePopup('Modal-ScnCtl')
     
     def _GetUIForAdvDest(self, dest: Destination) -> Dict[str, Button]:
         """Get Advanced Display button objects for a given destination ID
@@ -383,18 +404,19 @@ class SourceController:
         layout = {}
         for dest in self.Destinations:
             r = str(dest.AdvLayoutPosition.Row)
-            if type(layout[r]) == type([]):
-                layout[r].append(dest)
-            else:
+            if r not in layout:
                 layout[r] = [dest]
+            else:
+                layout[r].append(dest)
                 
         rows = []
         i = 0
         while i < len(layout.keys()):
             rows.append(len(layout[str(i)]))
             i += 1
-            
-        return "Source-Control-Adv_{}".format(",".join(rows))
+        rows.reverse()
+        
+        return "Source-Control-Adv_{}".format(",".join(str(r) for r in rows))
     
     def GetDestination(self, id: str=None, name: str=None) -> Destination:
         if id == None and name == None:
@@ -461,15 +483,19 @@ class SourceController:
         raise LookupError("Provided Id ({}) not found".format(id))
     
     def SetPrimaryDestination(self, dest: Destination) -> None:
+        utilityFunctions.Log('Set Primary Destination - {}'.format(dest), stack=True)
+        
         if type(dest) != Destination:
             raise TypeError("Object of class Destination must be provided")
         self.PrimaryDestination = dest
         
     def SelectSource(self, src: Union[Source, str]) -> None:
         if type(src) == Source:
+            utilityFunctions.Log('Select Source - {}'.format(src.Name), stack=True)
             self.SelectedSource = src
         elif type(src) == str:
             srcObj = self.GetSource(id = src, name = src)
+            utilityFunctions.Log('Select Source - {}'.format(srcObj.Name), stack=True)
             self.SelectedSource = srcObj
     
     def UpdateDisplaySourceList(self) -> None:
@@ -479,7 +505,6 @@ class SourceController:
             List: The list of currently displayable source definitions
         """    
         srcList = []
-        srcNone = {"id": "none", "name": "None", "icon": 0, "input": 0}
         
         if vars.ActCtl.CurrentActivity == 'adv_share':
             srcList.append(self._none_source)
@@ -491,39 +516,42 @@ class SourceController:
         """Updates the formatting of the source menu. Use when the number of sources
         or the pagination of the source bar changes
         """    
+        utilityFunctions.Log('Updating Source Menu', stack=True)
         
         self.UpdateDisplaySourceList()
         
         offsetIter = self._offset
         for btn in self._sourceBtns.Objects:
-            offState = int('{}0'.format(self._DisplaySrcList[offsetIter].Icon))
-            onState = int('{}1'.format(self._DisplaySrcList[offsetIter].Icon))
+            btn_to_config = self._DisplaySrcList[offsetIter]
+            offState = int('{}0'.format(btn_to_config.Icon))
+            onState = int('{}1'.format(btn_to_config.Icon))
             self._sourceBtns.SetStates(btn, offState, onState)
-            btn.SetText[self._DisplaySrcList[offsetIter].Name]
+            btn.SetText(str(btn_to_config.Name))
             offsetIter += 1
-            
+        self._sourceBtns.SetCurrent(None)
+        
         if len(self._DisplaySrcList) <= 5:
             self.UIHost.ShowPopup('Menu-Source-{}'.format(len(self._DisplaySrcList)))
         else:
             # enable/disable previous arrow
             if self._offset == 0:
-                self._arrowBtns[0].setEnable(False)
+                self._arrowBtns[0].SetEnable(False)
                 self._arrowBtns[0].SetState(2)
             else:
-                self._arrowBtns[0].setEnable(True)
+                self._arrowBtns[0].SetEnable(True)
                 self._arrowBtns[0].SetState(0)
             # enable/disable next arrow
             if (self._offset + 5) >= len(self._DisplaySrcList):
-                self._arrowBtns[1].setEnable(False)
+                self._arrowBtns[1].SetEnable(False)
                 self._arrowBtns[1].SetState(2)
             else:
-                self._arrowBtns[1].setEnable(True)
+                self._arrowBtns[1].SetEnable(True)
                 self._arrowBtns[1].SetState(0)
             
             self.UIHost.ShowPopup('Menu-Source-5+')
-            
+
         # reset currently selected source
-        currentSourceIndex = self.GetSourceIndexByID(vars.ActCtl.CurrentActivity)
+        currentSourceIndex = self.GetSourceIndexByID(self.SelectedSource.Id)
         
         btnIndex = currentSourceIndex - self._offset
         if btnIndex > 4:
@@ -533,6 +561,7 @@ class SourceController:
         self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
         
     def ShowSelectedSource(self) -> None:
+        utilityFunctions.Log('Show Selected Source', stack=True)
         if len(self._DisplaySrcList) > 5:
             curSourceIndex = self._DisplaySrcList.index(self.SelectedSource)
             
@@ -613,20 +642,23 @@ class MatrixController:
                  matrixDelAll: Button,
                  inputLabels: List[Label],
                  outputLabels: List[Label]) -> None:
+        
+        utilityFunctions.Log('Set Public Properties')
         self.SourceController = srcCtl
         self.Mode = 'AV'
         
+        utilityFunctions.Log('Create Matrix Rows')
         matrixRows = {}
         for btn in matrixBtns:
-            row = btn.Name[-1]
-            if type(matrixRows[row]) != List:
+            row = int(btn.Name[-1])
+            if row not in matrixRows:
                 matrixRows[row] = [btn]
             else:
                 matrixRows[row].append(btn)
 
         self._rows = {}
         for r in matrixRows:
-            self._rows[int(r)] = MatrixRow(self, matrixRows[r], int(r))
+            self._rows[r] = MatrixRow(self, matrixRows[r], r)
         
         for dest in self.SourceController.Destinations:
             dest._MatrixRow = self._rows[dest.Output]
@@ -642,6 +674,7 @@ class MatrixController:
             'untie': 0
         }
         
+        utilityFunctions.Log('Create Class Events')
         @event(self._ctls.Objects, 'Pressed')
         def matrixModeHandler(button: Button, action: str):
             if button.Name.endswith('AV'):

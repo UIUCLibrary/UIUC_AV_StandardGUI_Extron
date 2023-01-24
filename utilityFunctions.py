@@ -11,12 +11,15 @@
 #     ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
 #
 #print(Version()) ## Sanity check ControlScript Import
+from extronlib.system import ProgramLog
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
 import json
 from typing import Dict, Tuple, List
+import inspect
+import re
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -28,6 +31,68 @@ from typing import Dict, Tuple, List
 ## End User Import -------------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+
+def Log(content, level: str='info', stack: bool=False) -> None:
+    """Logs data with Extron ProgramLog. Included helpful troubleshooting log header.
+
+    Args:
+        content (Any): Content to log. Must be a string or printable as a string.
+        level (str, optional): Log level. May be 'info', 'warning', or 'error'. Defaults to 'info'.
+        stack (bool, optional): Whether or not to print the function call stack. Defaults to False.
+    """    
+    
+    curframe = inspect.currentframe()
+    calframe = inspect.getouterframes(curframe, 2)
+    
+    regex = r"^(?:\/var\/nortxe\/proj\/eup\/|\/var\/nortxe\/uf\/admin\/modules\/|\/usr\/lib\/python3.5\/)?(.+)\.py$"
+    
+    re_match = re.match(regex, calframe[1].filename)
+    fileName = re_match.group(1)
+    mod = fileName.replace('/', '.')
+    ws = '    '
+    
+    if stack:
+        # show call stack back to main
+        message = 'Logging from {module} - {func} ({line})\n'.format(
+                       module = mod,
+                       func = calframe[1].function,
+                       line = calframe[1].lineno
+                    )
+        message = message + '{w}Stack:\n'.format(w=ws)
+        i = 2
+        while i < len(calframe):
+            parent = calframe[i]
+            loop_match = re.match(regex, parent.filename)
+            if loop_match == None:
+                parent_mod = parent.filename
+            else:
+                parent_fn = loop_match.group(1)
+                parent_mod = parent_fn.replace('/','.')
+            message = message + '{w}{module} - {func} ({line})\n'.format(
+                w = ws+ws,
+                module = parent_mod,
+                func = parent.function,
+                line = parent.lineno
+            )
+            i += 1
+            if ((parent_mod == 'main' and parent.function == '<module>')
+                 or (parent_mod == 'extronlib.system.Timer' and parent.function == '__callback')
+                 or (parent_mod == 'Extron.ButtonObject' and parent.function == '_handleMsgAcquired')):
+                break
+            
+        message = message + '{w}{content}'.format(w = ws, content = content)
+    else:
+        message = ("Logging from {module} - {func} ({line})\n{w}{content}""".
+                   format(
+                       module = mod,
+                       func = calframe[1].function,
+                       line = calframe[1].lineno,
+                       w = ws,
+                       content = content
+                    )
+                   )
+    
+    ProgramLog(message, level)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string
