@@ -475,7 +475,7 @@
       "repeatTime": null
     },
     {
-      "Name": "PIN-Cancel",
+      "Name": "PIN-0",
       "ID": 9000,
       "holdTime": null,
       "repeatTime": null
@@ -535,7 +535,7 @@
       "repeatTime": null
     },
     {
-      "Name": "PIN-0",
+      "Name": "PIN-Cancel",
       "ID": 9010,
       "holdTime": null,
       "repeatTime": null
@@ -649,7 +649,7 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-Exit",
+      "Name": "Tech-Menu-Exit",
       "ID": 12000,
       "holdTime": null,
       "repeatTime": null
@@ -1663,13 +1663,13 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-Previous",
+      "Name": "Tech-Menu-Previous",
       "ID": 12901,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Next",
+      "Name": "Tech-Menu-Next",
       "ID": 12902,
       "holdTime": null,
       "repeatTime": null

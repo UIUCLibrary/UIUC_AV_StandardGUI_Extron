@@ -141,6 +141,8 @@ cameras = \
          "name": "South Camera"
       }
    ]
+   
+lights = []
 
 techPIN = "1867"           # PIN Code to access tech pages, must be a string
                            # fewer than 10 characters of 0-9

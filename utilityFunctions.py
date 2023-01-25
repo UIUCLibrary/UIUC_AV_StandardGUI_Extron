@@ -170,6 +170,30 @@ def TimeIntToStr(time: int, units: bool = True) -> str:
 
     return returnStr
 
+def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False) -> List:
+    """Searches dictionary keys which match the search term (either partial match or regex match)
+    Returns a list of matching values.
+
+    Args:
+        dict (Dict): Dictionary to search
+        search_term (str): String search string or regex pattern to match
+        regex (bool, optional): Regex search flag. Defaults to False.
+
+    Returns:
+        List: Returns a list of values of keys matching the search.
+    """    
+    find_list = []
+    for key, value in dict.items():
+        if regex:
+            re_match = re.match(search_term, key)
+            if re_match != None:
+                find_list.append(value)
+        else:
+            if search_term in key:
+                find_list.append(value)
+                
+    return find_list
+
 ## End Function Definitions ----------------------------------------------------
 ##
 ## Begin Script Definition -----------------------------------------------------

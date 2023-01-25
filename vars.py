@@ -38,6 +38,8 @@ TP_Main = None
 ActCtl = None
 SrcCtl = None
 PINCtl = None
+HdrCtl = None
+TechCtl = None
 
 TP_Btns = {}
 TP_Btn_Grps = {}

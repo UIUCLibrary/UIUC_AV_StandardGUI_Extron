@@ -35,6 +35,8 @@ from uofi_gui.pinControl import PINController
 from uofi_gui.uiObjects import (BuildButtons, BuildButtonGroups, BuildKnobs,
                                 BuildLabels, BuildLevels, BuildSliders)
 from uofi_gui.sourceControls import SourceController
+from uofi_gui.headerControls import HeaderController
+from uofi_gui.techControls import TechMenuController
 
 
 import utilityFunctions as utFn
@@ -83,6 +85,7 @@ vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath=settings.ctlJSON)
 ## Begin Function Definitions --------------------------------------------------
 
 def StartupActions() -> None:
+    vars.HdrCtl.ConfigSystemOn()
     pass
 
 def StartupSyncedActions(count: int) -> None:
@@ -95,6 +98,7 @@ def SwitchSyncedActions(count: int) -> None:
     pass
 
 def ShutdownActions() -> None:
+    vars.HdrCtl.ConfigSystemOff()
     pass
 
 def ShutdownSyncedActions(count: int) -> None:
@@ -146,122 +150,70 @@ def Initialize() -> bool:
     
     PinButtons = \
         {
-            "numPad": [
-                vars.TP_Btns['PIN-0'],
-                vars.TP_Btns['PIN-1'],
-                vars.TP_Btns['PIN-2'],
-                vars.TP_Btns['PIN-3'],
-                vars.TP_Btns['PIN-4'],
-                vars.TP_Btns['PIN-5'],
-                vars.TP_Btns['PIN-6'],
-                vars.TP_Btns['PIN-7'],
-                vars.TP_Btns['PIN-8'],
-                vars.TP_Btns['PIN-9']
-              ],
+            "numPad": utFn.DictValueSearchByKey(vars.TP_Btns, r'PIN-\d', regex=True),
             "backspace": vars.TP_Btns['PIN-Del'],
             "cancel": vars.TP_Btns['PIN-Cancel']
         }
     
     MatrixDict = \
         {
-            'btns': 
-                [
-                    vars.TP_Btns['Tech-Matrix-1,1'],
-                    vars.TP_Btns['Tech-Matrix-2,1'],
-                    vars.TP_Btns['Tech-Matrix-3,1'],
-                    vars.TP_Btns['Tech-Matrix-4,1'],
-                    vars.TP_Btns['Tech-Matrix-5,1'],
-                    vars.TP_Btns['Tech-Matrix-6,1'],
-                    vars.TP_Btns['Tech-Matrix-7,1'],
-                    vars.TP_Btns['Tech-Matrix-8,1'],
-                    vars.TP_Btns['Tech-Matrix-9,1'],
-                    vars.TP_Btns['Tech-Matrix-10,1'],
-                    vars.TP_Btns['Tech-Matrix-11,1'],
-                    vars.TP_Btns['Tech-Matrix-12,1'],
-                    vars.TP_Btns['Tech-Matrix-1,2'],
-                    vars.TP_Btns['Tech-Matrix-2,2'],
-                    vars.TP_Btns['Tech-Matrix-3,2'],
-                    vars.TP_Btns['Tech-Matrix-4,2'],
-                    vars.TP_Btns['Tech-Matrix-5,2'],
-                    vars.TP_Btns['Tech-Matrix-6,2'],
-                    vars.TP_Btns['Tech-Matrix-7,2'],
-                    vars.TP_Btns['Tech-Matrix-8,2'],
-                    vars.TP_Btns['Tech-Matrix-9,2'],
-                    vars.TP_Btns['Tech-Matrix-10,2'],
-                    vars.TP_Btns['Tech-Matrix-11,2'],
-                    vars.TP_Btns['Tech-Matrix-12,2'],
-                    vars.TP_Btns['Tech-Matrix-1,3'],
-                    vars.TP_Btns['Tech-Matrix-2,3'],
-                    vars.TP_Btns['Tech-Matrix-3,3'],
-                    vars.TP_Btns['Tech-Matrix-4,3'],
-                    vars.TP_Btns['Tech-Matrix-5,3'],
-                    vars.TP_Btns['Tech-Matrix-6,3'],
-                    vars.TP_Btns['Tech-Matrix-7,3'],
-                    vars.TP_Btns['Tech-Matrix-8,3'],
-                    vars.TP_Btns['Tech-Matrix-9,3'],
-                    vars.TP_Btns['Tech-Matrix-10,3'],
-                    vars.TP_Btns['Tech-Matrix-11,3'],
-                    vars.TP_Btns['Tech-Matrix-12,3'],
-                    vars.TP_Btns['Tech-Matrix-1,4'],
-                    vars.TP_Btns['Tech-Matrix-2,4'],
-                    vars.TP_Btns['Tech-Matrix-3,4'],
-                    vars.TP_Btns['Tech-Matrix-4,4'],
-                    vars.TP_Btns['Tech-Matrix-5,4'],
-                    vars.TP_Btns['Tech-Matrix-6,4'],
-                    vars.TP_Btns['Tech-Matrix-7,4'],
-                    vars.TP_Btns['Tech-Matrix-8,4'],
-                    vars.TP_Btns['Tech-Matrix-9,4'],
-                    vars.TP_Btns['Tech-Matrix-10,4'],
-                    vars.TP_Btns['Tech-Matrix-11,4'],
-                    vars.TP_Btns['Tech-Matrix-12,4']
-                ],
+            'btns': utFn.DictValueSearchByKey(vars.TP_Btns, r'Tech-Matrix-\d+,\d+', regex=True),
             'ctls': vars.TP_Btn_Grps['Tech-Matrix-Mode'],
             'del': vars.TP_Btns['Tech-Matrix-DeleteTies'],
             'labels': {
-                'input': 
-                    [
-                        vars.TP_Lbls['MatrixLabel-In-1'],
-                        vars.TP_Lbls['MatrixLabel-In-2'],
-                        vars.TP_Lbls['MatrixLabel-In-3'],
-                        vars.TP_Lbls['MatrixLabel-In-4'],
-                        vars.TP_Lbls['MatrixLabel-In-5'],
-                        vars.TP_Lbls['MatrixLabel-In-6'],
-                        vars.TP_Lbls['MatrixLabel-In-7'],
-                        vars.TP_Lbls['MatrixLabel-In-8'],
-                        vars.TP_Lbls['MatrixLabel-In-9'],
-                        vars.TP_Lbls['MatrixLabel-In-10'],
-                        vars.TP_Lbls['MatrixLabel-In-11'],
-                        vars.TP_Lbls['MatrixLabel-In-12']
-                    ],
-                'output': 
-                    [
-                        vars.TP_Lbls['MatrixLabel-Out-1'],
-                        vars.TP_Lbls['MatrixLabel-Out-2'],
-                        vars.TP_Lbls['MatrixLabel-Out-3'],
-                        vars.TP_Lbls['MatrixLabel-Out-4'],
-                        vars.TP_Lbls['MatrixLabel-Out-5'],
-                        vars.TP_Lbls['MatrixLabel-Out-6']
-                    ]
+                'input': utFn.DictValueSearchByKey(vars.TP_Lbls, r'MatrixLabel-In-\d+', regex=True),
+                'output': utFn.DictValueSearchByKey(vars.TP_Lbls, r'MatrixLabel-Out-\d+', regex=True)
             }
         }
         
+    HeaderDict = \
+        {
+            'alert': {
+                'btn': vars.TP_Btns['Header-Alert'],
+                'popover': 'Popover-Ctl-Alert'
+            },
+            'camera': {
+                'btn': vars.TP_Btns['Header-Camera'],
+                'popover': 'Popover-Ctl-Camera_{}'.format(len(settings.cameras))
+            },
+            'lights': {
+                'btn': vars.TP_Btns['Header-Lights'],
+                'popover': 'Popover-Ctl-Lights_{}'.format(len(settings.lights))
+            },
+            'settings': {
+                'btn': vars.TP_Btns['Header-Settings'],
+                'popover': 'Popover-Ctl-Audio_{}'.format(settings.micCtl)
+            },
+            'help': {
+                'btn': vars.TP_Btns['Header-Help'],
+                'popover': 'Popover-Ctl-Help'
+            },
+            'room': {
+                'btn': vars.TP_Btns['Room-Label'],
+                'popover': 'Popover-Room'
+            },
+            'popover-close': vars.TP_Btns['Popover-Close']
+        }
+        
+    TechMenuControlDict = \
+        {
+            'prev': vars.TP_Btns['Tech-Menu-Previous'],
+            'next': vars.TP_Btns['Tech-Menu-Next'],
+            'exit': vars.TP_Btns['Tech-Menu-Exit'],
+            'menu-pages': [
+                'Menu-Tech-1',
+                'Menu-Tech-2'
+            ]
+        }
+                
     #### =======================================================================
-    
-    #### PIN Code Module
-    vars.PINCtl = PINController(vars.TP_Main,
-                                vars.TP_Btns['Header-Settings'],
-                                PinButtons,
-                                vars.TP_Lbls['PIN-Label'],
-                                settings.techPIN, 
-                                'Tech')
-    
+        
     #### Activity Control Module
     vars.ActCtl = ActivityController(vars.TP_Main,
                                      ActModBtns,
                                      TransitionDict,
                                      vars.TP_Lbls['ShutdownConf-Count'],
                                      vars.TP_Lvls['ShutdownConfIndicator'])
-    # ACTIVITY_CONTROLLER = vars.ActCtl
     
     #### Source Control Module
     vars.SrcCtl = SourceController(vars.TP_Main,
@@ -269,7 +221,24 @@ def Initialize() -> bool:
                                    MatrixDict,
                                    settings.sources,
                                    settings.destinations)
-    # SOURCE_CONTROLLER = vars.SrcCtl
+    
+    #### Header Control Module
+    vars.HdrCtl = HeaderController(vars.TP_Main,
+                                   HeaderDict)
+    
+    #### Tech Menu Control Module
+    vars.TechCtl = TechMenuController(vars.TP_Main,
+                                      TechMenuControlDict,
+                                      utFn.DictValueSearchByKey(vars.TP_Btns, r'Tech-\w+$', regex=True))
+    
+    #### PIN Code Module
+    vars.PINCtl = PINController(vars.TP_Main,
+                                vars.TP_Btns['Header-Settings'],
+                                PinButtons,
+                                vars.TP_Lbls['PIN-Label'],
+                                settings.techPIN, 
+                                'Tech',
+                                vars.TechCtl.OpenTechMenu)
     
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     

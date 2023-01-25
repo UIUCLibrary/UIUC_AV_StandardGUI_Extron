@@ -78,14 +78,18 @@ def BuildButtons(UIHost: UIDevice,
         elif button['holdTime'] != None and button['repeatTime'] == None:
             btnDict[button['Name']] = Button(UIHost, button['ID'],
                                                 holdTime = button['holdTime'])
+            btnDict[button['Name']].holdTime = button['holdTime']
         elif button['holdTime'] == None and button['repeatTime'] != None:
             btnDict[button['Name']] = Button(UIHost, button['ID'], 
                                                 repeatTime = button['repeatTime'])
+            btnDict[button['Name']].repeatTime = button['repeatTime']
         elif button['holdTime'] != None and button['repeatTime'] != None:
             btnDict[button['Name']] = Button(UIHost, button['ID'],
                                                 holdTime = button['holdTime'],
                                                 repeatTime = button['repeatTime'])
-        if hasattr(vars, 'TESTING'):
+            btnDict[button['Name']].holdTime = button['holdTime']
+            btnDict[button['Name']].repeatTime = button['repeatTime']
+        if hasattr(vars, 'TESTING') and vars.TESTING is True:
             btnDict[button['Name']].Name = button['Name']
     ## return btnDict
     return btnDict
@@ -220,7 +224,7 @@ def BuildLevels(UIHost: UIDevice,
     for lvl in jsonObj['levels']:
         lvlDict[lvl['Name']] = Level(UIHost, lvl['ID'])
         
-        if hasattr(vars, 'TESTING'):
+        if hasattr(vars, 'TESTING') and vars.TESTING is True:
             lvlDict[lvl['Name']].Name = lvl['Name']
     
     ## return lvlDict
@@ -265,7 +269,7 @@ def BuildSliders(UIHost: UIDevice,
     for slider in jsonObj['sliders']:
         sliderDict[slider['Name']] = Slider(UIHost, slider['ID'])
         
-        if hasattr(vars, 'TESTING'):
+        if hasattr(vars, 'TESTING') and vars.TESTING is True:
             sliderDict[slider['Name']].Name = slider['Name']
     
     ## return sliderDict
@@ -310,7 +314,7 @@ def BuildLabels(UIHost: UIDevice,
     for lbl in jsonObj['labels']:
         labelDict[lbl['Name']] = Label(UIHost, lbl['ID'])
         
-        if hasattr(vars, 'TESTING'):
+        if hasattr(vars, 'TESTING') and vars.TESTING is True:
             labelDict[lbl['Name']].Name = lbl['Name']
     
     ## return labelDict
