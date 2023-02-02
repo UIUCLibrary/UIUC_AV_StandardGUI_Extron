@@ -51,6 +51,10 @@ class TechMenuController:
                 'Tech-ManualMatrix': self._ManMtxPage,
                 'Tech-RoomConfig': self._RmCfgPage
             }
+        self._PageUpdates = \
+            {
+                'Tech-SystemStatus': self._StatusPage
+            }
             
         self._menuBtns = MESet([])
         self._defaultPage = 'Tech-SystemStatus'
@@ -71,6 +75,12 @@ class TechMenuController:
         
         @event(self._menuBtns.Objects, 'Pressed')
         def TechMenuBtnHandler(button, action):
+            for fn in self._PageUpdates.values():
+                fn(show=False)
+            
+            if button.Page in self._PageUpdates:
+                self._PageUpdates[button.Page](show=True)
+            
             self._menuBtns.SetCurrent(button)
             self.UIHost.ShowPopup(button.Page)
             
@@ -118,13 +128,24 @@ class TechMenuController:
                     self.UIHost.ShowPage('Opening')
                 else:
                     self.UIHost.ShowPage('Main')
+                for fn in self._PageUpdates.values():
+                    fn(show=False)
+                    
     # Public Methods
     def OpenTechMenu(self) -> None:
+        utilityFunctions.Log('Updating Tech Menu Nav')
         self._pageIndex = 0
         self.UIHost.ShowPopup(self._ctlBtns['menu-pages'][self._pageIndex])
         self._ctlBtns['prev'].SetState(2)
         self._ctlBtns['prev'].SetEnable(False)
+        self._ctlBtns['next'].SetState(0)
+        self._ctlBtns['next'].SetEnable(True)
         
+        utilityFunctions.Log('Checking for Page Updates')
+        if self._defaultPage in self._PageUpdates:
+            utilityFunctions.Log('Starting Updates for Page: {}'.format(self._defaultPage))
+            self._PageUpdates[self._defaultPage](show=True)
+            
         self._menuBtns.SetCurrent(self._defaultBtn)
         self.UIHost.ShowPopup(self._defaultPage)
         
@@ -151,6 +172,13 @@ class TechMenuController:
     
     def _RmCfgPage(self):
         return 'Tech-RoomConfig_{}'.format(len(settings.lights))
+    
+    def _StatusPage(self, show: bool=False):
+        if show:
+            vars.StatusCtl.resetPages()
+            vars.StatusCtl.UpdateTimer.Restart()
+        else:
+            vars.StatusCtl.UpdateTimer.Stop()
     
 
 ## End Class Definitions -------------------------------------------------------

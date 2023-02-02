@@ -1,3 +1,5 @@
 # inore vscode settings
 .vscode/
 __pycache__/
+secrets*
+ConnectionHandler.py

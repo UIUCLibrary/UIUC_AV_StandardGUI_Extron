@@ -291,6 +291,7 @@ class ActivityController:
         
     def SystemSwitch(self, activity: str) -> None:
         utilityFunctions.Log("System Switch function activated", stack=True)
+        self._activitySplashTimer.Stop()
         self._selectedActivity = activity
         
         self._transition['label'].SetText(
@@ -315,18 +316,22 @@ class ActivityController:
         if activity == "share":
             utilityFunctions.Log('Configuring for Share mode')
             self.UIHost.HidePopupGroup(8) # Activity-Controls Group
+            self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
+            
             # get input assigned to the primaryDestination
             curSrc = vars.SrcCtl.PrimaryDestination.AssignedSource
-            # TODO: set assigned source to the default source if the none source
-            #       is assigned to the primary destination. Also set the system
-            #       as privacy muted
+            utilityFunctions.Log("Pre-Activity Change Source - Name: {}, Id: {}".format(curSrc.Name, curSrc.Id))
+            
+            if curSrc.Name == 'None':
+                utilityFunctions.Log('Current Source = None, Setting current source to default, ID = {}'.format(settings.defaultSource))
+                curSrc = vars.SrcCtl.GetSource(id=settings.defaultSource)
+                utilityFunctions.Log('New Current Source - Name: {}, ID: {}'.format(curSrc.Name, curSrc.Id))
+                vars.SrcCtl.SelectSource(curSrc)
+                utilityFunctions.Log('Selected Source - Name: {}, Id: {}'.format(vars.SrcCtl.SelectedSource.Name, vars.SrcCtl.SelectedSource.Id))
+                vars.SrcCtl.SetPrivacyOn()
             
             # update source selection to match primaryDestination
-            for dest in vars.SrcCtl.Destinations:
-                if dest.AssignedSource != curSrc:
-                    dest.AssignSource(curSrc)
-            
-            self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
+            vars.SrcCtl.SwitchSources(curSrc, 'All')
             
             # show activity splash screen, will be updated config.activitySplash
             # seconds after the activity switch timer stops
@@ -334,28 +339,39 @@ class ActivityController:
             self.UIHost.ShowPopup("Source-Control-Splash-Share")
             
         elif activity == "adv_share":
-            utilityFunctions.Log('Configuring for Advanced Share mode')
+            utilityFunctions.Log('Configuring for Adv Share mode')
             self.UIHost.ShowPopup("Activity-Control-AdvShare")
             
             self.UIHost.ShowPopup(vars.SrcCtl.GetAdvShareLayout())
-            # TODO: get inputs assigned to destination outputs, update destination
-            # buttons for these assignments
             self.UIHost.ShowPopup("Audio-Control-{}".format(settings.micCtl))
         
+            if vars.SrcCtl.Privacy:
+                utilityFunctions.Log('Handling Privacy reconfigure for Adv Share')
+                vars.SrcCtl.SetPrivacyOff()
+                destList = []
+                for dest in vars.SrcCtl.Destinations:
+                    if dest._type != 'conf':
+                        utilityFunctions.Log('Non-Confidence destination found - {}'.format(dest.Name))
+                        destList.append(dest)
+                utilityFunctions.Log('Count of non-Confidence destinations: {}'.format(len(destList)))
+                vars.SrcCtl.SwitchSources(vars.SrcCtl._none_source, destList)
+                        
         elif  activity == "group_work":
             utilityFunctions.Log('Configuring for Group Work mode')
             self.UIHost.ShowPopup("Activity-Control-Group")
             self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
+            
+            vars.SrcCtl.SelectSource(vars.SrcCtl.PrimaryDestination.GroupWorkSource)
             for dest in vars.SrcCtl.Destinations:
                 vars.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
-                
+            vars.SrcCtl.SetPrivacyOff()
+            
             # show activity splash screen, will be updated config.activitySplash
             # seconds after the activity switch timer stops
             vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
             self.UIHost.ShowPopup("Source-Control-Splash-GrpWrk")
 
-        vars.SrcCtl.UpdateSourceMenu()
-        vars.SrcCtl.ShowSelectedSource()
+        self._transition['switch']['init']()
 
     def SystemShutdown(self) -> None:
         utilityFunctions.Log("System Switch function activated", stack=True)

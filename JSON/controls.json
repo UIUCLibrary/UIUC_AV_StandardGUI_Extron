@@ -1762,63 +1762,63 @@
       "ID": 10013
     },
     {
-      "Name": "DeviceSatusLabel-1",
+      "Name": "DeviceStatusLabel-1",
       "ID": 10101
     },
     {
-      "Name": "DeviceSatusLabel-2",
+      "Name": "DeviceStatusLabel-2",
       "ID": 10102
     },
     {
-      "Name": "DeviceSatusLabel-3",
+      "Name": "DeviceStatusLabel-3",
       "ID": 10103
     },
     {
-      "Name": "DeviceSatusLabel-4",
+      "Name": "DeviceStatusLabel-4",
       "ID": 10104
     },
     {
-      "Name": "DeviceSatusLabel-5",
+      "Name": "DeviceStatusLabel-5",
       "ID": 10105
     },
     {
-      "Name": "DeviceSatusLabel-6",
+      "Name": "DeviceStatusLabel-6",
       "ID": 10106
     },
     {
-      "Name": "DeviceSatusLabel-7",
+      "Name": "DeviceStatusLabel-7",
       "ID": 10107
     },
     {
-      "Name": "DeviceSatusLabel-8",
+      "Name": "DeviceStatusLabel-8",
       "ID": 10108
     },
     {
-      "Name": "DeviceSatusLabel-9",
+      "Name": "DeviceStatusLabel-9",
       "ID": 10109
     },
     {
-      "Name": "DeviceSatusLabel-10",
+      "Name": "DeviceStatusLabel-10",
       "ID": 10110
     },
     {
-      "Name": "DeviceSatusLabel-11",
+      "Name": "DeviceStatusLabel-11",
       "ID": 10111
     },
     {
-      "Name": "DeviceSatusLabel-12",
+      "Name": "DeviceStatusLabel-12",
       "ID": 10112
     },
     {
-      "Name": "DeviceSatusLabel-13",
+      "Name": "DeviceStatusLabel-13",
       "ID": 10113
     },
     {
-      "Name": "DeviceSatusLabel-14",
+      "Name": "DeviceStatusLabel-14",
       "ID": 10114
     },
     {
-      "Name": "DeviceSatusLabel-15",
+      "Name": "DeviceStatusLabel-15",
       "ID": 10115
     },
     {
@@ -1828,6 +1828,10 @@
     {
       "Name": "DeviceStatusPage-Total",
       "ID": 10117
+    },
+    {
+      "Name": "PaginationSlash",
+      "ID": 10118
     },
     {
       "Name": "MatrixLabel-In-1",

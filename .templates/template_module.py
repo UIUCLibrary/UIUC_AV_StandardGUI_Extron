@@ -15,7 +15,7 @@ print(Version()) ## Sanity check ControlScript Import
 ##
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
-from json import json
+import json
 from typing import Dict, Tuple, List
 
 ## End Python Imports ----------------------------------------------------------
@@ -24,18 +24,19 @@ from typing import Dict, Tuple, List
 #### Custom Code Modules
 import utilityFunctions
 import settings
+import vars
 
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
 ##
+## Begin Class Definitions -----------------------------------------------------
+
+## End Class Definitions -------------------------------------------------------
+##
 ## Begin Function Definitions --------------------------------------------------
 
 ## End Function Definitions ----------------------------------------------------
-##
-## Begin Script Definition -----------------------------------------------------
-if __name__ == "__main__": ## this module does not run as a script
-    pass
-## End Script Definition -------------------------------------------------------
+
 
 

@@ -1,3 +1,6 @@
+import uofi_gui.feedback
+import secrets_hardware
+
 ##==============================================================================
 ## These are per system configuration variables, modify these as required
 
@@ -146,5 +149,134 @@ lights = []
 
 techPIN = "1867"           # PIN Code to access tech pages, must be a string
                            # fewer than 10 characters of 0-9
+
+hardware = [
+   {
+      'Id': 'WPD001',
+      'Name': 'Inst. Wireless',
+      'Interface': 
+         {
+            'module': 'hardware.mersive_solstice_pod',
+            'interface_class': 'RESTClass',
+            'interface_configuration': {
+               'host': 'libwpdsys01.library.illinois.edu',
+               'devicePassword': secrets_hardware.mersive_password
+            }
+         },
+      'Subscriptions':
+         [
+            {
+               'command': 'PodStatus',
+               'callback': uofi_gui.feedback.WPD_Mersive_StatusHandler
+            }
+         ],
+      'Polling':
+         [
+            {
+               'command': 'PodStatus',
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ]
+   },
+   {
+      'Id': 'WPD002',
+      'Name': 'North Wireless',
+      'Interface': 
+         {
+            'module': 'hardware.mersive_solstice_pod',
+            'interface_class': 'RESTClass',
+            'interface_configuration': {
+               'host': '192.17.115.141',
+               'devicePassword': secrets_hardware.mersive_password
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'PodStatus',
+               'callback': uofi_gui.feedback.WPD_Mersive_StatusHandler,
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ]
+   },
+   {
+      'Id': 'WPD003',
+      'Name': 'South Wireless',
+      'Interface': 
+         {
+            'module': 'hardware.mersive_solstice_pod',
+            'interface_class': 'RESTClass',
+            'interface_configuration': {
+               'host': '192.17.115.144',
+               'devicePassword': secrets_hardware.mersive_password
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'PodStatus',
+               'callback': uofi_gui.feedback.WPD_Mersive_StatusHandler,
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ]
+   },
+   {
+      'Id': 'DSP001',
+      'Name': 'Biamp DSP',
+      'Interface':
+         {
+            'module': 'hardware.biam_dsp_TesiraSeries_uofi',
+            'interface_class': 'SSHClass',
+            'UseConnectionHandler': True,
+            'interface_configuration': {
+               'Hostname': 'libavsadm07.library.illinois.edu',
+               'IPPort': 22,
+               'Credentials': ('admin', secrets_hardware.biamp_password)
+            }
+         },
+      'Subscriptions': [],
+      'Polling': 
+         [
+            {
+               'command': 'DeviceFaultList',
+               'active_int': 30,
+               'inactive_int': 30
+            },
+            {
+               'command': 'LevelControl',
+               'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
+               'callback': uofi_gui.feedback.DSP_BiampTesira_LevelHandler,
+               'active_int': 5,
+               'inactive_int': 120,
+            },
+            {
+               'command': 'LevelControl',
+               'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
+               'callback': uofi_gui.feedback.DSP_BiampTesira_LevelHandler,
+               'active_int': 5,
+               'inactive_int': 120,
+            },
+            {
+               'command': 'MuteControl',
+               'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
+               'callback': uofi_gui.feedback.DSP_BiampTesira_MuteHandler,
+               'active_int': 5,
+               'inactive_int': 120,
+            },
+            {
+               'command': 'MuteControl',
+               'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
+               'callback': uofi_gui.feedback.DSP_BiampTesira_MuteHandler,
+               'active_int': 5,
+               'inactive_int': 120,
+            }
+         ]
+   }
+]
 
 ##==============================================================================

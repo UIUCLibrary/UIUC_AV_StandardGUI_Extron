@@ -24,10 +24,11 @@ import re
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-
 import utilityFunctions
 import vars
 import settings
+
+import uofi_gui.feedback
 
 #### Extron Global Scripter Modules
 
@@ -95,6 +96,7 @@ class Destination:
         self.AdvLayoutPosition = LayoutTuple(Row=advLayout['row'], Pos=advLayout['pos'])
         self.AssignedSource = None
         self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
+        self.Mute = False
         
         self._type = destType
         if type(rly) != type(None):
@@ -109,6 +111,21 @@ class Destination:
         self._AdvAlertBtn = None
         self._AdvScnBtn = None
         self._MatrixRow = None
+    
+    def ToggleDestinationMute(self) -> None:
+        utilityFunctions.Log('Toggle Destination Mute ({})'.format(self.Name), stack=True)
+        if self.Mute:
+            self.UnmuteDestination()
+        else:
+            self.MuteDestination
+    
+    def MuteDestination(self) -> None:
+        utilityFunctions.Log('Destination Mute On ({})'.format(self.Name), stack=True)
+        self.Mute = True
+    
+    def UnmuteDestination(self) -> None:
+        utilityFunctions.Log('Destination Mute Off ({})'.format(self.Name), stack=True)
+        self.Mute = False
         
     def AssignSource(self, source: Source) -> None:
         self.AssignedSource = source
@@ -117,14 +134,20 @@ class Destination:
         self.UpdateAdvUI()
         
     def AssignMatrix(self, input: int, tieType: str='AV') -> None:
-        if tieType != 'Aud' or tieType != 'Vid' or tieType != 'AV':
-            raise ValueError("TieType must either be 'AV', 'Aud', or 'Vid'")
-        self.AssignedSource = None
-        self.UpdateAdvUI()
+        if not (tieType == 'Aud' or tieType == 'Vid' or tieType == 'AV' or tieType == 'untie'):
+            raise ValueError("TieType must either be 'AV', 'Aud', 'Vid', or 'untie'. Provided TieType: {}".format(tieType))
+        
+        if tieType == 'AV' or tieType == 'Vid':
+            self.AssignedSource = self.SourceController.GetSourceByInput(input)
+        else:
+            self.AssignedSource = self.SourceController._none_source
+            
         if tieType == 'Vid' or tieType == 'AV':
             self._AssignedVidInput = input
         if tieType == 'Aud' or tieType == 'AV':
             self._AssignedAudInput = input
+            
+        self.UpdateAdvUI()
             
     def GetMatrix(self) -> None:
         return MatrixTuple(Vid=self._AssignedVidInput, Aud=self._AssignedAudInput)
@@ -145,9 +168,12 @@ class Destination:
         
         @event(self._AdvSelectBtn, 'Pressed')
         def advSelectHandler(button, action):
-            curSource = self.SourceController.SelectedSource
-            self.SourceController.SwitchSources(curSource, [self])
-            self.UpdateAdvUI()
+            utilityFunctions.Log('Adv Select Handler - Source: {}, Destination: {}'
+                                 .format(self.SourceController.SelectedSource.Name,
+                                         self.Name))
+            self.SourceController.SwitchSources(self.SourceController.SelectedSource,
+                                                [self])
+            #self.AssignSource(curSource)
             
         # Source Control Buttons
         self._AdvCtlBtn.SetVisible(False)
@@ -156,10 +182,17 @@ class Destination:
         @event(self._AdvCtlBtn, 'Pressed')
         def advSrcCtrHandler(button, action):
             # configure source control page
-            # TODO: configure the source control page
+            modal = 'Modal-SrcCtl-{}'.format(self.AssignedSource._advSourceControlPage)
+            
+            if modal == 'Modal-SrcCtl-WPD':
+                uofi_gui.feedback.WPD_Mersive_Feedback(self.AssignedSource.Id, blank_on_fail=True)
             
             # show source control page
-            self.SourceController.UIHost.ShowPage(self.AssignedSource._advSourceControlPage)
+            self.SourceController.UIHost.ShowPopup(modal)
+            self.SourceController.OpenControlPopup = {
+                'page': modal,
+                'source': self.AssignedSource
+            }
         
         # Destination Audio Buttons
         self._AdvAudBtn.SetState(1)
@@ -231,11 +264,11 @@ class Destination:
             self.SourceController.UIHost.ShowPopup('Modal-ScnCtl')
     
     def UpdateAdvUI(self) -> None:
-        curSource = self.SourceController.SelectedSource
+        utilityFunctions.Log('Updating Advanced UI - Dest: {}, Source {}'.format(self.Name, self.AssignedSource.Name))
         
-        self._AdvSelectBtn.SetText(curSource.Name)
+        self._AdvSelectBtn.SetText(self.AssignedSource.Name)
         
-        if curSource._advSourceControlPage == None:
+        if self.AssignedSource._advSourceControlPage == None:
             self._AdvCtlBtn.SetVisible(False)
             self._AdvCtlBtn.SetEnable(False)
         else:
@@ -292,12 +325,17 @@ class SourceController:
         
         self.PrimaryDestination = self.GetDestination(id = settings.primaryDestination)
         self.SelectedSource = None
+        self.Privacy = False
+        self.OpenControlPopup = None
         
         # Private Properties
         utilityFunctions.Log('Set Private Properties')
         self._sourceBtns = sourceDict['select']
         self._sourceInds = sourceDict['indicator']
         self._arrowBtns = sourceDict['arrows']
+        self._privacyBtn = vars.TP_Btns['Privacy-Display-Mute']
+        self._sndToAllBtn = vars.TP_Btns['Send-To-All']
+        self._rtnToGrpBtn = vars.TP_Btns['Return-To-Group']
         self._offset = 0
         self._advLayout = self.GetAdvShareLayout()
         self._none_source = Source(self, 'none', 'None', 0, 0, None, None)
@@ -310,8 +348,9 @@ class SourceController:
                                         matrixDict['labels']['output'])
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
-            
             dest.AssignAdvUI(self._GetUIForAdvDest(dest))
+            
+        self.MatrixSwitch(0, 'All', 'untie')
         
         # Configure Source Selection Buttons
         utilityFunctions.Log('Create Class Events')
@@ -333,11 +372,18 @@ class SourceController:
             # advanced share doesn't switch until destination has been selected
             # all other activities switch immediately
             if vars.ActCtl.CurrentActivity != "adv_share": 
-                self.SwitchSources(self.SelectedSource)
+                if vars.ActCtl.CurrentActivity == 'share':
+                    self.SwitchSources(self.SelectedSource)
+                elif vars.ActCtl.CurrentActivity == 'group_work':
+                    self.SwitchSources(self.SelectedSource, [self.PrimaryDestination])
+                    
                 # TODO: Format Source Control Popup
                 page = self.SelectedSource._sourceControlPage 
                 if page == 'PC':
                     page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
+                elif page == 'WPD':
+                    uofi_gui.feedback.WPD_Mersive_Feedback(self.SelectedSource.Id, blank_on_fail=True)
+                    
                 self.UIHost.ShowPopup("Source-Control-{}".format(page))
 
         @event(self._arrowBtns, 'Pressed')
@@ -346,9 +392,11 @@ class SourceController:
             btnAction = button.Name[-4:]
             # determine if we are adding or removing offset
             if btnAction == "Prev":
-                self._offset -= 1
+                if self._offset > 0:
+                    self._offset -= 1
             elif btnAction == "Next":
-                self._offset += 1
+                if (self._offset + 5) < len(self._DisplaySrcList):
+                    self._offset += 1
             # update the displayed source menu
             self.UpdateSourceMenu()
 
@@ -358,6 +406,60 @@ class SourceController:
             self.UIHost.HidePopup('Modal-SrcCtl-Camera')
             self.UIHost.HidePopup('Modal-SrcErr')
             self.UIHost.HidePopup('Modal-ScnCtl')
+            self.OpenControlPopup = None
+            
+        @event(self._privacyBtn, 'Pressed')
+        def PrivacyHandler(button, action):
+            self.TogglePrivacy()
+    
+        @event(self._sndToAllBtn, ['Pressed', 'Released'])
+        def SendToAllHandler(button, action):
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                self.SwitchSources(self.SelectedSource)
+                @Wait(3)
+                def SendToAllBtnFeedbackWait():
+                    button.SetState(0)
+                    
+        @event(self._rtnToGrpBtn, ['Pressed', 'Released'])
+        def ReturnToGroupHandler(button, action):
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                self.SelectSource(self.PrimaryDestination.GroupWorkSource)
+                for dest in self.Destinations:
+                    self.SwitchSources(dest.GroupWorkSource, [dest])
+                
+                @Wait(3)
+                def SendToAllBtnFeedbackWait():
+                    button.SetState(0)
+                    
+        @event(vars.TP_Btns['WPD-ClearPosts'], ['Pressed', 'Released'])
+        def WPDClearPostsHandler(button, action):
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                button.SetState(0)
+                if vars.ActCtl.CurrentActivity != 'adv_share':
+                    curHW = vars.Hardware[self.SelectedSource.Id]
+                else:
+                    curHW = vars.Hardware[self.OpenControlPopup['source'].Id]
+                
+                curHW.interface.Set('ClearPosts', value=None, qualifier={'hw': curHW})
+                
+        @event(vars.TP_Btns['WPD-ClearAll'], ['Pressed', 'Released'])
+        def WPDClearAllHandler(button, action):
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                button.SetState(0)
+                if vars.ActCtl.CurrentActivity != 'adv_share':
+                    curHW = vars.Hardware[self.SelectedSource.Id]
+                else:
+                    curHW = vars.Hardware[self.OpenControlPopup['source'].Id]
+                
+                curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
     
     def _GetUIForAdvDest(self, dest: Destination) -> Dict[str, Button]:
         """Get Advanced Display button objects for a given destination ID
@@ -400,6 +502,29 @@ class SourceController:
         btnPR = btnLoc.split(',')
         return LayoutTuple(Row = btnPR[1], Pos = btnPR[0])
     
+    def TogglePrivacy(self) -> None:
+        utilityFunctions.Log('Toggle Privacy', stack=True)
+        if self.Privacy:
+            self.SetPrivacyOff()
+        else:
+            self.SetPrivacyOn()
+    
+    def SetPrivacyOn(self) -> None:
+        utilityFunctions.Log('Privacy On', stack=True)
+        self.Privacy = True
+        self._privacyBtn.SetBlinking('medium', [1,2])
+        for d in self.Destinations:
+            if d._type != 'conf':
+                d.MuteDestination()
+    
+    def SetPrivacyOff(self) -> None:
+        utilityFunctions.Log('Privacy Off', stack=True)
+        self.Privacy = False
+        self._privacyBtn.SetState(0)
+        for d in self.Destinations:
+            if d._type != 'conf':
+                d.UnmuteDestination()
+    
     def GetAdvShareLayout(self) -> str:
         layout = {}
         for dest in self.Destinations:
@@ -429,6 +554,11 @@ class SourceController:
             for dest in self.Destinations:
                 if dest.Name == name:
                     return dest
+                
+    def GetDestinationByOutput(self, outputNum: int) -> Destination:
+        for dest in self.Destinations:
+            if dest.Output == outputNum:
+                return dest
     
     def GetDestinationIndexByID(self, id: str) -> int:
         """Get Destination Index from ID.
@@ -458,9 +588,15 @@ class SourceController:
                 if src.Id == id:
                     return src
         if name != None:
-            for src in self.Source:
+            for src in self.Sources:
                 if src.Name == name:
                     return src
+                
+    def GetSourceByInput(self, inputNum: int) -> Source:
+        for src in self.Sources:
+            if src.Input == inputNum:
+                return src
+        return self._none_source
     
     def GetSourceIndexByID(self, id: str) -> int:
         """Get Source Index from ID.
@@ -521,6 +657,7 @@ class SourceController:
         self.UpdateDisplaySourceList()
         
         offsetIter = self._offset
+        utilityFunctions.Log('Source Control Offset - {}'.format(self._offset))
         for btn in self._sourceBtns.Objects:
             btn_to_config = self._DisplaySrcList[offsetIter]
             offState = int('{}0'.format(btn_to_config.Icon))
@@ -529,6 +666,7 @@ class SourceController:
             btn.SetText(str(btn_to_config.Name))
             offsetIter += 1
         self._sourceBtns.SetCurrent(None)
+        self._sourceInds.SetCurrent(None)
         
         if len(self._DisplaySrcList) <= 5:
             self.UIHost.ShowPopup('Menu-Source-{}'.format(len(self._DisplaySrcList)))
@@ -552,13 +690,16 @@ class SourceController:
 
         # reset currently selected source
         currentSourceIndex = self.GetSourceIndexByID(self.SelectedSource.Id)
+        utilityFunctions.Log('Current Source Index - {}'.format(currentSourceIndex))
         
         btnIndex = currentSourceIndex - self._offset
-        if btnIndex > 4:
-            raise KeyError("Button Index Out of Range")
+        utilityFunctions.Log('Button Index - {}'.format(btnIndex))
+        # if btnIndex > 4:
+        #     raise KeyError("Button Index Out of Range")
         
-        self._sourceBtns.SetCurrent(self._sourceBtns.Objects[btnIndex])
-        self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
+        if btnIndex >= 0 and btnIndex <= 4:
+            self._sourceBtns.SetCurrent(self._sourceBtns.Objects[btnIndex])
+            self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
         
     def ShowSelectedSource(self) -> None:
         utilityFunctions.Log('Show Selected Source', stack=True)
@@ -573,28 +714,40 @@ class SourceController:
             self.UpdateSourceMenu()
         
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
+        # TODO: Figure out why this function has turned into a complete mess
         if type(dest) == str and dest != 'All':
-            raise TypeError("Destination must either be 'All' or a list of Destination objects, names, and/or IDs")
+            raise TypeError("Destination string must be 'All' or a list of Destination objects, names, and/or IDs")
+        
+        utilityFunctions.Log('Switch Sources - Src Type: {}, Dest Type: {}'.format(type(src), type(dest)), stack=True)
         
         if type(src) == str:
             srcObj = self.GetSource(id = src, name = src)
         elif type(src) == Source:
             srcObj = src
+        else:
+            utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(src) == str),(type(src) == Source)))
         
-        # TODO: Update Matrix (send matrix tie commands to the matrix rows being affected)
         if type(dest) == str and dest == 'All':
+            utilityFunctions.Log('Source Switch - Destination: All, Source: {}'.format(srcObj.Name))
             for d in self.Destinations:
                 d.AssignSource(srcObj)
+                d._MatrixRow.MakeTie(srcObj.Input, 'AV')
                 # TODO: send source change command
-        elif type(dest) == List:
+        elif type(dest) == type([]):
             for d in dest:
                 if type(d) == Destination:
+                    utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
                     d.AssignSource(srcObj)
+                    d._MatrixRow.MakeTie(srcObj.Input, 'AV')
                     # TODO: send source change command
                 elif type(d) == str:
-                    destObj = self.GetDestination(id = d, name = d)
-                    destObj.AssignSource(srcObj)
+                    dObj = self.GetDestination(id = d, name = d)
+                    utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
+                    dObj.AssignSource(srcObj)
+                    dObj._MatrixRow.MakeTie(srcObj.Input, 'AV')
                     # TODO: send source change command
+        else:
+            utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == List)))
                     
         
 
@@ -607,29 +760,43 @@ class SourceController:
             srcNum = srcObj.Input
         elif type(src) == Source:
             srcNum = src.Input
+            srcObj = src
         elif type(src) == int:
-            srcNum = int
+            srcNum = src
+            srcObj = self.GetSourceByInput(src)
         else:
             raise TypeError("Source must be a source object, source name string, source Id string, or switcher input integer")
-        # TODO: Update Matrix (send matrix tie commands to the matrix rows being affected)
+        
+        utilityFunctions.Log('Source Object ({}) - Input: {}'.format(srcObj, srcNum))
+        
         if type(dest) == str and dest == 'All':
             for d in self.Destinations:
-                d.AssignSource(None)
+                #d.AssignSource(self._none_source)
                 d.AssignMatrix(srcNum, mode)
+                d._MatrixRow.MakeTie(srcNum, mode)
             # TODO: send source change command
-        elif type(dest) == List:
+        elif type(dest) == type([]):
             for d in dest:
                 if type(d) == Destination:
-                    d.AssignSource(None)
+                    #d.AssignSource(self._none_source)
                     d.AssignMatrix(srcNum, mode)
+                    d._MatrixRow.MakeTie(srcNum, mode)
                     # TODO: send source change command
                 elif type(d) == str:
                     destObj = self.GetDestination(id = d, name = d)
-                    destObj.AssignSource(srcObj)
+                    #destObj.AssignSource(self._none_source)
+                    destObj.AssignMatrix(srcNum, mode)
+                    destObj._MatrixRow.MakeTie(srcNum, mode)
                     # TODO: send source change command
                 elif type(d) == int:
+                    destObj = self.GetDestinationByOutput(d)
+                    if destObj is not None:
+                        #destObj.AssignSource(srcObj)
+                        destObj.AssignMatrix(srcNum, mode)
+                        destObj._MatrixRow.MakeTie(srcNum, mode)
                     # TODO: send source change command
-                    pass
+        else:
+            utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == type([]))))
             
 
         # TODO: Update other Adv UI Buttons
@@ -674,9 +841,12 @@ class MatrixController:
             'untie': 0
         }
         
+        self._ctls.SetCurrent(0)
+        
         utilityFunctions.Log('Create Class Events')
         @event(self._ctls.Objects, 'Pressed')
         def matrixModeHandler(button: Button, action: str):
+            self._ctls.SetCurrent(button)
             if button.Name.endswith('AV'):
                 self.Mode = 'AV'
             elif button.Name.endswith('Audio'):
@@ -686,23 +856,30 @@ class MatrixController:
             elif button.Name.endswith('Untie'):
                 self.Mode = 'untie'
         
-        @event(self._del, 'Pressed')
+        @event(self._del, ['Pressed','Released'])
         def matrixDelAllTiesHandler(button: Button, action: str):
-            for row in self._rows:
-                for btn in row.Objects:
-                    btn.SetState(0)
-
-            self.SourceController.MatrixSwitch(self.SourceController._none_source)
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                button.SetState(0)
+                for row in self._rows.values():
+                    for btn in row.Objects:
+                        btn.SetState(0)
+                self.SourceController.MatrixSwitch(self.SourceController._none_source, 'All', 'untie')
             
         for inLbl in self._inputLbls:
             inLbl.SetText('Not Connected')
         for src in self.SourceController.Sources:
-            self._inputLbls[src.Input - 1].SetText(src.Name)
+            for inLbl in self._inputLbls:
+                if inLbl.Name.endswith(str(src.Input)):
+                    inLbl.SetText(src.Name)
             
         for outLbl in self._outputLbls:
             outLbl.SetText('Not Connected')
         for dest in self.SourceController.Destinations:
-            self._outputLbls[dest.Output - 1].SetText(dest.Name)
+            for outLbl in self._outputLbls:
+                if outLbl.Name.endswith(str(dest.Output)):
+                    outLbl.SetText(dest.Name)
         
 class MatrixRow:
     def __init__(self,
@@ -721,21 +898,19 @@ class MatrixRow:
             regex = r"Tech-Matrix-(\d+),(\d+)"
             re_match = re.match(regex, btn.Name)
             # 0 is full match, 1 is input, 2 is output
-            btn.Input = re_match.group(1)
+            btn.Input = int(re_match.group(1))
         
         @event(self.Objects, 'Pressed')
         def matrixSelectHandler(button: Button, action: str):
             # send switch commands
             if self.Matrix.Mode == "untie":
-                self.Matrix.SourceController.MatrixSwitch(0, self.MatrixOutput, self.Matrix.Mode)
+                self.Matrix.SourceController.MatrixSwitch(0, [self.MatrixOutput], self.Matrix.Mode)
             else:
-                self.Matrix.SourceController.MatrixSwitch(btn.Input, self.MatrixOutput, self.Matrix.Mode)
+                utilityFunctions.Log("Selected button input - {}".format(button.Input))
+                self.Matrix.SourceController.MatrixSwitch(button.Input, [self.MatrixOutput], self.Matrix.Mode)
             
             # set pressed button's feedback
-            button.SetState(self.Matrix._stateDict[self.Matrix.Mode])
-            button.SetText(self.Matrix.Mode)
-            
-            self._UpdateRowBtns(button, self.Matrix.Mode)
+            self.MakeTie(button, self.Matrix.Mode)
         
     def _UpdateRowBtns(self, modBtn: Button, tieType: str="AV") -> None:
         for btn in self.Objects:
@@ -758,15 +933,30 @@ class MatrixRow:
                         btn.SetState(2)
                         btn.SetText('Aud')
     
-    def MakeTie(self, input: int, tieType: str="AV") -> None:
-        if not (tieType == 'AV' or tieType == 'Aud' or tieType == 'Vid'):
-            raise ValueError("TieType must be one of 'AV', 'Aud', or 'Vid'")
+    def MakeTie(self, input: Union[int, Button], tieType: str="AV") -> None:
+        if not (tieType == 'AV' or tieType == 'Aud' or tieType == 'Vid' or tieType == 'untie'):
+            raise ValueError("TieType must be one of 'AV', 'Aud', 'Vid', or 'untie")
         
-        modBtn = self.Objects[input]
-        modBtn.SetState(self.Matrix._stateDict[tieType])
-        modBtn.SetText(tieType)
-        
-        self._UpdateRowBtns(modBtn, tieType)
+        if input == 0:
+            for btn in self.Objects:
+                btn.SetState(0)
+                btn.SetText('')
+        else:
+            if type(input) == int:
+                for btn in self.Objects:
+                    if btn.Input == input:
+                        modBtn = btn
+            elif type(input) == Button:
+                modBtn = input
+                
+            modBtn.SetState(self.Matrix._stateDict[tieType])
+            modBtn.SetText(tieType)
+            if tieType == 'untie':
+                @Wait(5)
+                def untiedTextHandler():
+                    modBtn.SetText('')
+            
+            self._UpdateRowBtns(modBtn, tieType)
 
 ## End Class Definitions -------------------------------------------------------
 ##

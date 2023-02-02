@@ -14,8 +14,6 @@ print(Version()) ## Sanity check ControlScript Import
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
-import json
 
 '''
 Since we can't load modules through Global Scripter directly, we will instead
@@ -37,7 +35,10 @@ from uofi_gui.uiObjects import (BuildButtons, BuildButtonGroups, BuildKnobs,
 from uofi_gui.sourceControls import SourceController
 from uofi_gui.headerControls import HeaderController
 from uofi_gui.techControls import TechMenuController
-
+from uofi_gui.systemHardware import (SystemHardwareController,
+                                     SystemPollingController, 
+                                     SystemStatusController)
+from uofi_gui.feedback import (WPD_Mersive_Feedback, WPD_Mersive_StatusHandler)
 
 import utilityFunctions as utFn
 
@@ -76,6 +77,33 @@ vars.TP_Slds = BuildSliders(vars.TP_Main, jsonPath=settings.ctlJSON)
 #### Build Labels
 vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath=settings.ctlJSON)
 
+#### System devices
+#### Poll Control Module - needs to exist before creating hardware controllers
+vars.PollCtl = SystemPollingController()
+
+for hw in settings.hardware:
+    vars.Hardware[hw['Id']] = SystemHardwareController(**hw)
+
+# @Timer(30)
+# def DebugTimerHandler(timer, count):
+#     interfaceStatus = vars.Hardware['DSP001'].interface.ReadStatus('ConnectionStatus')
+#     sysHWStatus = vars.Hardware['DSP001'].ConnectionStatus
+#     counter = vars.Hardware['DSP001'].interface.counter
+#     conncounter = vars.Hardware['DSP001'].interface.connectionCounter
+#     ProgramLog('DSP Connection Status - Interface: {}; System Hardware: {}; Counter: {}/{}'.format(interfaceStatus, sysHWStatus, counter, conncounter), 'info')
+    
+#     vars.Hardware['DSP001'].interface.Update('LevelControl', {'Instance Tag': 'XLRLevel'})
+#     lvlVal = vars.Hardware['DSP001'].interface.ReadStatus('LevelControl', {'Instance Tag': 'XLRLevel', 'Channel': '1'})
+#     ProgramLog('DSP Read Test: XLRLevel = {}'.format(lvlVal), 'info')
+    
+#     vars.Hardware['DSP001'].interface.Update('MuteControl', {'Instance Tag': 'ProgLevel'})
+#     muteVal = vars.Hardware['DSP001'].interface.ReadStatus('MuteControl', {'Instance Tag': 'ProgLevel', 'Channel': '1'})
+#     ProgramLog('DSP Read Test: ProgLevel Mute = {}'.format(muteVal), 'info')
+    
+#     vars.Hardware['DSP001'].interface.Update('LogicMeter', {'Instance Tag': 'LogicMeter1'})
+#     logicVal = vars.Hardware['DSP001'].interface.ReadStatus('LogicMeter', {'Instance Tag': 'LogicMeter1', 'Channel': '1'})
+#     ProgramLog('DSP Read Test: Logic Meter State = {}'.format(logicVal), 'info')
+    
 ## End Device/User Interface Definition ----------------------------------------
 ##
 ## Begin Communication Interface Definition ------------------------------------
@@ -85,21 +113,28 @@ vars.TP_Lbls = BuildLabels(vars.TP_Main, jsonPath=settings.ctlJSON)
 ## Begin Function Definitions --------------------------------------------------
 
 def StartupActions() -> None:
+    vars.PollCtl.SetPollingMode('active')
     vars.HdrCtl.ConfigSystemOn()
-    pass
+    vars.SrcCtl.SetPrivacyOff()
 
 def StartupSyncedActions(count: int) -> None:
     pass
 
 def SwitchActions() -> None:
-    pass
+    vars.SrcCtl.UpdateSourceMenu()
+    vars.SrcCtl.ShowSelectedSource()
 
 def SwitchSyncedActions(count: int) -> None:
     pass
 
 def ShutdownActions() -> None:
+    vars.PollCtl.SetPollingMode('inactive')
     vars.HdrCtl.ConfigSystemOff()
-    pass
+    vars.SrcCtl.MatrixSwitch(0, 'All', 'untie')
+    
+    # for id, hw in vars.Hardware:
+    #     if id.startswith('WPD'):
+    #         hw.interface.Set('BootUsers', value=None, qualifier=None)
 
 def ShutdownSyncedActions(count: int) -> None:
     pass
@@ -240,7 +275,26 @@ def Initialize() -> bool:
                                 'Tech',
                                 vars.TechCtl.OpenTechMenu)
     
+    #### System Status Module
+    vars.StatusCtl = SystemStatusController(vars.Hardware,
+                                            {
+                                                'icons': utFn.DictValueSearchByKey(vars.TP_Btns, r'DeviceStatusIcon-\d+', regex=True),
+                                                'labels': utFn.DictValueSearchByKey(vars.TP_Lbls, r'DeviceStatusLabel-\d+', regex=True),
+                                                'arrows': {
+                                                    'prev': vars.TP_Btns['DeviceStatus-PageDown'],
+                                                    'next': vars.TP_Btns['DeviceStatus-PageUp']
+                                                },
+                                                'pages': {
+                                                    'current': vars.TP_Lbls['DeviceStatusPage-Current'],
+                                                    'total': vars.TP_Lbls['DeviceStatusPage-Total'],
+                                                    'div': vars.TP_Lbls['PaginationSlash']
+                                                }
+                                            })
+    
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
+    
+    #### Start Polling
+    vars.PollCtl.StartPolling()
     
     utFn.Log('System Initialized')
     return True

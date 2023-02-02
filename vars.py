@@ -40,6 +40,8 @@ SrcCtl = None
 PINCtl = None
 HdrCtl = None
 TechCtl = None
+PollCtl = None
+StatusCtl = None
 
 TP_Btns = {}
 TP_Btn_Grps = {}
@@ -47,5 +49,7 @@ TP_Knobs = {}
 TP_Lvls = {}
 TP_Slds = {}
 TP_Lbls = {}
+
+Hardware = {}
 
 ##++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
