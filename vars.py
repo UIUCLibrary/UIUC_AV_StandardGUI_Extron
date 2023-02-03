@@ -42,6 +42,8 @@ HdrCtl = None
 TechCtl = None
 PollCtl = None
 StatusCtl = None
+CamCtl = None
+KBCtl = None
 
 TP_Btns = {}
 TP_Btn_Grps = {}

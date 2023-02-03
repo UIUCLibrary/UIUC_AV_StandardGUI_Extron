@@ -10,17 +10,19 @@ activityMode = 3              # Activity mode popup to display
    # 1 - Share only
    # 2 - Share & Advanced Share
    # 3 - Share, Adv. Share, and Group Work
-startupTimer = 10             # Max startup timer duration
-switchTimer = 20              # Max switch timer duration
-shutdownTimer = 30            # Max shutdown timer duration
+startupTimer = 5             # Max startup timer duration
+switchTimer = 3              # Max switch timer duration
+shutdownTimer = 5            # Max shutdown timer duration
 shutdownConfTimer = 30        # Shutdown confirmation duration
 activitySplashTimer = 15      # Duration to show activity splash pages for
 defaultSource = "PC001"       # Default source id on activity switch
 primaryDestination = "PRJ001" # Primary destination
-micCtl = 1                    # Microphone control
+micCtl = 1                    # Microphone control # TODO: might need a better way to handle this
    # 0 - no mic control
    # 1 - mic control
 techMatrixSize = (8,4)
+camSwitcher = 'DEC001'
+defaultCamera = 'CAM001'
 
 # Icon Map
 #     0 - no source
@@ -136,12 +138,14 @@ destinations = \
 cameras = \
    [
       {
-         "id": "CAM001",
-         "name": "North Camera"
+         "Id": "CAM001",
+         "Name": "North Camera",
+         "Input": 1
       },
       {
-         "id": "CAM002",
-         "name": "South Camera"
+         "Id": "CAM002",
+         "Name": "South Camera",
+         "Input": 2
       }
    ]
    
@@ -154,6 +158,8 @@ hardware = [
    {
       'Id': 'WPD001',
       'Name': 'Inst. Wireless',
+      'Manufacturer': 'Mersive',
+      'Model': 'Solstice Pod Gen 3',
       'Interface': 
          {
             'module': 'hardware.mersive_solstice_pod',
@@ -182,6 +188,8 @@ hardware = [
    {
       'Id': 'WPD002',
       'Name': 'North Wireless',
+      'Manufacturer': 'Mersive',
+      'Model': 'Solstice Pod Gen 3',
       'Interface': 
          {
             'module': 'hardware.mersive_solstice_pod',
@@ -205,6 +213,8 @@ hardware = [
    {
       'Id': 'WPD003',
       'Name': 'South Wireless',
+      'Manufacturer': 'Mersive',
+      'Model': 'Solstice Pod Gen 3',
       'Interface': 
          {
             'module': 'hardware.mersive_solstice_pod',
@@ -227,7 +237,9 @@ hardware = [
    },
    {
       'Id': 'DSP001',
-      'Name': 'Biamp DSP',
+      'Name': 'DSP',
+      'Manufacturer': 'Biamp',
+      'Model': 'TesiraFORTE AI AVB',
       'Interface':
          {
             'module': 'hardware.biam_dsp_TesiraSeries_uofi',
@@ -276,6 +288,132 @@ hardware = [
                'inactive_int': 120,
             }
          ]
+   },
+   {
+      'Id': 'DEC001',
+      'Name': 'Camera Decoder',
+      'Manufacturer': 'Magewell',
+      'Model': 'Pro Convert for NDI to HDMI',
+      'Interface': 
+         {
+            'module': 'hardware.mgwl_sm_Pro_Convert_Series_v1_0_1_0',
+            'interface_class': 'HTTPClass',
+            'interface_configuration': {
+               'ipAddress': '',
+               'port': '80',
+               'deviceUsername': 'admin',
+               'devicePassword': secrets_hardware.magewell_password
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'CurrentSelectedSourceStatus',
+               'active_int': 30,
+               'inactive_int': 600
+            }
+         ],
+      'Options': 
+         {
+            'SwitchCommand': 
+               {
+                  'command': 'SourcePresetListSelect',
+                  'qualifier': {'NDI Source': 'True'}
+               }
+         }
+   },
+   {
+      'Id': 'CAM001',
+      'Name': 'North Camera',
+      'Manufacturer': 'PTZOptics',
+      'Model': 'PT12X-NDI-GY',
+      'Interface':
+         {
+            'module': 'hardware.ptz_camera_PT30XNDI_GY_WH_v1_0_0_0',
+            'interface_class': 'EthernetClass',
+            'interface_configuration': {
+               'Hostname': '',
+               'IPPort': 80
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'Power',
+               'active_int': 30,
+               'inactive_int': 600
+            }
+         ],
+      'Options':
+         {
+            'PTCommand': 
+               {
+                  'command': 'PanTilt',
+                  'qualifier': {'Pan Speed': 5, 'Tilt Speed': 5},
+               },
+            'ZoomCommand':
+               {
+                  'command': 'Zoom',
+                  'qualifier': {'Zoom Speed': 2},
+               },
+            'PresetSaveCommand':
+               {
+                  'command': 'PresetSave'
+               },
+            'PresetRecallCommand':
+               {
+                  'command': 'PresetRecall'
+               },
+            'Presets': {}
+         }
+   },
+   {
+      'Id': 'CAM002',
+      'Name': 'South Camera',
+      'Manufacturer': 'PTZOptics',
+      'Model': 'PT12X-NDI-GY',
+      'Interface':
+         {
+            'module': 'hardware.ptz_camera_PT30XNDI_GY_WH_v1_0_0_0',
+            'interface_class': 'EthernetClass',
+            'interface_configuration': {
+               'Hostname': '',
+               'IPPort': 80
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'Power',
+               'active_int': 30,
+               'inactive_int': 600
+            }
+         ],
+      'Options':
+         {
+            'PTCommand': 
+               {
+                  'command': 'PanTilt',
+                  'qualifier': {'Pan Speed': 5, 'Tilt Speed': 5},
+               },
+            'ZoomCommand':
+               {
+                  'command': 'Zoom',
+                  'qualifier': {'Zoom Speed': 2},
+               },
+            'PresetSaveCommand':
+               {
+                  'command': 'PresetSave'
+               },
+            'PresetRecallCommand':
+               {
+                  'command': 'PresetRecall'
+               },
+            'Presets': {}
+         }
    }
 ]
 

@@ -193,21 +193,27 @@
       "repeatTime": null
     },
     {
+      "Name": "Ctl-Camera-Home",
+      "ID": 6110,
+      "holdTime": 3,
+      "repeatTime": null
+    },
+    {
       "Name": "Ctl-Camera-Preset-1",
       "ID": 6111,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
       "Name": "Ctl-Camera-Preset-2",
       "ID": 6112,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
       "Name": "Ctl-Camera-Preset-3",
       "ID": 6113,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -1673,6 +1679,366 @@
       "ID": 12902,
       "holdTime": null,
       "repeatTime": null
+    },
+    {
+      "Name": "KB-tilda",
+      "ID": 12701,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-1",
+      "ID": 12702,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-2",
+      "ID": 12703,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-3",
+      "ID": 12704,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-4",
+      "ID": 12705,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-5",
+      "ID": 12706,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-6",
+      "ID": 12707,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-7",
+      "ID": 12708,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-8",
+      "ID": 12709,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-9",
+      "ID": 12710,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-0",
+      "ID": 12711,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-dash",
+      "ID": 12712,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-equals",
+      "ID": 12713,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-q",
+      "ID": 12714,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-w",
+      "ID": 12715,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-e",
+      "ID": 12716,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-r",
+      "ID": 12717,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-t",
+      "ID": 12718,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-y",
+      "ID": 12719,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-u",
+      "ID": 12720,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-i",
+      "ID": 12721,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-o",
+      "ID": 12722,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-p",
+      "ID": 12723,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-openBracket",
+      "ID": 12724,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-closeBracket",
+      "ID": 12725,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-backslash",
+      "ID": 12726,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-a",
+      "ID": 12727,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-s",
+      "ID": 12728,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-d",
+      "ID": 12729,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-f",
+      "ID": 12730,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-g",
+      "ID": 12731,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-h",
+      "ID": 12732,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-j",
+      "ID": 12733,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-k",
+      "ID": 12734,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-l",
+      "ID": 12735,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-semicolon",
+      "ID": 12736,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-apostrophy",
+      "ID": 12737,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-z",
+      "ID": 12738,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-x",
+      "ID": 12739,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-c",
+      "ID": 12740,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-v",
+      "ID": 12741,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-b",
+      "ID": 12742,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-n",
+      "ID": 12743,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-m",
+      "ID": 12744,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-comma",
+      "ID": 12745,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-period",
+      "ID": 12746,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-slash",
+      "ID": 12747,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-del",
+      "ID": 12748,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-bs",
+      "ID": 12749,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-caps",
+      "ID": 12750,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-shift",
+      "ID": 12751,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-space",
+      "ID": 12752,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-left",
+      "ID": 12753,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-right",
+      "ID": 12754,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-save",
+      "ID": 12755,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-cancel",
+      "ID": 12756,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Name",
+      "ID": 12761,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Home",
+      "ID": 12762,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Cancel",
+      "ID": 12763,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Save",
+      "ID": 12764,
+      "holdTime": null,
+      "repeatTime": null
     }
   ],
   "buttonGroups": [
@@ -2072,6 +2438,14 @@
     {
       "Name": "AudioInput-Page-Max",
       "ID": 10699
+    },
+    {
+      "Name": "CameraPreset-Title",
+      "ID": 10801
+    },
+    {
+      "Name": "KB-Editor",
+      "ID": 10811
     }
   ],
   "levels":[

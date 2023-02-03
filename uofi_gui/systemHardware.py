@@ -40,12 +40,18 @@ import vars
 ## Begin Class Definitions -----------------------------------------------------
 
 class SystemHardwareController:
-    # TODO: create a class which agregates hardware control and feedback
-    def __init__(self, Id: str, Name: str, Interface: Dict, Subscriptions: Dict, Polling: Dict) -> None:
+    def __init__(self, Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
         self.Id = Id
         self.Name = Name
+        self.Manufacturer = Manufacturer
+        self.Model = Model
         self.ConnectionStatus = 'Not Connected'
         self.LastStatusChange = None
+        
+        if Options is not None:
+            for key in Options:
+                if not hasattr(self, key):
+                    setattr(self, key, Options[key])
         
         # interface = {
         #     "module": module_name,
@@ -150,7 +156,6 @@ class SystemHardwareController:
             
     
 class SystemPollingController:
-    # TODO: create a class which handles all of the SystemHardwareController polling and reporting changes to SystemStatusController
     def __init__(self, active_duration: int=5, inactive_duration: int=300) -> None:
         self.polling = []
         
@@ -167,7 +172,7 @@ class SystemPollingController:
     def __ActivePollingHandler(self, timer, count):
         for poll in self.polling:
             if (count % poll['active_duration']) == 0:
-                utilityFunctions.Log("Updating for: {}".format(poll))
+                #utilityFunctions.Log("Updating for: {}".format(poll))
                 poll['interface'].Update(poll['command'], qualifier=poll['qualifier'])
     
     def __InactivePollingHandler(self, timer, count):

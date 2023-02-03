@@ -39,6 +39,8 @@ from uofi_gui.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
                                      SystemStatusController)
 from uofi_gui.feedback import (WPD_Mersive_Feedback, WPD_Mersive_StatusHandler)
+from uofi_gui.cameraControl import CameraController
+from uofi_gui.keyboardControl import KeyboardController
 
 import utilityFunctions as utFn
 
@@ -116,6 +118,8 @@ def StartupActions() -> None:
     vars.PollCtl.SetPollingMode('active')
     vars.HdrCtl.ConfigSystemOn()
     vars.SrcCtl.SetPrivacyOff()
+    vars.CamCtl.SelectDefaultCamera()
+    vars.CamCtl.SendCameraHome()
 
 def StartupSyncedActions(count: int) -> None:
     pass
@@ -291,12 +295,36 @@ def Initialize() -> bool:
                                                 }
                                             })
     
+    #### Camera Controller Module
+    if settings.camSwitcher is not None:
+        vars.CamCtl = CameraController(vars.TP_Main,
+                                       vars.TP_Btn_Grps['Camera-Select'],
+                                       utFn.DictValueSearchByKey(vars.TP_Btns,
+                                                                 r'Ctl-Camera-Preset-\d+',
+                                                                 regex=True),
+                                       utFn.DictValueSearchByKey(vars.TP_Btns,
+                                                                 r'Ctl-Camera-[TPZ]-(?:Up|Dn|L|R|In|Out)',
+                                                                 regex=True),
+                                       {
+                                           'Title': vars.TP_Lbls['CameraPreset-Title'],
+                                           'DisplayName': vars.TP_Btns['CamPreset-Name'],
+                                           'Home': vars.TP_Btns['CamPreset-Home'],
+                                           'Save': vars.TP_Btns['CamPreset-Save'],
+                                           'Cancel': vars.TP_Btns['CamPreset-Cancel']
+                                       },
+                                       settings.camSwitcher
+                                       )
+    
+    #### Keyboard Module
+    vars.KBCtl = KeyboardController(vars.TP_Main)
+    
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     
     #### Start Polling
     vars.PollCtl.StartPolling()
     
     utFn.Log('System Initialized')
+    vars.TP_Main.Click(10, 0.5)
     return True
 
 ## End Function Definitions ----------------------------------------------------
