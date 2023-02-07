@@ -65,14 +65,10 @@ class SystemHardwareController:
         self.__constructor = getattr(self.__module,
                                      Interface['interface_class'])
         
-        CH = False
-        if 'UseConnectionHandler' in Interface and type(Interface['UseConnectionHandler']) is bool:
-            CH = Interface['UseConnectionHandler']
         
-        if CH:
+        if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
             self.interface = GetConnectionHandler(self.__constructor(**Interface['interface_configuration']),
-                                                  'VerboseMode',
-                                                  DisconnectLimit=5)
+                                                  **Interface['ConnectionHandler'])
             
             self.interface.Connect()
         else:

@@ -10,19 +10,19 @@ activityMode = 3              # Activity mode popup to display
    # 1 - Share only
    # 2 - Share & Advanced Share
    # 3 - Share, Adv. Share, and Group Work
-startupTimer = 5             # Max startup timer duration
-switchTimer = 3              # Max switch timer duration
-shutdownTimer = 5            # Max shutdown timer duration
+startupTimer = 5              # Max startup timer duration
+switchTimer = 3               # Max switch timer duration
+shutdownTimer = 5             # Max shutdown timer duration
 shutdownConfTimer = 30        # Shutdown confirmation duration
 activitySplashTimer = 15      # Duration to show activity splash pages for
 defaultSource = "PC001"       # Default source id on activity switch
+defaultCamera = 'CAM001'      # Default camera to show on camera control pages
 primaryDestination = "PRJ001" # Primary destination
 micCtl = 1                    # Microphone control # TODO: might need a better way to handle this
    # 0 - no mic control
    # 1 - mic control
-techMatrixSize = (8,4)
-camSwitcher = 'DEC001'
-defaultCamera = 'CAM001'
+techMatrixSize = (8,4)        # (inputs, outputs) - size of the virtual matrix to display in Tech Menu
+camSwitcher = 'DEC001'        # ID of hardware device to switch between cameras
 
 # Icon Map
 #     0 - no source
@@ -244,7 +244,10 @@ hardware = [
          {
             'module': 'hardware.biam_dsp_TesiraSeries_uofi',
             'interface_class': 'SSHClass',
-            'UseConnectionHandler': True,
+            'ConnectionHandler': {
+               'keepAliveQuery': 'VerboseMode',
+               'DisconnectLimit': 5
+            },
             'interface_configuration': {
                'Hostname': 'libavsadm07.library.illinois.edu',
                'IPPort': 22,
@@ -254,11 +257,6 @@ hardware = [
       'Subscriptions': [],
       'Polling': 
          [
-            {
-               'command': 'DeviceFaultList',
-               'active_int': 30,
-               'inactive_int': 30
-            },
             {
                'command': 'LevelControl',
                'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
@@ -334,7 +332,7 @@ hardware = [
             'interface_class': 'EthernetClass',
             'interface_configuration': {
                'Hostname': '',
-               'IPPort': 80
+               'IPPort': 5678
             }
          },
       'Subscriptions': [],
@@ -380,7 +378,7 @@ hardware = [
             'interface_class': 'EthernetClass',
             'interface_configuration': {
                'Hostname': '',
-               'IPPort': 80
+               'IPPort': 5678
             }
          },
       'Subscriptions': [],
@@ -414,6 +412,58 @@ hardware = [
                },
             'Presets': {}
          }
+   },
+   {
+      'Id': 'DEC002',
+      'Name': 'Test Decoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-DEC-N2322',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 5
+            },
+            'interface_configuration': {
+               'Hostname': 'libavstest08.library.illinois.edu',
+               'IPPort': 50002,
+               'Model': 'NMX-DEC-N2322'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 0,
+         'MatrixOutput': 1
+      }
+   },
+   {
+      'Id': 'ENC001',
+      'Name': 'Test Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 5
+            },
+            'interface_configuration': {
+               'Hostname': 'libavstest07.library.illinois.edu',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2312'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 0,
+         'MatrixInput': 1
+      }
    }
 ]
 
