@@ -4,6 +4,7 @@ from extronlib.system import ProgramLog, Wait
 from decimal import Decimal, ROUND_HALF_UP
 import copy
 
+import utilityFunctions
 class DeviceClass:
     def __init__(self):
 
@@ -112,6 +113,20 @@ class DeviceClass:
             self.AddMatchString(compile(b'DEVICE get version\r\n\+OK \"value\":\"([\d+.]+)\"\r\n'), self.__MatchFirmwareVersion, None)
             self.AddMatchString(compile(b'-(ERR .*?|CANNOT_DELIVER|GENERAL_FAILURE)\r\n'), self.__MatchError, None)
             self.AddMatchString(compile(b'OK \"value\":\[{\"id\":(INDICATOR_NONE_IN_DEVICE|INDICATOR_MINOR_IN_DEVICE|INDICATOR_MAJOR_IN_DEVICE) \"name\":\"(No fault in device|Minor Fault in (System|Device)|Major Fault in (System|Device))\" \"faults\"'), self.__MatchDeviceFaultList, None)
+
+## -----------------------------------------------------------------------------
+## Start Feedback Callback Functions
+## -----------------------------------------------------------------------------
+
+    def FeedbackMuteHandler(self, command, value, qualifier, hardware=None):
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        
+    def FeedbackLevelHandler(self, command, value, qualifier, hardware=None):
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+
+## -----------------------------------------------------------------------------
+## End Feedback Callback Functions
+## -----------------------------------------------------------------------------
 
     def __MatchError(self, match, tag):
         self.counter = 0

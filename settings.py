@@ -1,4 +1,4 @@
-import uofi_gui.feedback
+
 import secrets_hardware
 
 ##==============================================================================
@@ -181,17 +181,12 @@ hardware = [
                'devicePassword': secrets_hardware.mersive_password
             }
          },
-      'Subscriptions':
-         [
-            {
-               'command': 'PodStatus',
-               'callback': uofi_gui.feedback.WPD_Mersive_StatusHandler
-            }
-         ],
+      'Subscriptions': [],
       'Polling':
          [
             {
                'command': 'PodStatus',
+               'callback': 'FeedbackStatusHandler',
                'active_int': 10,
                'inactive_int': 600
             }
@@ -216,7 +211,7 @@ hardware = [
          [
             {
                'command': 'PodStatus',
-               'callback': uofi_gui.feedback.WPD_Mersive_StatusHandler,
+               'callback': 'FeedbackStatusHandler',
                'active_int': 10,
                'inactive_int': 600
             }
@@ -241,7 +236,7 @@ hardware = [
          [
             {
                'command': 'PodStatus',
-               'callback': uofi_gui.feedback.WPD_Mersive_StatusHandler,
+               'callback': 'FeedbackStatusHandler',
                'active_int': 10,
                'inactive_int': 600
             }
@@ -273,28 +268,28 @@ hardware = [
             {
                'command': 'LevelControl',
                'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
-               'callback': uofi_gui.feedback.DSP_BiampTesira_LevelHandler,
+               'callback': 'FeedbackLevelHandler',
                'active_int': 5,
                'inactive_int': 120,
             },
             {
                'command': 'LevelControl',
                'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
-               'callback': uofi_gui.feedback.DSP_BiampTesira_LevelHandler,
+               'callback': 'FeedbackLevelHandler',
                'active_int': 5,
                'inactive_int': 120,
             },
             {
                'command': 'MuteControl',
                'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
-               'callback': uofi_gui.feedback.DSP_BiampTesira_MuteHandler,
+               'callback': 'FeedbackMuteHandler',
                'active_int': 5,
                'inactive_int': 120,
             },
             {
                'command': 'MuteControl',
                'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
-               'callback': uofi_gui.feedback.DSP_BiampTesira_MuteHandler,
+               'callback': 'FeedbackMuteHandler',
                'active_int': 5,
                'inactive_int': 120,
             }
@@ -725,7 +720,7 @@ hardware = [
                   {'Output': 4, 'Tie Type': 'Video'},
                   {'Output': 4, 'Tie Type': 'Audio'},
                ],
-               'callback': 'FeedbackOutputTieStatus',
+               'callback': 'FeedbackOutputTieStatusHandler',
             },
             {
                'command': 'InputSignalStatus',
@@ -737,7 +732,7 @@ hardware = [
                   {'Input': 5},
                   {'Input': 6},
                ],
-               'callback': 'FeedbackInputSignalStatus'
+               'callback': 'FeedbackInputSignalStatusHandler'
             }
          ],
       'Polling': 

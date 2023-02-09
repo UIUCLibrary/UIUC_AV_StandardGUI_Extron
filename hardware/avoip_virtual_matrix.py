@@ -1,5 +1,6 @@
 import re
 from extronlib.system import Wait, ProgramLog
+
 from uofi_gui.systemHardware import VirtualDeviceInterface
 import utilityFunctions
 
@@ -125,7 +126,7 @@ class DeviceClass:
                 
             self.__ConnectHelper()
             
-    def FeedbackInputSignalStatus(self, command, value, qualifier, hardware=None):
+    def FeedbackInputSignalStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
 
     def SetMatrixTieCommand(self, value, qualifier):
@@ -215,7 +216,7 @@ class DeviceClass:
                 self.WriteStatus('VideoMute', 'Off', {'Output', OutputHw.MatrixOutput})
         self.__ConnectHelper()
     
-    def FeedbackOutputTieStatus(self, command, value, qualifier, hardware=None):
+    def FeedbackOutputTieStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
         utilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
     

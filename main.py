@@ -39,7 +39,6 @@ from uofi_gui.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
                                      SystemStatusController,
                                      VirtualDeviceInterface)
-from uofi_gui.feedback import (WPD_Mersive_Feedback, WPD_Mersive_StatusHandler)
 from uofi_gui.cameraControl import CameraController
 from uofi_gui.keyboardControl import KeyboardController
 

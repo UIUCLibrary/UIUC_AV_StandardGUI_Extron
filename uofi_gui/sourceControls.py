@@ -28,7 +28,7 @@ import utilityFunctions
 import vars
 import settings
 
-import uofi_gui.feedback
+from hardware.mersive_solstice_pod import PodFeedbackHelper
 
 #### Extron Global Scripter Modules
 
@@ -185,7 +185,7 @@ class Destination:
             modal = 'Modal-SrcCtl-{}'.format(self.AssignedSource._advSourceControlPage)
             
             if modal == 'Modal-SrcCtl-WPD':
-                uofi_gui.feedback.WPD_Mersive_Feedback(self.AssignedSource.Id, blank_on_fail=True)
+                PodFeedbackHelper(self.AssignedSource.Id, blank_on_fail=True)
             
             # show source control page
             self.SourceController.UIHost.ShowPopup(modal)
@@ -382,7 +382,7 @@ class SourceController:
                 if page == 'PC':
                     page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
                 elif page == 'WPD':
-                    uofi_gui.feedback.WPD_Mersive_Feedback(self.SelectedSource.Id, blank_on_fail=True)
+                    PodFeedbackHelper(self.SelectedSource.Id, blank_on_fail=True)
                     
                 self.UIHost.ShowPopup("Source-Control-{}".format(page))
 

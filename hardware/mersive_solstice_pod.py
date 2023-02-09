@@ -5,6 +5,34 @@ import base64
 import json
 from extronlib.system import Wait, ProgramLog
 
+import vars
+import uofi_gui.systemHardware as SysHW
+import utilityFunctions
+
+def PodFeedbackHelper(hardware, blank_on_fail = True) -> None:
+    podIdLabel = vars.TP_Lbls['WPD-PodIDs']
+    podKeyLabel = vars.TP_Lbls['WPD-Key']
+    
+    podHW = None
+    
+    if type(hardware) is str:
+        # utilityFunctions.Log('Hardware ID String Submitted - {}'.format(hardware))
+        podHW = vars.Hardware.get(hardware, None)
+    elif type(hardware) is SysHW.SystemHardwareController:
+        podHW = hardware
+    
+    if podHW is not None:
+        podStatus = podHW.interface.ReadStatus('PodStatus')
+        podName = podStatus['m_displayInformation']['m_displayName']
+        podIP = podStatus['m_displayInformation']['m_ipv4']
+        podKey = podStatus['m_authenticationCuration']['sessionKey']
+
+        podIdLabel.SetText('{} ({})'.format(podName, podIP))
+        podKeyLabel.SetText('Key: {}'.format(podKey))
+    elif blank_on_fail:
+        # utilityFunctions.Log('Pod HW not found')
+        podIdLabel.SetText('')
+        podKeyLabel.SetText('')
 class DeviceClass:
     def __init__(self, host, protocol, port, devicePassword=None):
 
@@ -48,6 +76,17 @@ class DeviceClass:
             'Wake': { 'Status': {}}
         }       
         
+        
+## -----------------------------------------------------------------------------
+## Start Model Definitions
+## -----------------------------------------------------------------------------
+
+## -----------------------------------------------------------------------------
+## End Model Definitions
+## =============================================================================
+## Start Command & Callback Functions
+## -----------------------------------------------------------------------------
+
     def UpdatePodStatus(self, value, qualifier):
         api_path = '/api/config'
         res = self.__UpdateHelper('PodStatus', value, qualifier, url=api_path, method='GET', data=None)
@@ -102,10 +141,22 @@ class DeviceClass:
     def SetWake(self, value, qualifier):
         api_path = '/api/control/wake'
         self.__SetHelper('Wake', value, qualifier, url=api_path, method='GET', data=None)
+        
+    def FeedbackStatusHandler(self, command, value, qualifier, hardware=None):
+        utilityFunctions.Log('{} {} Callback - Value: {}; Qualifier: {}'.format(hardware.Name, command, value, qualifier))
+    
+        if vars.ActCtl.CurrentActivity != 'adv_share':
+            if vars.SrcCtl.SelectedSource.Id == hardware.Id:
+                PodFeedbackHelper(hardware, blank_on_fail=False)
+        else:
+            if (vars.SrcCtl.OpenControlPopup is not None and
+                vars.SrcCtl.OpenControlPopup['page'] == 'Modal-SrcCtl-WPD' and 
+                vars.SrcCtl.OpenControlPopup['source'].Id == hardware.Id):
+                    PodFeedbackHelper(hardware, blank_on_fail=False)
 
-    ######################################################
-    # Helpers
-    ######################################################
+## -----------------------------------------------------------------------------
+## End Command & Callback Functions
+## -----------------------------------------------------------------------------
     
     def __CheckResponseForErrors(self, sourceCmdName, response):
 
