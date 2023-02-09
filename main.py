@@ -37,7 +37,8 @@ from uofi_gui.headerControls import HeaderController
 from uofi_gui.techControls import TechMenuController
 from uofi_gui.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
-                                     SystemStatusController)
+                                     SystemStatusController,
+                                     VirtualDeviceInterface)
 from uofi_gui.feedback import (WPD_Mersive_Feedback, WPD_Mersive_StatusHandler)
 from uofi_gui.cameraControl import CameraController
 from uofi_gui.keyboardControl import KeyboardController
@@ -323,8 +324,17 @@ def Initialize() -> bool:
     #### Start Polling
     vars.PollCtl.StartPolling()
     
+    #### Initialize Virtual Hardware
+    # utFn.Log('Looking for Virtual Device Interfaces')
+    for Hw in vars.Hardware.values():
+        # utFn.Log('Hardware ({}) - Interface Class: {}'.format(id, type(Hw.interface)))
+        if issubclass(type(Hw.interface), VirtualDeviceInterface):
+            Hw.interface.FindAssociatedHardware()
+            # utFn.Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
+            
+    
     utFn.Log('System Initialized')
-    vars.TP_Main.Click(10, 0.5)
+    vars.TP_Main.Click(5, 0.2)
     return True
 
 ## End Function Definitions ----------------------------------------------------

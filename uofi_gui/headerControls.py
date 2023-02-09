@@ -36,11 +36,11 @@ class HeaderController:
                  HeaderDict: Dict[str, Union[Button, Dict]]) -> None:
         
         # Public Properties
-        utilityFunctions.Log('Set Public Properties')
+        # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
         
         # Private Properties
-        utilityFunctions.Log('Set Private Properties')
+        # utilityFunctions.Log('Set Private Properties')
         self._closeBtn = HeaderDict['popover-close']
         HeaderDict.pop('popover-close')
         
@@ -59,7 +59,7 @@ class HeaderController:
             self._headerBtns.append(HeaderDict[key]['btn'])
             self._allPopovers.append(HeaderDict[key]['popover'])
             
-        utilityFunctions.Log('Create Class Events')
+        # utilityFunctions.Log('Create Class Events')
         
         @event(self._headerBtns, ['Pressed', 'Tapped','Released'])
         def HeaderBtnHandler(button, action):

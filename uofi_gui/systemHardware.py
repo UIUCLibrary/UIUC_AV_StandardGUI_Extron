@@ -19,7 +19,7 @@ from ConnectionHandler import GetConnectionHandler
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
 import json
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Callable
 import importlib
 import math
 import re
@@ -39,6 +39,20 @@ import vars
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
+class VirtualDeviceInterface:
+    def __init__(self, VirtualDeviceID, AssignmentAttribute: str, AssignmentDict: Dict) -> None:
+        self.VirtualDeviceID = VirtualDeviceID
+        self.__AssignmentAttribute = AssignmentAttribute
+        self.__AssignmentDict = AssignmentDict
+    
+    def FindAssociatedHardware(self):
+        # iterate through vars.Hardware and find devices with matching 'MatrixAssignment'
+        for Hw in vars.Hardware.values():
+            if hasattr(Hw, self.__AssignmentAttribute) and getattr(Hw, self.__AssignmentAttribute) == self.VirtualDeviceID:
+                for key, value in self.__AssignmentDict.items():
+                    if hasattr(Hw, key):
+                        value[getattr(Hw, key)] = Hw
+
 class SystemHardwareController:
     def __init__(self, Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
         self.Id = Id
@@ -56,6 +70,9 @@ class SystemHardwareController:
         # interface = {
         #     "module": module_name,
         #     "interface_class": interface_class,
+        #     "ConnectionHandler": {
+        #         Connection handler configuration items
+        #     }
         #     "interface_configuration": {
         #         interface configuration items
         #     }
@@ -70,7 +87,7 @@ class SystemHardwareController:
             self.interface = GetConnectionHandler(self.__constructor(**Interface['interface_configuration']),
                                                   **Interface['ConnectionHandler'])
             
-            self.interface.Connect()
+            connInfo = self.interface.Connect()
         else:
             self.interface = self.__constructor(**Interface['interface_configuration'])
         
@@ -86,20 +103,32 @@ class SystemHardwareController:
         # ]
         
         for sub in Subscriptions:
-            qualSub = None
+            qualSub = [None]
             if 'qualifier' in sub and sub['qualifier'] is not None:
-                if type(sub['qualifier']) is not dict:
-                    raise TypeError('Qualifier must be a dictionary')
-                else:
+                if type(sub['qualifier']) is list:
+                    for q in sub['qualifier']:
+                        if type(q) is not dict:
+                            raise TypeError('Qualifier ({}) must be a dictionary'.format(q))
                     qualSub = sub['qualifier']
+                elif type(sub['qualifier']) is dict:
+                    qualSub = [sub['qualifier']]
+                else:
+                    raise TypeError('Qualifier must be a dictionary')
             
-            # these subscriptions do not poll for updated statuses and appropriate
-            # Update or Set commands must be sent elsewhere in the program
-            # Use these subscriptions to verify changes or to handle control feedback
-            callbackFn = functools.partial(sub['callback'], hardware=self)
-            self.interface.SubscribeStatus(sub['command'],
-                                           qualSub,
-                                           callbackFn)
+            for qp in qualSub:
+                # these subscriptions do not poll for updated statuses and appropriate
+                # Update or Set commands must be sent elsewhere in the program
+                # Use these subscriptions to verify changes or to handle control feedback
+                if callable(sub['callback']):
+                    callbackFn = functools.partial(sub['callback'], hardware=self)
+                elif type(sub['callback']) is str and hasattr(self.interface, sub['callback']):
+                    callbackFn = functools.partial(getattr(self.interface, sub['callback']), hardware=self)
+                else:
+                    raise TypeError('Callback must either be a callable or a string matching a name of an interface method.')
+                
+                self.interface.SubscribeStatus(sub['command'],
+                                               qp,
+                                               callbackFn)
         
         # polling = [
         #  {
@@ -113,12 +142,17 @@ class SystemHardwareController:
         # ]
         
         for poll in Polling:
-            qualPoll = None
+            qualPoll = [None]
             if 'qualifier' in poll and poll['qualifier'] is not None:
-                if type(poll['qualifier']) is not dict:
-                    raise TypeError('Qualifier must be a dictionary')
-                else:
+                if type(poll['qualifier']) is list:
+                    for q in poll['qualifier']:
+                        if type(q) is not dict:
+                            raise TypeError('Qualifier ({}) must be a dictionary'.format(q))
                     qualPoll = poll['qualifier']
+                elif type(poll['qualifier']) is dict:
+                    qualPoll = [poll['qualifier']]
+                else:
+                    raise TypeError('Qualifier ({}) must be a dictionary'.format(poll['qualifier']))
             
             if 'active_int' in poll:
                 actInt = poll['active_int']
@@ -129,23 +163,32 @@ class SystemHardwareController:
             else:
                 inactInt = None
             
-            vars.PollCtl.AddPolling(self.interface,
-                                    poll['command'],
-                                    qualifier=qualPoll,
-                                    active_duration=actInt,
-                                    inactive_duration=inactInt)
+            for qp in qualPoll:
+                vars.PollCtl.AddPolling(self.interface,
+                                        poll['command'],
+                                        qualifier=qp,
+                                        active_duration=actInt,
+                                        inactive_duration=inactInt)
+                
+                # To prevent the need to duplicate polling and subscriptions in settings
+                # if a callback is included in the poll, a subscription will automatically
+                # be created on the interface
+                if 'callback' in poll:
+                    if callable(poll['callback']):
+                        callbackFn = functools.partial(poll['callback'], hardware=self)
+                    elif type(poll['callback']) is str and hasattr(self.interface, poll['callback']):
+                        callbackFn = functools.partial(getattr(self.interface, poll['callback']), hardware=self)
+                    else:
+                        raise TypeError('Callback must either be a callable or a string matching a name of an interface method.')
+                    
+                    self.interface.SubscribeStatus(poll['command'],
+                                                   qp,
+                                                   callbackFn)
             
-            # To prevent the need to duplicate polling and subscriptions in settings
-            # if a callback is included in the poll, a subscription will automatically
-            # be created on the interface
-            if 'callback' in poll:
-                callbackFn = functools.partial(poll['callback'], hardware=self)
-                self.interface.SubscribeStatus(poll['command'],
-                                               qualPoll,
-                                               callbackFn)
             
     def __ConnectionStatus(self, command, value, qualifier):
-        utilityFunctions.Log('Connection Status Callback ({}): Command: {}; Value: {}, Qualifier: {}'.format(self.Id, command, value, qualifier))
+        # utilityFunctions.Log('Connection Status Callback ({}): Command: {}; Value: {}, Qualifier: {}'.format(self.Id, command, value, qualifier))
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
         if value != self.ConnectionStatus:
             self.ConnectionStatus = value
             self.LastStatusChange = datetime.now()
@@ -169,7 +212,10 @@ class SystemPollingController:
         for poll in self.polling:
             if (count % poll['active_duration']) == 0:
                 #utilityFunctions.Log("Updating for: {}".format(poll))
-                poll['interface'].Update(poll['command'], qualifier=poll['qualifier'])
+                try:
+                    poll['interface'].Update(poll['command'], qualifier=poll['qualifier'])
+                except:
+                    ProgramLog('An error occured attempting to poll. {} ({})'.format(poll['command'], poll['qualifier']), 'error')
     
     def __InactivePollingHandler(self, timer, count):
         for poll in self.polling:
@@ -322,8 +368,8 @@ class SystemStatusController:
         self.__clear_status_icos()
         
         indexStart = self.__current_page_index * 15
-        indexEnd = ((self.__current_page_index + 1) * 15) - 1
-                
+        indexEnd = ((self.__current_page_index + 1) * 15)
+
         displayList = []
         for i in range(indexStart, indexEnd):
             if i == len(self.Hardware):
@@ -334,12 +380,12 @@ class SystemStatusController:
             loadRange = len(displayList)
         else:
             loadRange = 15
-                        
+        
         for j in range(loadRange):
             ico = self.__status_icons[j]
             lbl = self.__status_labels[j]
             hw = displayList[j]
-                        
+            
             ico.SetState(self.__get_status_state(hw))
             ico.SetVisible(True)
             ico.HW = hw
@@ -354,7 +400,6 @@ class SystemStatusController:
             else:
                 delta = datetime.now() - hw.LastStatusChange
                 secs = delta.total_seconds()
-                utilityFunctions.Log("Hardware Timeout Status ({}) - {} seconds".format(hw.Name, secs))
                 if secs < 180:
                     return 2
                 elif secs >= 180 and secs < 300:
@@ -422,7 +467,7 @@ class SystemStatusController:
             self.__page_lables['total'].SetText(str(self.__display_pages))
             self.__page_lables['div'].SetVisible(True)
             
-        utilityFunctions.Log('Tech Status Pagination Updated')
+        # utilityFunctions.Log('Tech Status Pagination Updated')
 
 ## End Class Definitions -------------------------------------------------------
 ##

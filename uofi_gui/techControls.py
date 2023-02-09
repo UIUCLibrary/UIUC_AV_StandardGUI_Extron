@@ -38,11 +38,11 @@ class TechMenuController:
                  ControlDict: Dict,
                  BtnList: List) -> None:
         # Public Properties
-        utilityFunctions.Log('Set Public Properties')
+        # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
         
         # Private Properties
-        utilityFunctions.Log('Set Private Properties')
+        # utilityFunctions.Log('Set Private Properties')
         self._PageSelects = \
             {
                 'Tech-AdvancedVolume': self._AdvVolPage,
@@ -70,8 +70,8 @@ class TechMenuController:
         
         self._ctlBtns = ControlDict
         self._pageIndex = 0
-        utilityFunctions.Log('Length of Menu Button MESet: {}'.format(len(self._menuBtns.Objects)))
-        utilityFunctions.Log('Create Class Events')
+        # utilityFunctions.Log('Length of Menu Button MESet: {}'.format(len(self._menuBtns.Objects)))
+        # utilityFunctions.Log('Create Class Events')
         
         @event(self._menuBtns.Objects, 'Pressed')
         def TechMenuBtnHandler(button, action):
@@ -133,7 +133,7 @@ class TechMenuController:
                     
     # Public Methods
     def OpenTechMenu(self) -> None:
-        utilityFunctions.Log('Updating Tech Menu Nav')
+        # utilityFunctions.Log('Updating Tech Menu Nav')
         self._pageIndex = 0
         self.UIHost.ShowPopup(self._ctlBtns['menu-pages'][self._pageIndex])
         self._ctlBtns['prev'].SetState(2)
@@ -141,9 +141,9 @@ class TechMenuController:
         self._ctlBtns['next'].SetState(0)
         self._ctlBtns['next'].SetEnable(True)
         
-        utilityFunctions.Log('Checking for Page Updates')
+        # utilityFunctions.Log('Checking for Page Updates')
         if self._defaultPage in self._PageUpdates:
-            utilityFunctions.Log('Starting Updates for Page: {}'.format(self._defaultPage))
+            # utilityFunctions.Log('Starting Updates for Page: {}'.format(self._defaultPage))
             self._PageUpdates[self._defaultPage](show=True)
             
         self._menuBtns.SetCurrent(self._defaultBtn)

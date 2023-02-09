@@ -45,7 +45,7 @@ def WPD_Mersive_Feedback(hardware, blank_on_fail = True) -> None:
     podHW = None
     
     if type(hardware) is str:
-        utilityFunctions.Log('Hardware ID String Submitted - {}'.format(hardware))
+        # utilityFunctions.Log('Hardware ID String Submitted - {}'.format(hardware))
         podHW = vars.Hardware.get(hardware, None)
     elif type(hardware) is SysHW.SystemHardwareController:
         podHW = hardware
@@ -59,12 +59,12 @@ def WPD_Mersive_Feedback(hardware, blank_on_fail = True) -> None:
         podIdLabel.SetText('{} ({})'.format(podName, podIP))
         podKeyLabel.SetText('Key: {}'.format(podKey))
     elif blank_on_fail:
-        utilityFunctions.Log('Pod HW not found')
+        # utilityFunctions.Log('Pod HW not found')
         podIdLabel.SetText('')
         podKeyLabel.SetText('')
         
 def WPD_Mersive_StatusHandler(command, value, qualifier, hardware=None):
-    utilityFunctions.Log('{} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+    # utilityFunctions.Log('{} {} Callback - Value: {}; Qualifier: {}'.format(hardware.Name, command, value, qualifier))
     
     if vars.ActCtl.CurrentActivity != 'adv_share':
         if vars.SrcCtl.SelectedSource.Id == hardware.Id:
@@ -76,11 +76,17 @@ def WPD_Mersive_StatusHandler(command, value, qualifier, hardware=None):
                 WPD_Mersive_Feedback(hardware, blank_on_fail=False)
 
 def DSP_BiampTesira_MuteHandler(command, value, qualifier, hardware=None):
-    utilityFunctions.Log('{} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+    utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
     
 def DSP_BiampTesira_LevelHandler(command, value, qualifier, hardware=None):
-    utilityFunctions.Log('{} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+    utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
     
+# def Matrix_SVSi_InputStatusHandler(command, value, qualifier, hardware=None):
+#     utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+    
+# def Matrix_SVSi_OutputTieHandler(command, value, qualifier, hardware=None):
+#     utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+#     utilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
     
 ## End Function Definitions ----------------------------------------------------
 

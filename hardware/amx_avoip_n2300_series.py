@@ -44,53 +44,25 @@ class DeviceClass:
         
         # Add match strings for callbacks
         self.AddMatchString(re.compile(b'SVSI_NETSTATS:.+\\rchassisID:(.+)\\rsysName:(.+)\\rsysDescr:(.+)\\rportID:(.+)\\rportDescr:(.+)\\r'), self.__CallbackNetStatus, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)BAUD:(\d+)\\rSNUMB:(7|8)\\rSPAR:(even|odd|none)\\rSP2S:(1|2)\\r'), self.__CallbackSerialConfig, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)PLAYLIST:([0-7])\\r(?:.+)PLAYMODE:(live|local)\\r'), self.__CallbackLiveLocal, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)MODE:(auto|1080p59\.94|1080p60|720p60|4K30|4K25)\\r'), self.__CallbackScalerMode, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)SCALERBYPASS:(on|off)\\r'), self.__CallbackScaler, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)LINEOUTVOL_L:(\d{1,3})\\rLINEOUTVOL_R:(\d{1,3})\\r'), self.__CallbackVolume, None)
         self.AddMatchString(re.compile(b'(?:SVSI_.+)MUTE:(\d)\\r'), self.__CallbackMute, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)STREAM:(\d{1,4})\\r'), self.__CallbackStream, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)STREAMAUDIO:(\d{1,4})\\r'), self.__CallbackAudioStream, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)DVIOFF:(0|1)\\r'), self.__CallbackHDMIOutput, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)DVI[STATUS|INPUT]:(connected|disconnected)\\r'), self.__CallbackHDMIStatus, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)KVMMasterIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\r'), self.__CallbackKVMMasterIP, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallEnable:(0|1)\\r'), self.__CallbackVideoWall, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallHorMons:(\d{1,2})\\r'), self.__CallbackVideoWall_HorMons, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallVerMons:(\d{1})\\r'), self.__CallbackVideoWall_VerMons, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallMonPosH:(\d{1,2})\\r'), self.__CallbackVideoWall_PosHor, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallMonPosV:(\d{1})\\r'), self.__CallbackVideoWall_PosVer, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallStretch:(.+?)\\r'), self.__CallbackVideoWall_Stretch, None)
-
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)PLAYLIST:([0-7])\\r(?:.+)PLAYMODE:(live|local|off)\\r'), self.__CallbackLiveLocal, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)BAUD:(\d+)\\rSNUMB:(7|8)\\rSPAR:(even|odd|none)\\rSP2S:(1|2)\\r'), self.__CallbackSerialConfig, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)DVI(?:STATUS|INPUT):(connected|disconnected)\\r'), self.__CallbackHDMIStatus, None)
+        
         self.UpdateMute = self.UpdateDeviceStatus
         self.UpdateLiveLocal = self.UpdateDeviceStatus
         self.UpdateSerialConfig = self.UpdateDeviceStatus
-        self.UpdateTx = self.UpdateDeviceStatus
-        self.UpdateVidSource = self.UpdateDeviceStatus
-        self.UpdateStream = self.UpdateDeviceStatus
-        self.UpdateAudioStream = self.UpdateDeviceStatus
-        self.UpdateKVMMasterIP = self.UpdateDeviceStatus
-        self.UpdateVolume = self.UpdateDeviceStatus
-        self.UpdateHDMIOutput = self.UpdateDeviceStatus
         self.UpdateHDMIStatus = self.UpdateDeviceStatus
-        self.UpdateScaler = self.UpdateDeviceStatus
-        self.UpdateScalerMode = self.UpdateDeviceStatus
-        self.UpdateIRPassthrough = self.UpdateDeviceStatus
-        self.UpdateIRDestination = self.UpdateDeviceStatus
-        self.UpdateVideoWall = self.UpdateDeviceStatus
-        self.UpdateVideoWall_HorMons = self.UpdateDeviceStatus
-        self.UpdateVideoWall_VerMons = self.UpdateDeviceStatus
-        self.UpdateVideoWall_PosHor = self.UpdateDeviceStatus
-        self.UpdateVideoWall_PosVer = self.UpdateDeviceStatus
-        self.UpdateVideoWall_Strech = self.UpdateDeviceStatus
+        
+        
 
 ## -----------------------------------------------------------------------------
 ## Start Model Definitions
 ## -----------------------------------------------------------------------------
 
     def amx_svsi_n2300_enc(self):
-        
-        self.AddMatchString(re.compile(b'SVSI_TXGEN2:(\w+)\\rNAME:(.+)\\rMAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})\\rIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rNM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rGW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rIPTRIAL:(0|1)\\rIPMODE:(.+)\\rID:(.+)\\rrel:(.+)\\rSWVER:(.+)\\rWEBVER:(.+)\\rUPDATE:(.+)\\rUPDTRY:(.+)\\rUPDFAILED:(.+)\\rMEDIAPORT0:(on|off)\\rMEDIAPORT1:(on|off)\\rDIVASEN:(.+)\\rDIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)PORTSD1:(yes|no)\\rDVICEVTDLY:(\d{1,5})\\rDVIDEVTDLY:(\d{1,5})\\rUSERMCMODE:(on|off)\\rUSERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)STREAM:(\d{1,4})\\rSAMPLE:(\d+)\\rHDMIAUDIO:(auto|on|off)\\rvidDetectMode:(auto|digital|analog)(?:\\r.+\\r)DVIINPUT:(connected|disconnected)\\rMODE:(.*?)\\rLINEINVOL_L:(\d{1,3})\\rLINEINVOL_R:(\d{1,3})\\rLIVEAUDIOHP:(on|off)\\r'), self.__CallbackDeviceStatus_Tx, None)
+        self.EndpointType = 'ENC'
+        self.AddMatchString(re.compile(b'SVSI_TXGEN2:(\w+)\\rNAME:(.+)\\rMAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})\\rIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rNM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rGW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rIPTRIAL:(0|1)\\rIPMODE:(.+)\\rID:(.+)\\rrel:(.+)\\rSWVER:(.+)\\rWEBVER:(.+)\\rUPDATE:(.+)\\rUPDTRY:(.+)\\rUPDFAILED:(.+)\\rMEDIAPORT0:(on|off)\\rMEDIAPORT1:(on|off)\\rDIVASEN:(.+)\\rDIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)PORTSD1:(yes|no)\\rDVICEVTDLY:(\d{1,5})\\rDVIDEVTDLY:(\d{1,5})\\rUSERMCMODE:(on|off)\\rUSERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)STREAM:(\d{1,4})\\rSAMPLE:(\d+)\\rHDMIAUDIO:(auto|on|off)\\rvidDetectMode:(auto|digital|analog)(?:\\r.+\\r)DVIINPUT:(connected|disconnected)\\rMODE:(.*?)\\rLINEINVOL_L:(\d{1,3})\\rLINEINVOL_R:(\d{1,3})\\rLIVEAUDIOHP:(on|off)\\r'), self.__CallbackDeviceStatus_Enc, None)
 
         enc_commands = \
             {
@@ -99,10 +71,17 @@ class DeviceClass:
             }
         
         self.Commands.update(enc_commands)
+        
+        # No match string for Tx or VidSource.
+        # Tx is set for encoders in __CallbackLiveLocal
+        # VidSource status is not provided by N2300 encoders, so the status is emulated in SetVidSource
+        
+        self.UpdateTx = self.UpdateDeviceStatus
+        self.UpdateVidSource = self.UpdateDeviceStatus
 
     def amx_svsi_n2300_dec(self):
-        
-        self.AddMatchString(re.compile(b'SVSI_RXGEN2:(\w+)\\rNAME:(.+)\\rMAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})\\rIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rNM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rGW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rIPTRIAL:(0|1)\\rIPMODE:(.+)\\rID:(.+)\\rrel:(.+)\\rSWVER:(.+)\\rWEBVER:(.+)\\rUPDATE:(.+)\\rUPDTRY:(.+)\\rUPDFAILED:(.+)\\rMEDIAPORT0:(on|off)\\rMEDIAPORT1:(on|off)\\rDIVASEN:(.+)\\rDIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)PORTSD1:(yes|no)\\rDVICEVTDLY:(\d{1,5})\\rDVIDEVTDLY:(\d{1,5})\\rUSERMCMODE:(on|off)\\rUSERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)FCPC:(\w+)(?:\\r.+\\r)LIVEAUDIOLP:(on|off)\\rYUVOUT:(on|off)\\rFRAMEHOLD:(on|off)\\rVIDOFFNOSTRM:(on|off)(?:\\r.+\\r)MODE:(.*?)\\r'), self.__CallbackDeviceStatus_Rx, None)
+        self.EndpointType = 'DEC'
+        self.AddMatchString(re.compile(b'SVSI_RXGEN2:(\w+)\\rNAME:(.+)\\rMAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})\\rIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rNM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rGW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rIPTRIAL:(0|1)\\rIPMODE:(.+)\\rID:(.+)\\rrel:(.+)\\rSWVER:(.+)\\rWEBVER:(.+)\\rUPDATE:(.+)\\rUPDTRY:(.+)\\rUPDFAILED:(.+)\\rMEDIAPORT0:(on|off)\\rMEDIAPORT1:(on|off)\\rDIVASEN:(.+)\\rDIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)PORTSD1:(yes|no)\\rDVICEVTDLY:(\d{1,5})\\rDVIDEVTDLY:(\d{1,5})\\rUSERMCMODE:(on|off)\\rUSERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)FCPC:(\w+)(?:\\r.+\\r)LIVEAUDIOLP:(on|off)\\rYUVOUT:(on|off)\\rFRAMEHOLD:(on|off)\\rVIDOFFNOSTRM:(on|off)(?:\\r.+\\r)MODE:(.*?)\\r'), self.__CallbackDeviceStatus_Dec, None)
 
         dec_commands = \
             {
@@ -127,6 +106,36 @@ class DeviceClass:
             }
         
         self.Commands.update(dec_commands)
+        
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)STREAM:(\d{1,4})\\r'), self.__CallbackStream, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)STREAMAUDIO:(\d{1,4})\\r'), self.__CallbackAudioStream, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)KVMMasterIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\r'), self.__CallbackKVMMasterIP, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)LINEOUTVOL_L:(\d{1,3})\\rLINEOUTVOL_R:(\d{1,3})\\r'), self.__CallbackVolume, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)DVIOFF:(0|1)\\r'), self.__CallbackHDMIOutput, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)MODE:(auto|1080p59\.94|1080p60|720p60|4K30|4K25)\\r'), self.__CallbackScalerMode, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)SCALERBYPASS:(on|off)\\r'), self.__CallbackScaler, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallEnable:(0|1)\\r'), self.__CallbackVideoWall, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallHorMons:(\d{1,2})\\r'), self.__CallbackVideoWall_HorMons, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallVerMons:(\d{1})\\r'), self.__CallbackVideoWall_VerMons, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallMonPosH:(\d{1,2})\\r'), self.__CallbackVideoWall_PosHor, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallMonPosV:(\d{1})\\r'), self.__CallbackVideoWall_PosVer, None)
+        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallStretch:(.+?)\\r'), self.__CallbackVideoWall_Stretch, None)
+        
+        self.UpdateStream = self.UpdateDeviceStatus
+        self.UpdateAudioStream = self.UpdateDeviceStatus
+        self.UpdateKVMMasterIP = self.UpdateDeviceStatus
+        self.UpdateVolume = self.UpdateDeviceStatus
+        self.UpdateHDMIOutput = self.UpdateDeviceStatus
+        self.UpdateScaler = self.UpdateDeviceStatus
+        self.UpdateScalerMode = self.UpdateDeviceStatus
+        self.UpdateIRPassthrough = self.UpdateDeviceStatus
+        self.UpdateIRDestination = self.UpdateDeviceStatus
+        self.UpdateVideoWall = self.UpdateDeviceStatus
+        self.UpdateVideoWall_HorMons = self.UpdateDeviceStatus
+        self.UpdateVideoWall_VerMons = self.UpdateDeviceStatus
+        self.UpdateVideoWall_PosHor = self.UpdateDeviceStatus
+        self.UpdateVideoWall_PosVer = self.UpdateDeviceStatus
+        self.UpdateVideoWall_Strech = self.UpdateDeviceStatus
 
 ## -----------------------------------------------------------------------------
 ## End Model Definitions
@@ -137,7 +146,7 @@ class DeviceClass:
     def UpdateDeviceStatus(self, value, qualifier):
         self.__UpdateHelper('DeviceStatus', 'getStatus{}'.format(self.__lineEnding), value, qualifier)
     
-    def __CallbackDeviceStatus_Rx(self, match, tag):
+    def __CallbackDeviceStatus_Dec(self, match, tag):
         #1# SVSI_RXGEN2:(\w+)
         #2# NAME:(.+)
         #3# MAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})
@@ -209,7 +218,7 @@ class DeviceClass:
         }
         self.WriteStatus('DeviceStatus', statusDict)
     
-    def __CallbackDeviceStatus_Tx(self, match, tag):
+    def __CallbackDeviceStatus_Enc(self, match, tag):
         #1# SVSI_TXGEN2:(\w+)
         #2# NAME:(.+)
         #3# MAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})
@@ -322,12 +331,19 @@ class DeviceClass:
             self.__SetHelper('LiveLocal', 'local:{}{}'.format(value, self.__lineEnding), value, qualifier)
     
     def __CallbackLiveLocal(self, match, tag):
-        # PLAYLIST:([0-7])\\r(?:.+)PLAYMODE:(live|local)
+        # PLAYLIST:([0-7])\\r(?:.+)PLAYMODE:(live|local|off)
         dataVal = {
             'Mode': str(match.group(2), 'UTF-8'),
             'Playlist': int(match.group(1))
         }
         self.WriteStatus('LiveLocal', dataVal)
+        
+        if self.EndpointType == 'ENC':
+            if str(match.group(2), 'UTF-8') == 'off':
+                txVal = False
+            else:
+                txVal = True
+            self.WriteStatus('Tx', txVal)
     
     def SetRawIRCommand(self, value, qualifier):
         self.__SetHelper('RawIRCommand', 'sendirraw:{}{}'.format(value, self.__lineEnding), value, qualifier)
@@ -372,6 +388,7 @@ class DeviceClass:
         elif value == 'VGA' or value == 'vga' or value == 'vgaonly':
             src = 'vgaonly'
         self.__SetHelper('VidSource', 'vidsrc:{}{}'.format(src, self.__lineEnding), value, qualifier)
+        self.WriteStatus('VidSource', src) # N2300 series do not send this data with the status so we will emulate this status
     
     def SetStream(self, value, qualifier):
         self.__SetHelper('Stream', 'set:{}{}'.format(value, self.__lineEnding), value, qualifier)
@@ -379,8 +396,7 @@ class DeviceClass:
     def __CallbackStream(self, match, tag):
         # STREAM:(\d{1,4})
         dataVal = int(match.group(1))
-        if "Stream" in self.Commands:
-            self.WriteStatus('Stream', dataVal)
+        self.WriteStatus('Stream', dataVal)
     
     def SetAudioStream(self, value, qualifier):
         self.__SetHelper('Stream', 'seta:{}{}'.format(value, self.__lineEnding), value, qualifier)
@@ -434,7 +450,7 @@ class DeviceClass:
         self.WriteStatus('HDMIOutput', dataVal)
     
     def __CallbackHDMIStatus(self, match, tag):
-        # DVI[STATUS|INPUT]:(connected|disconnected)
+        # DVI(?:STATUS|INPUT):(connected|disconnected)
         # Documentation seems to be wrong, DVI is used instead of HDMI
         dataVal = str(match.group(1), 'UTF-8')
         self.WriteStatus('HDMIStatus', dataVal)
@@ -597,7 +613,7 @@ class DeviceClass:
 
 
     def OnDisconnected(self):
-
+        # ProgramLog('On Disconnect: Counter {}, ConnCount {}, ConnFlag {}'.format(self.counter, self.connectionCounter, self.connectionFlag))
         self.WriteStatus('ConnectionStatus', 'Disconnected')
         self.connectionFlag = False
 
@@ -709,6 +725,7 @@ class DeviceClass:
             raise KeyError('Invalid command for ReadStatus: ' + command)
 
     def __ReceiveData(self, interface, data):
+        self.counter = 0
         # Handle incoming data
         self.__receiveBuffer += data
         index = 0    # Start of possible good data
@@ -772,5 +789,6 @@ class EthernetClass(EthernetClientInterface, DeviceClass):
         self.Error([message])
 
     def Disconnect(self):
+        ProgramLog('Class Disconnect Method Called')
         EthernetClientInterface.Disconnect(self)
         self.OnDisconnected()
