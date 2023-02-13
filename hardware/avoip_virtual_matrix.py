@@ -70,7 +70,7 @@ class DeviceClass:
 ## Start Command & Callback Functions
 ## -----------------------------------------------------------------------------
 
-    def UpdateAllMatrixTie(self, value, qualifier):
+    def UpdateAllMatrixTie(self):
         # ProgramLog('Matrix Size: {}'.format(self.MatrixSize), 'info')
         for OutputHw in self.VirtualOutputDevices.values():
             OutputHw.interface.Update('Stream', None) # This will query both Stream and AudioStream
@@ -133,28 +133,40 @@ class DeviceClass:
         # Value: None
         # Qualifier: 'Input', 'Output', 'Tie Type' = ('Audio' or 'Video' or 'Audio/Video')
         
+        # utilityFunctions.Log('Set Matrix Tie - Input: {}, Output: {}, Tie Type: {}'.format(qualifier['Input'], qualifier['Output'], qualifier['Tie Type']))
+        
         # SVSi hardware
         if self.Model == 'AMX SVSi N2300':
             # Get SVSi stream number from device with MatrixInput attribute matching provided Input value
-            Stream = self.VirtualInputDevices[qualifier['Input']].interface.ReadStatus('DeviceStatus')['Stream']
+            if qualifier['Input'] == 0:
+                Stream = 0
+            elif qualifier['Input'] in self.VirtualInputDevices:
+                Stream = self.VirtualInputDevices[qualifier['Input']].interface.ReadStatus('DeviceStatus')['Stream']
+            else:
+                #TODO: determine handling for non-existent encoders in the virtual matrix
+                Stream = 0
             
             # Get Output device with MatrixOutput attribute matching provided Output value
-            Output = self.VirtualOutputDevices[qualifier['Output']]
+            if qualifier['Output'] in self.VirtualOutputDevices:
+                Output = self.VirtualOutputDevices[qualifier['Output']]
             
-            # Use tie type to send commands to output device to switch
-            if qualifier['Tie Type'] == 'Audio/Video':
-                Output.interface.Set('Stream', Stream)
-                Output.interface.Set('AudioStream', Stream)
-            elif qualifier['Tie Type'] == 'Video':
-                if Output.interface.ReadStatus('AudioStream') == 0:
-                    # If audio is following video, grab the current video stream,
-                    # then set audio stream to previous stream and video stream
-                    # to the new stream
-                    PrevStream = Output.interface.ReadStatus('Stream')
-                    Output.interface.Set('AudioStream', PrevStream)
-                Output.interface.Set('Stream', Stream)
-            elif qualifier['Tie Type'] == 'Audio':
-                Output.interface.Set('AudioStream', Stream)
+                # Use tie type to send commands to output device to switch
+                if qualifier['Tie Type'] == 'Audio/Video':
+                    Output.interface.Set('Stream', Stream)
+                    Output.interface.Set('AudioStream', Stream)
+                elif qualifier['Tie Type'] == 'Video':
+                    if Output.interface.ReadStatus('AudioStream') == 0:
+                        # If audio is following video, grab the current video stream,
+                        # then set audio stream to previous stream and video stream
+                        # to the new stream
+                        PrevStream = Output.interface.ReadStatus('Stream')
+                        Output.interface.Set('AudioStream', PrevStream)
+                    Output.interface.Set('Stream', Stream)
+                elif qualifier['Tie Type'] == 'Audio':
+                    Output.interface.Set('AudioStream', Stream)
+            else:
+                self.Discard('Invalid Output provided.')
+                return
         else:
             pass
         
@@ -375,10 +387,11 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
                 self.Models[Model]()
 
     def Error(self, message):
-        portInfo = 'IP Address/Host: {0}:{1}'.format(self.Hostname, self.IPPort)
+        portInfo = 'VirtualDeviceClass - Virtual Matrix Interface'
         print('Module: {}'.format(__name__), portInfo, 'Error Message: {}'.format(message[0]), sep='\r\n')
   
     def Discard(self, message):
+        utilityFunctions.Log('Discarding Command', stack=True)
         self.Error([message])
 
     def Disconnect(self):

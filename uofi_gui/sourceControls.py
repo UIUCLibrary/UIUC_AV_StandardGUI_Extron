@@ -732,20 +732,33 @@ class SourceController:
             for d in self.Destinations:
                 d.AssignSource(srcObj)
                 d._MatrixRow.MakeTie(srcObj.Input, 'AV')
-                # TODO: send source change command
+                self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                    value=None,
+                                                    qualifier={'Input': srcObj.Input, 
+                                                               'Output': d.Output,
+                                                               'Tie Type': 'Audio/Video'})
         elif type(dest) == type([]):
             for d in dest:
                 if type(d) == Destination:
                     # utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
                     d.AssignSource(srcObj)
                     d._MatrixRow.MakeTie(srcObj.Input, 'AV')
-                    # TODO: send source change command
+                    self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                        value=None,
+                                                        qualifier={'Input': srcObj.Input, 
+                                                                   'Output': d.Output,
+                                                                   'Tie Type': 'Audio/Video'})
+                    
                 elif type(d) == str:
                     dObj = self.GetDestination(id = d, name = d)
                     # utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
                     dObj.AssignSource(srcObj)
                     dObj._MatrixRow.MakeTie(srcObj.Input, 'AV')
-                    # TODO: send source change command
+                    self._Matrix.Hardware.interface.Set('MatrixTieCommand',  
+                                                        value=None,
+                                                        qualifier={'Input': srcObj.Input, 
+                                                                   'Output': dObj.Output,
+                                                                   'Tie Type': 'Audio/Video'})
         else:
             utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == List)))
                     
@@ -755,6 +768,13 @@ class SourceController:
         if type(dest) == str and dest != 'All':
             raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integer")
         
+        cmdDict = \
+            {
+                'Aud': 'Audio',
+                'Vid': 'Video',
+                'AV': 'Audio/Video'
+            }
+            
         if type(src) == str:
             srcObj = self.GetSource(id = src, name = src)
             srcNum = srcObj.Input
@@ -767,6 +787,14 @@ class SourceController:
         else:
             raise TypeError("Source must be a source object, source name string, source Id string, or switcher input integer")
         
+        if mode == 'untie':
+            cmdInput = 0
+            cmdTieType = 'Audio/Video'
+            # TODO: May have to check for existing ties before knowing if this will work
+        else:
+            cmdInput = srcNum
+            cmdTieType = cmdDict[mode]
+        
         # utilityFunctions.Log('Source Object ({}) - Input: {}'.format(srcObj, srcNum))
         
         if type(dest) == str and dest == 'All':
@@ -774,32 +802,38 @@ class SourceController:
                 #d.AssignSource(self._none_source)
                 d.AssignMatrix(srcNum, mode)
                 d._MatrixRow.MakeTie(srcNum, mode)
-            # TODO: send source change command
+                self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                    value=None, 
+                                                    qualifier={'Input': cmdInput, 
+                                                               'Output': d.Output,
+                                                               'Tie Type': cmdTieType})
         elif type(dest) == type([]):
             for d in dest:
                 if type(d) == Destination:
                     #d.AssignSource(self._none_source)
                     d.AssignMatrix(srcNum, mode)
                     d._MatrixRow.MakeTie(srcNum, mode)
-                    # TODO: send source change command
+                    destNum = d.Output
                 elif type(d) == str:
                     destObj = self.GetDestination(id = d, name = d)
                     #destObj.AssignSource(self._none_source)
                     destObj.AssignMatrix(srcNum, mode)
                     destObj._MatrixRow.MakeTie(srcNum, mode)
-                    # TODO: send source change command
+                    destNum = destObj.Output
                 elif type(d) == int:
                     destObj = self.GetDestinationByOutput(d)
                     if destObj is not None:
                         #destObj.AssignSource(srcObj)
                         destObj.AssignMatrix(srcNum, mode)
                         destObj._MatrixRow.MakeTie(srcNum, mode)
-                    # TODO: send source change command
+                    destNum = d
+                self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                    value=None, 
+                                                    qualifier={'Input': cmdInput, 
+                                                               'Output': destNum,
+                                                               'Tie Type': cmdTieType})
         else:
             utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == type([]))))
-            
-
-        # TODO: Update other Adv UI Buttons
 
 class MatrixController:
     def __init__(self,
@@ -813,6 +847,8 @@ class MatrixController:
         # utilityFunctions.Log('Set Public Properties')
         self.SourceController = srcCtl
         self.Mode = 'AV'
+        
+        self.Hardware = vars.Hardware[settings.primarySwitcher]
         
         # utilityFunctions.Log('Create Matrix Rows')
         matrixRows = {}

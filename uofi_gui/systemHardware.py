@@ -211,16 +211,22 @@ class SystemPollingController:
     def __ActivePollingHandler(self, timer, count):
         for poll in self.polling:
             if (count % poll['active_duration']) == 0:
-                #utilityFunctions.Log("Updating for: {}".format(poll))
-                try:
-                    poll['interface'].Update(poll['command'], qualifier=poll['qualifier'])
-                except:
-                    ProgramLog('An error occured attempting to poll. {} ({})'.format(poll['command'], poll['qualifier']), 'error')
+                self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
     
     def __InactivePollingHandler(self, timer, count):
         for poll in self.polling:
             if (count % poll['inactive_duration']) == 0:
-                poll['interface'].Update(poll['command'], qualifier=poll['qualifier'])
+                self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
+                    
+    def PollEverything(self):
+        for poll in self.polling:
+            self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
+            
+    def __PollInterface(self, interface, command, qualifier=None):
+        try:
+            interface.Update(command, qualifier=qualifier)
+        except:
+            utilityFunctions.Log('An error occured attempting to poll. {} ({})'.format(command, qualifier), 'error')
     
     def StartPolling(self, mode: str='inactive'):
         if mode == 'inactive': 

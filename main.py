@@ -115,17 +115,29 @@ for hw in settings.hardware:
 ## Begin Function Definitions --------------------------------------------------
 
 def StartupActions() -> None:
+    # utFn.Log('Set Polling Mode')
     vars.PollCtl.SetPollingMode('active')
+    
+    # utFn.Log('Configure Header Buttons')
     vars.HdrCtl.ConfigSystemOn()
+    
+    # utFn.Log('Set Privacy Off')
     vars.SrcCtl.SetPrivacyOff()
+    
+    # utFn.Log('Select Default Camera')
     vars.CamCtl.SelectDefaultCamera()
+    
+    # utFn.Log('Send Cameras to Home Pos')
     vars.CamCtl.SendCameraHome()
 
 def StartupSyncedActions(count: int) -> None:
     pass
 
 def SwitchActions() -> None:
+    # utFn.Log('Update Source Menu')
     vars.SrcCtl.UpdateSourceMenu()
+    
+    # utFn.Log('Show selected source')
     vars.SrcCtl.ShowSelectedSource()
 
 def SwitchSyncedActions(count: int) -> None:
@@ -320,9 +332,6 @@ def Initialize() -> bool:
     
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     
-    #### Start Polling
-    vars.PollCtl.StartPolling()
-    
     #### Initialize Virtual Hardware
     # utFn.Log('Looking for Virtual Device Interfaces')
     for Hw in vars.Hardware.values():
@@ -330,7 +339,10 @@ def Initialize() -> bool:
         if issubclass(type(Hw.interface), VirtualDeviceInterface):
             Hw.interface.FindAssociatedHardware()
             # utFn.Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
-            
+    
+    #### Start Polling
+    vars.PollCtl.PollEverything()
+    vars.PollCtl.StartPolling()
     
     utFn.Log('System Initialized')
     vars.TP_Main.Click(5, 0.2)

@@ -18,6 +18,7 @@ activitySplashTimer = 15      # Duration to show activity splash pages for
 defaultSource = "PC001"       # Default source id on activity switch
 defaultCamera = 'CAM001'      # Default camera to show on camera control pages
 primaryDestination = "PRJ001" # Primary destination
+primarySwitcher = 'VMX001'    # Primary Matrix Switcher
 micCtl = 1                    # Microphone control # TODO: might need a better way to handle this
    # 0 - no mic control
    # 1 - mic control
