@@ -1,0 +1,14 @@
+{
+    "CAM001": 
+        {
+            "1": "Lectern", 
+            "2": "Front of Room", 
+            "3": "Group 1"
+        }, 
+    "CAM002": 
+        {
+            "1": "Group 2", 
+            "2": "Back of Room", 
+            "3": "Lectern Alt"
+        }
+}

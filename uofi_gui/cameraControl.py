@@ -38,6 +38,7 @@ import uofi_gui.systemHardware as SysHW
 
 class CameraController:
     def __init__(self, UIHost: UIDevice, SelectionSet: MESet, PresetList: List, ControlsList: List, EditorDict: Dict, CamSwitcher: Union[SysHW.SystemHardwareController, str]) -> None:
+        self.__presetsFilePath = '/user/states/camera_presets.json'
         self.UIHost = UIHost
         self.Cameras = {}
         for cam in settings.cameras:
@@ -70,7 +71,7 @@ class CameraController:
                 selBtn.SetText(selBtn.camera['Name'])
             if camId == settings.defaultCamera:
                 self.__defaultCamera = selBtn
-                
+        
         @event(self.__selectBtns.Objects, ['Pressed', 'Released'])
         def camSelectBtnHandler(button, action):
             if action == 'Pressed':
@@ -262,6 +263,7 @@ class CameraController:
                 button.SetState(0)
                 self.UpdatePresetButtons()
                 self.UIHost.HidePopup('CameraPresetEditor')
+                self.SavePresetStates()
         
         self.__editor_Cancel = EditorDict['Cancel']
         @event(self.__editor_Cancel, ['Pressed', 'Released'])
@@ -271,7 +273,76 @@ class CameraController:
             elif action == 'Released':
                 button.SetState(0)
                 self.UIHost.HidePopup('CameraPresetEditor')
+                
+        
+        self.LoadPresetStates()
+        self.SelectDefaultCamera()
 
+    def SavePresetStates(self):
+        # only need to save the preset names, presets are stored presistently on camera
+        if File.Exists(self.__presetsFilePath):
+            # file exists -> read file to object, modify object, save object to file
+            #### read file to object
+            presetsFile = File(self.__presetsFilePath, 'r+t')
+            presetString = presetsFile.read()
+            presetObj = json.loads(presetString)
+            
+            #### modify object
+            for cam in self.Cameras.values():
+                if cam['Id'] not in presetObj:
+                    presetObj[cam['Id']] = {}
+                    
+                for i in range(1, 4): # Preset 0 is home, Presets 1-3 are displayed buttons
+                    if i in cam['Hw'].Presets:
+                        presetObj[cam['Id']][i] = cam['Hw'].Presets[i]
+                    else:
+                        presetObj[cam['Id']][i] = None
+            
+            #### save object to file
+            presetsFile.seek(0)
+            presetsFile.write(json.dumps(presetObj))
+            presetsFile.close()
+        else:
+            # file does not exist -> create object, save object to file
+            #### create object
+            presetObj = {}
+            
+            for cam in self.Cameras.values():
+                utilityFunctions.Log('Cam Info: {}'.format(cam))
+                presetObj[cam['Id']] = {}
+                
+                for i in range(1, 4): # Preset 0 is home, Presets 1-3 are displayed buttons
+                    if i in cam['Hw'].Presets:
+                        presetObj[cam['Id']][i] = cam['Hw'].Presets[i]
+                    else:
+                        presetObj[cam['Id']][i] = None
+            
+            #### save object to file
+            presetsFile = File(self.__presetsFilePath, 'xt')
+            presetsFile.write(json.dumps(presetObj))
+            presetsFile.close()
+    
+    def LoadPresetStates(self):
+        # only need to load the preset names, presets are stored presistently on camera
+        if File.Exists(self.__presetsFilePath):
+            #### read file to object
+            presetsFile = File(self.__presetsFilePath, 'rt')
+            presetString = presetsFile.read()
+            presetObj = json.loads(presetString)
+            utilityFunctions.Log('JSON Obj: {}'.format(presetObj))
+            presetsFile.close()
+            
+            #### iterate over objects and load presets
+            for cam in self.Cameras.values():
+                if cam['Id'] in presetObj:
+                    for i in presetObj[cam['Id']]:
+                        # watch the typing here, rest of module expects i to be an int but i is a string in presetObj
+                        if presetObj[cam['Id']][str(i)] is not None:
+                            cam['Hw'].Presets[int(i)] = presetObj[cam['Id']][str(i)]
+            
+        else:
+            utilityFunctions.Log('No presets file exists')
+    
     def UpdatePreset(self, PresetName, NameBtn):
         NameBtn.PresetText = PresetName
         NameBtn.SetText(PresetName)
@@ -294,6 +365,7 @@ class CameraController:
             
         utilityFunctions.Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(self.__switcher.SwitchCommand['command'], str(input), qual))
         #self.__switcher.interface.Set(self.__switcher.SwitchCommand['command'], str(input), qual)
+        self.UpdatePresetButtons()
         
     def SendCameraHome(self, camera: Union[SysHW.SystemHardwareController, str]=None): 
         if camera is None:
