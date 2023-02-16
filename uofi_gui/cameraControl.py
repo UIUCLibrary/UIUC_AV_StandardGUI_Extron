@@ -283,9 +283,10 @@ class CameraController:
         if File.Exists(self.__presetsFilePath):
             # file exists -> read file to object, modify object, save object to file
             #### read file to object
-            presetsFile = File(self.__presetsFilePath, 'r+t')
+            presetsFile = File(self.__presetsFilePath, 'rt')
             presetString = presetsFile.read()
             presetObj = json.loads(presetString)
+            presetsFile.close()
             
             #### modify object
             for cam in self.Cameras.values():
@@ -299,7 +300,7 @@ class CameraController:
                         presetObj[cam['Id']][i] = None
             
             #### save object to file
-            presetsFile.seek(0)
+            presetsFile = File(self.__presetsFilePath, 'wt')
             presetsFile.write(json.dumps(presetObj))
             presetsFile.close()
         else:

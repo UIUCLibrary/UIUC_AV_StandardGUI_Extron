@@ -1453,7 +1453,7 @@
       "repeatTime": null
     },
     {
-      "Name": "Schedule-WeekDays",
+      "Name": "Schedule-Weekdays",
       "ID": 12509,
       "holdTime": null,
       "repeatTime": null
@@ -1519,19 +1519,19 @@
       "repeatTime": null
     },
     {
-      "Name": "Schedule-Start-Act-Share",
+      "Name": "Schedule-Start-Act-share",
       "ID": 12520,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Schedule-Start-Act-AdvShare",
+      "Name": "Schedule-Start-Act-adv_share",
       "ID": 12521,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Schedule-Start-Act-Group",
+      "Name": "Schedule-Start-Act-group_work",
       "ID": 12522,
       "holdTime": null,
       "repeatTime": null
@@ -2094,6 +2094,21 @@
           "Tech-Matrix-Mode-Aud",
           "Tech-Matrix-Mode-Vid",
           "Tech-Matrix-Mode-Untie"
+        ]
+      },
+      {
+        "Name": "Schedule-Start-Activity-Mode",
+        "Buttons": [
+          "Schedule-Start-Act-share",
+          "Schedule-Start-Act-adv_share",
+          "Schedule-Start-Act-group_work"
+        ]
+      },
+      {
+        "Name": "Schedule-AMPM",
+        "Buttons": [
+          "Schedule-AM",
+          "Schedule-PM"
         ]
       }
   ],

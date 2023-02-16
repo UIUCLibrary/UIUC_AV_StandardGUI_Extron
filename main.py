@@ -41,6 +41,7 @@ from uofi_gui.systemHardware import (SystemHardwareController,
                                      VirtualDeviceInterface)
 from uofi_gui.cameraControl import CameraController
 from uofi_gui.keyboardControl import KeyboardController
+from uofi_gui.scheduleControls import AutoScheduleController
 
 import utilityFunctions as utFn
 
@@ -329,6 +330,9 @@ def Initialize() -> bool:
     
     #### Keyboard Module
     vars.KBCtl = KeyboardController(vars.TP_Main)
+    
+    #### Schedule Module
+    vars.SchedCtl = AutoScheduleController(vars.TP_Main)
     
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     

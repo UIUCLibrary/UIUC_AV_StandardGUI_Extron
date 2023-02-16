@@ -44,6 +44,7 @@ PollCtl = None
 StatusCtl = None
 CamCtl = None
 KBCtl = None
+SchedCtl = None
 
 TP_Btns = {}
 TP_Btn_Grps = {}

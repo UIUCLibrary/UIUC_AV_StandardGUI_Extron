@@ -17,14 +17,7 @@ print(Version()) ## Sanity check ControlScript Import
 from datetime import datetime
 import json
 from typing import Dict, Tuple, List, Union, Callable
-'''
-Since we can't load modules through Global Scripter directly, we will instead
-upload modules to the SFTP path on the controller. Create a new directory at
-the root of the SFTP called 'modules' and upload modules there. Modules in this
-directory may be imported after the sys.path.import call. 
-'''
-import sys
-sys.path.insert(0, "/var/nortxe/uf/admin/modules/")
+
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
@@ -88,7 +81,7 @@ class ActivityController:
         self.CurrentActivity = 'off'
         self.startupTime = settings.startupTimer
         self.switchTime = settings.switchTimer
-        self.shutdownTime = int(settings.shutdownTimer)
+        self.shutdownTime = settings.shutdownTimer
         self.confirmationTime = settings.shutdownConfTimer
         self.splashTime = settings.activitySplashTimer
         
@@ -132,10 +125,7 @@ class ActivityController:
         def ActivityChange(button, action):
             if button.Name == "ActivitySelect-Off":
                 # utilityFunctions.Log('Off mode selected - show confirmation')
-                if self.CurrentActivity != 'off':
-                    self._confirmationTimer.Restart()
-                    self._confTimeLbl.SetText(utilityFunctions.TimeIntToStr(self.confirmationTime))
-                    self.UIHost.ShowPopup('Shutdown-Confirmation')
+                new_method()
             elif button.Name == "ActivitySelect-Share":
                 # utilityFunctions.Log('Share mode selected')
                 self._activityBtns['select'].SetCurrent(button)
@@ -163,6 +153,8 @@ class ActivityController:
                 else:
                     self.SystemSwitch('group_work')
                 self.CurrentActivity = 'group_work'
+
+        
         
         @event(self._activityBtns['end'], 'Pressed')
         def EndNow(button, action):
@@ -265,7 +257,14 @@ class ActivityController:
             # utilityFunctions.Log('System shutdown', 'info')
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
+    def StartShutdownConfirmation(self, click: bool=False):
+        if self.CurrentActivity != 'off':
+            if click:
+                self.UIHost.Click(5, 0.2)
+            self._confirmationTimer.Restart()
+            self._confTimeLbl.SetText(utilityFunctions.TimeIntToStr(self.confirmationTime))
+            self.UIHost.ShowPopup('Shutdown-Confirmation')
+            
     def SystemStart(self, activity: str) -> None:
         # utilityFunctions.Log("System Start function activated", stack=True)
         self._selectedActivity = activity
@@ -314,6 +313,8 @@ class ActivityController:
         # utilityFunctions.Log('Performing unsynced Activity Switch functions')
         # self.UIHost.HidePopupGroup(5) # Source-Controls Group
         if activity == "share":
+            self._activityBtns['select'].SetCurrent(1)
+            self._activityBtns['indicator'].SetCurrent(1)
             # utilityFunctions.Log('Configuring for Share mode')
             self.UIHost.HidePopupGroup(8) # Activity-Controls Group
             self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
@@ -339,6 +340,8 @@ class ActivityController:
             self.UIHost.ShowPopup("Source-Control-Splash-Share")
             
         elif activity == "adv_share":
+            self._activityBtns['select'].SetCurrent(2)
+            self._activityBtns['indicator'].SetCurrent(2)
             # utilityFunctions.Log('Configuring for Adv Share mode')
             self.UIHost.ShowPopup("Activity-Control-AdvShare")
             
@@ -357,6 +360,8 @@ class ActivityController:
                 vars.SrcCtl.SwitchSources(vars.SrcCtl._none_source, destList)
                         
         elif  activity == "group_work":
+            self._activityBtns['select'].SetCurrent(3)
+            self._activityBtns['indicator'].SetCurrent(3)
             # utilityFunctions.Log('Configuring for Group Work mode')
             self.UIHost.ShowPopup("Activity-Control-Group")
             self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))

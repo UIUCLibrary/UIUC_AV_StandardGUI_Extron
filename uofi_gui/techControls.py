@@ -40,6 +40,7 @@ class TechMenuController:
         # Public Properties
         # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
+        self.TechMenuOpen = False
         
         # Private Properties
         # utilityFunctions.Log('Set Private Properties')
@@ -124,15 +125,13 @@ class TechMenuController:
                 button.SetState(1)
             elif action == 'Released':
                 button.SetState(0)
-                if vars.ActCtl.CurrentActivity == 'off':
-                    self.UIHost.ShowPage('Opening')
-                else:
-                    self.UIHost.ShowPage('Main')
-                for fn in self._PageUpdates.values():
-                    fn(show=False)
+                self.CloseTechMenu()
+
+        
                     
     # Public Methods
     def OpenTechMenu(self) -> None:
+        self.TechMenuOpen = True
         # utilityFunctions.Log('Updating Tech Menu Nav')
         self._pageIndex = 0
         self.UIHost.ShowPopup(self._ctlBtns['menu-pages'][self._pageIndex])
@@ -148,7 +147,16 @@ class TechMenuController:
             
         self._menuBtns.SetCurrent(self._defaultBtn)
         self.UIHost.ShowPopup(self._defaultPage)
-        
+    
+    def CloseTechMenu(self):
+        self.TechMenuOpen = False
+        if vars.ActCtl.CurrentActivity == 'off':
+            self.UIHost.ShowPage('Opening')
+        else:
+            self.UIHost.ShowPage('Main')
+        for fn in self._PageUpdates.values():
+            fn(show=False)
+    
     # Private Methods
     def _AdvVolPage(self) -> str:
         return 'Tech-AdvancedVolume_{}'.format(settings.micCtl)
