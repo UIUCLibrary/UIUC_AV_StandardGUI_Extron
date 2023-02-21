@@ -170,7 +170,7 @@ def TimeIntToStr(time: int, units: bool = True) -> str:
 
     return returnStr
 
-def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False) -> List:
+def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, capture_dict: bool=False) -> List:
     """Searches dictionary keys which match the search term (either partial match or regex match)
     Returns a list of matching values.
 
@@ -178,21 +178,34 @@ def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False) -> Lis
         dict (Dict): Dictionary to search
         search_term (str): String search string or regex pattern to match
         regex (bool, optional): Regex search flag. Defaults to False.
+        capture_dict (bool, optional): Creates a dict using the first cature group for the key. search_term must be a regex search with a capture group and regex must be true. Defaults to False.
 
     Returns:
         List: Returns a list of values of keys matching the search.
     """    
-    find_list = []
-    for key, value in dict.items():
-        if regex:
+    if not capture_dict:
+        # Log('Finding List')
+        find_list = []
+        for key, value in dict.items():
+            if regex:
+                re_match = re.match(search_term, key)
+                if re_match != None:
+                    find_list.append(value)
+            else:
+                if search_term in key:
+                    find_list.append(value)
+                    
+        return find_list
+    elif capture_dict and regex:
+        # Log('Finding Dict')
+        find_dict = {}
+        for key, value in dict.items():
             re_match = re.match(search_term, key)
-            if re_match != None:
-                find_list.append(value)
-        else:
-            if search_term in key:
-                find_list.append(value)
-                
-    return find_list
+            if re_match != None and re_match.group(1) != None:
+                find_dict[re_match.group(1)] = value
+        return find_dict
+    else:
+        raise ValueError('regex must be true if capture_dict is true')
 
 ## End Function Definitions ----------------------------------------------------
 ##

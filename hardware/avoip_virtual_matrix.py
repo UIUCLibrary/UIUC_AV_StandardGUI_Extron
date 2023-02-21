@@ -70,45 +70,54 @@ class DeviceClass:
 ## Start Command & Callback Functions
 ## -----------------------------------------------------------------------------
 
-    def UpdateAllMatrixTie(self):
+    def UpdateAllMatrixTie(self, value=None, qualifier=None):
         # ProgramLog('Matrix Size: {}'.format(self.MatrixSize), 'info')
         for OutputHw in self.VirtualOutputDevices.values():
             OutputHw.interface.Update('Stream', None) # This will query both Stream and AudioStream
             StreamTuple = (OutputHw.interface.ReadStatus('Stream'),
                            OutputHw.interface.ReadStatus('AudioStream'))
-            # ProgramLog('Output {} ({}) StreamTuple = {}'.format(OutputHw.MatrixOutput, OutputHw.Name, StreamTuple), 'info')
+            # utilityFunctions.Log('Output {} ({}) StreamTuple = {}'.format(OutputHw.MatrixOutput, OutputHw.Name, StreamTuple), 'info')
             # If elements 0 & 1 of StreamTuple match, tie type must be Audio/Video
             # if StreamTuple[1] == 0 audio follows video and tie type must be Audio/Video
-            if StreamTuple[0] == StreamTuple[1] or StreamTuple[1] == 0: # Audio/Video
-                mInput = 0
-                for InputHw in self.VirtualInputDevices.values():
-                    devStatus = InputHw.interface.ReadStatus('DeviceStatus')
-                    # ProgramLog('{} Enc Stream {} ({})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0])))
-                    if devStatus['Stream'] == StreamTuple[0]:
-                        mInput = InputHw.MatrixInput
-                        self.WriteStatus('InputTieStatus', 'Audio/Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
-                    else:
-                        self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
-                self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
-                self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
-                self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
-            else: # individual audio and video
-                mInputA = 0
-                mInputV = 0
-                for InputHw in self.VirtualInputDevices.values():
-                    devStatus = InputHw.interface.ReadStatus('DeviceStatus')
-                    # ProgramLog('{} Enc Stream {} ({}/{})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0]), (devStatus['Stream'] == StreamTuple[1])))
-                    if devStatus['Stream'] == StreamTuple[0]:
-                        mInputV = InputHw.MatrixInput
-                        self.WriteStatus('InputTieStatus', 'Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
-                    elif devStatus['Stream'] == StreamTuple[1]:
-                        mInputA = InputHw.MatrixInput
-                        self.WriteStatus('InputTieStatus', 'Audio', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
-                    else:
-                        self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
-                self.WriteStatus('OutputTieStatus', 0, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
-                self.WriteStatus('OutputTieStatus', mInputV, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
-                self.WriteStatus('OutputTieStatus', mInputA, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
+            if StreamTuple == (None, None):
+                if StreamTuple[0] == StreamTuple[1] or StreamTuple[1] == 0: # Audio/Video
+                    mInput = 0
+                    for InputHw in self.VirtualInputDevices.values():
+                        devStatus = InputHw.interface.ReadStatus('DeviceStatus')
+                        if devStatus is not None:
+                            # utilityFunctions.Log('{} Enc Stream {} ({})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0])))
+                            if devStatus['Stream'] == StreamTuple[0]:
+                                mInput = InputHw.MatrixInput
+                                self.WriteStatus('InputTieStatus', 'Audio/Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
+                            else:
+                                self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
+                        else:
+                            utilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
+                    self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
+                    self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
+                    self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
+                else: # individual audio and video
+                    mInputA = 0
+                    mInputV = 0
+                    for InputHw in self.VirtualInputDevices.values():
+                        devStatus = InputHw.interface.ReadStatus('DeviceStatus')
+                        if devStatus is not None:
+                            # utilityFunctions.Log('{} Enc Stream {} ({}/{})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0]), (devStatus['Stream'] == StreamTuple[1])))
+                            if devStatus['Stream'] == StreamTuple[0]:
+                                mInputV = InputHw.MatrixInput
+                                self.WriteStatus('InputTieStatus', 'Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
+                            elif devStatus['Stream'] == StreamTuple[1]:
+                                mInputA = InputHw.MatrixInput
+                                self.WriteStatus('InputTieStatus', 'Audio', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
+                            else:
+                                self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
+                        else:
+                            utilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
+                    self.WriteStatus('OutputTieStatus', 0, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
+                    self.WriteStatus('OutputTieStatus', mInputV, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
+                    self.WriteStatus('OutputTieStatus', mInputA, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
+            else:
+                utilityFunctions.Log('Stream info for {} is undefined'.format(OutputHw.Name))
                 
         self.__ConnectHelper()
 
@@ -141,10 +150,15 @@ class DeviceClass:
             if qualifier['Input'] == 0:
                 Stream = 0
             elif qualifier['Input'] in self.VirtualInputDevices:
-                Stream = self.VirtualInputDevices[qualifier['Input']].interface.ReadStatus('DeviceStatus')['Stream']
+                # utilityFunctions.Log('Getting Stream from Encoder')
+                devStatus = self.VirtualInputDevices[qualifier['Input']].interface.ReadStatus('DeviceStatus')
+                if devStatus is not None:
+                    Stream = devStatus['Stream']
+                else:
+                    Stream = 9999
             else:
                 #TODO: determine handling for non-existent encoders in the virtual matrix
-                Stream = 0
+                Stream = 9999
             
             # Get Output device with MatrixOutput attribute matching provided Output value
             if qualifier['Output'] in self.VirtualOutputDevices:
@@ -389,6 +403,7 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
     def Error(self, message):
         portInfo = 'VirtualDeviceClass - Virtual Matrix Interface'
         print('Module: {}'.format(__name__), portInfo, 'Error Message: {}'.format(message[0]), sep='\r\n')
+        utilityFunctions.Log('Error Message: {}'.format(message[0]))
   
     def Discard(self, message):
         utilityFunctions.Log('Discarding Command', stack=True)

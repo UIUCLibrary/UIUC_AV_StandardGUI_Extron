@@ -125,7 +125,7 @@ class ActivityController:
         def ActivityChange(button, action):
             if button.Name == "ActivitySelect-Off":
                 # utilityFunctions.Log('Off mode selected - show confirmation')
-                new_method()
+                self.StartShutdownConfirmation()
             elif button.Name == "ActivitySelect-Share":
                 # utilityFunctions.Log('Share mode selected')
                 self._activityBtns['select'].SetCurrent(button)
@@ -308,6 +308,9 @@ class ActivityController:
         
         # utilityFunctions.Log('Activity Switch Timer Restarting')
         self._switchTimer.Restart()
+        
+        # TODO: Figure out a way to reset the activity timer
+        #self.UIHost.InactivityTime = 0
 
         # configure system for current activity
         # utilityFunctions.Log('Performing unsynced Activity Switch functions')
@@ -397,6 +400,9 @@ class ActivityController:
 
         # utilityFunctions.Log('Shutdown timer restarting')
         self._shutdownTimer.Restart()        
+        
+        # self.UIHost.InactivityTime = 0
+        # TODO: Figure out a way to reset the activity timer
         
         # SHUTDOWN ITEMS HERE - function in main
         # utilityFunctions.Log('Performing unsynced Shutdown functions')

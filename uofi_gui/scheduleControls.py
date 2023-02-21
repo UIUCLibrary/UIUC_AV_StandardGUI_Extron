@@ -41,6 +41,7 @@ class AutoScheduleController:
         
         self.__inactivityHandlers = \
             {
+                180: self.__PopoverInactivityHandler,
                 300: self.__TechPageInactivityHandler,
                 600: self.__SplashPageInactivityHandler,
                 10800: self.__SystemInactivityHandler
@@ -128,7 +129,7 @@ class AutoScheduleController:
         vars.TP_Btns['Schedule-AM'].Value = 'AM'
         vars.TP_Btns['Schedule-PM'].Value = 'PM'
         self.__btns_ampm = vars.TP_Btn_Grps['Schedule-AMPM']
-        utilityFunctions.Log('AM/PM MESet - Len: {}, Obj: {}'.format(len(self.__btns_ampm.Objects), self.__btns_ampm.Objects))
+        # utilityFunctions.Log('AM/PM MESet - Len: {}, Obj: {}'.format(len(self.__btns_ampm.Objects), self.__btns_ampm.Objects))
         
         self.__btn_save = vars.TP_Btns['Schedule-Save']
         self.__btn_cancel = vars.TP_Btns['Schedule-Cancel']
@@ -393,7 +394,7 @@ class AutoScheduleController:
             scheduleFile = File(self.__scheduleFilePath, 'rt')
             scheduleString = scheduleFile.read()
             scheduleObj = json.loads(scheduleString)
-            utilityFunctions.Log('JSON Obj: {}'.format(scheduleObj))
+            # utilityFunctions.Log('JSON Obj: {}'.format(scheduleObj))
             scheduleFile.close()
             
             #### iterate over objects and load presets
@@ -498,6 +499,10 @@ class AutoScheduleController:
                 hrs = int(Time['hr'])
         
         return '{:02d}:{}:00'.format(hrs, Time['min'])
+    
+    def __PopoverInactivityHandler(self):
+        for p in vars.PopoverPageList:
+            self.UIHost.HidePopup(p)
     
     def __TechPageInactivityHandler(self):
         if vars.TechCtl.TechMenuOpen:

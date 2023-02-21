@@ -751,134 +751,152 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-PRJ001-On",
+      "Name": "Tech-Display-proj-1-On",
       "ID": 12201,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-PRJ001-Off",
+      "Name": "Tech-Display-proj-1-Off",
       "ID": 12202,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-PRJ001-Src",
+      "Name": "Tech-Display-proj-1-Src",
       "ID": 12203,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-SCN001-Up",
+      "Name": "Tech-Display-scn-1-Up",
       "ID": 12231,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-SCN001-Stop",
+      "Name": "Tech-Display-scn-1-Stop",
       "ID": 12232,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-SCN001-Dn",
+      "Name": "Tech-Display-scn-1-Dn",
       "ID": 12233,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-On",
+      "Name": "Tech-Display-mon-1-On",
       "ID": 12261,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-Off",
+      "Name": "Tech-Display-mon-1-Off",
       "ID": 12262,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-Src",
+      "Name": "Tech-Display-mon-1-Src",
       "ID": 12263,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-Mute",
+      "Name": "Tech-Display-mon-1-Mute",
       "ID": 12264,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-On",
+      "Name": "Tech-Display-mon-2-On",
       "ID": 12266,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-Off",
+      "Name": "Tech-Display-mon-2-Off",
       "ID": 12267,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-Src",
+      "Name": "Tech-Display-mon-2-Src",
       "ID": 12268,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-Mute",
+      "Name": "Tech-Display-mon-2-Mute",
       "ID": 12269,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-On",
+      "Name": "Tech-Display-mon-3-On",
       "ID": 12271,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-Off",
+      "Name": "Tech-Display-mon-3-Off",
       "ID": 12272,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-Src",
+      "Name": "Tech-Display-mon-3-Src",
       "ID": 12273,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-Mute",
+      "Name": "Tech-Display-mon-3-Mute",
       "ID": 12274,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-On",
+      "Name": "Tech-Display-mon-4-On",
       "ID": 12276,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-Off",
+      "Name": "Tech-Display-mon-4-Off",
       "ID": 12277,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-Src",
+      "Name": "Tech-Display-mon-4-Src",
       "ID": 12278,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-Mute",
+      "Name": "Tech-Display-mon-4-Mute",
       "ID": 12279,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Tech-Display-conf-1-On",
+      "ID": 12281,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Tech-Display-conf-1-Off",
+      "ID": 12282,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Tech-Display-conf-1-Src",
+      "ID": 12283,
       "holdTime": null,
       "repeatTime": null
     },
@@ -2315,28 +2333,32 @@
       "ID": 10161
     },
     {
-      "Name": "DisplayCtl-PrjLabel-1",
+      "Name": "DisplayCtl-proj-1",
+      "ID": 10200
+    },
+    {
+      "Name": "DisplayCtl-scn-1",
       "ID": 10201
     },
     {
-      "Name": "DisplayCtl-ScnLabel-1",
-      "ID": 10202
-    },
-    {
-      "Name": "DisplayCtl-MonLabel-1",
-      "ID": 10203
-    },
-    {
-      "Name": "DisplayCtl-MonLabel-2",
+      "Name": "DisplayCtl-mon-1",
       "ID": 10204
     },
     {
-      "Name": "DisplayCtl-MonLabel-3",
-      "ID": 10204
+      "Name": "DisplayCtl-mon-2",
+      "ID": 10205
     },
     {
-      "Name": "DisplayCtl-MonLabel-4",
-      "ID": 10204
+      "Name": "DisplayCtl-mon-3",
+      "ID": 10206
+    },
+    {
+      "Name": "DisplayCtl-mon-4",
+      "ID": 10207
+    },
+    {
+      "Name": "DisplayCtl-conf-1",
+      "ID": 10208
     },
     {
       "Name": "WPD-PodIDs",
@@ -2499,19 +2521,19 @@
       "ID": 13003
     },
     {
-      "Name": "Tech-Display-MON001-Vol",
+      "Name": "Tech-Display-mon-1-Vol",
       "ID": 12265
     },
     {
-      "Name": "Tech-Display-MON002-Vol",
+      "Name": "Tech-Display-mon-2-Vol",
       "ID": 12270
     },
     {
-      "Name": "Tech-Display-MON003-Vol",
+      "Name": "Tech-Display-mon-3-Vol",
       "ID": 12275
     },
     {
-      "Name": "Tech-Display-MON004-Vol",
+      "Name": "Tech-Display-mon-4-Vol",
       "ID": 12280
     }
   ]

@@ -45,6 +45,7 @@ StatusCtl = None
 CamCtl = None
 KBCtl = None
 SchedCtl = None
+DispCtl = None
 
 TP_Btns = {}
 TP_Btn_Grps = {}

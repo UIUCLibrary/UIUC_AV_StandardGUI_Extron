@@ -82,32 +82,43 @@ class PINController:
         
         self.maskPIN()
 
-        @event(self._pinPadBtns['numPad'], 'Pressed')
+        @event(self._pinPadBtns['numPad'], ['Pressed','Released'])
         def UpdatePIN(button, action):
-            print(type(button))
-            val = button.ID - 9000
-                # pin button IDs should start at 9000 and be in numerical order
-            self._currentPIN = self._currentPIN + str(val)
-            self.maskPIN() #remask pin after change
-            if (self._currentPIN == self.PIN):
-                self.UIHost.ShowPopup("PIN Outcome Success", 2)
-                # clean up and go to destination page while success popup is up
-                self.UIHost.ShowPage(self._destPage)
-                self._destPageFn()
-                self.UIHost.HidePopup("PIN Code")
-            elif (len(self._currentPIN) >= 10):
-                self.UIHost.ShowPopup("PIN Outcome Failure", 2)
-                # clean up and go back to pin page while failure popup is up
-                self.resetPIN()
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                val = button.ID - 9000
+                    # pin button IDs should start at 9000 and be in numerical order
+                self._currentPIN = self._currentPIN + str(val)
+                self.maskPIN() #remask pin after change
+                if (self._currentPIN == self.PIN):
+                    self.UIHost.ShowPopup("PIN Outcome Success", 2)
+                    # clean up and go to destination page while success popup is up
+                    self.UIHost.ShowPage(self._destPage)
+                    self._destPageFn()
+                    self.UIHost.HidePopup("PIN Code")
+                elif (len(self._currentPIN) >= 10):
+                    self.UIHost.ShowPopup("PIN Outcome Failure", 2)
+                    # clean up and go back to pin page while failure popup is up
+                    self.resetPIN()
+                button.SetState(0)
         
-        @event(self._pinPadBtns['backspace'], 'Pressed')
+        @event(self._pinPadBtns['backspace'], ['Pressed','Released'])
         def BackspacePIN(button, action):
-            self._currentPIN = self._currentPIN[:-1] # remove last character of current pin
-            self.maskPIN()  # remask pin after change
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                self._currentPIN = self._currentPIN[:-1] # remove last character of current pin
+                self.maskPIN()  # remask pin after change
+                button.SetState(0)
 
-        @event(self._pinPadBtns['cancel'], 'Pressed')
+        @event(self._pinPadBtns['cancel'], ['Pressed','Released'])
         def CancelBtnHandler(button, action):
-            self.hidePINMenu()
+            if action == 'Pressed':
+                button.SetState(1)
+            elif action == 'Released':
+                self.hidePINMenu()
+                button.SetState(0)
 
         @event(self._startBtn, 'Held')
         # triggers on startBtn defined long press, 3 sec recommended

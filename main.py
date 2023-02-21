@@ -39,7 +39,7 @@ from uofi_gui.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
                                      SystemStatusController,
                                      VirtualDeviceInterface)
-from uofi_gui.cameraControl import CameraController
+from uofi_gui.deviceControl import CameraController, DisplayController
 from uofi_gui.keyboardControl import KeyboardController
 from uofi_gui.scheduleControls import AutoScheduleController
 
@@ -86,26 +86,8 @@ vars.PollCtl = SystemPollingController()
 
 for hw in settings.hardware:
     vars.Hardware[hw['Id']] = SystemHardwareController(**hw)
+    
 
-# @Timer(30)
-# def DebugTimerHandler(timer, count):
-#     interfaceStatus = vars.Hardware['DSP001'].interface.ReadStatus('ConnectionStatus')
-#     sysHWStatus = vars.Hardware['DSP001'].ConnectionStatus
-#     counter = vars.Hardware['DSP001'].interface.counter
-#     conncounter = vars.Hardware['DSP001'].interface.connectionCounter
-#     ProgramLog('DSP Connection Status - Interface: {}; System Hardware: {}; Counter: {}/{}'.format(interfaceStatus, sysHWStatus, counter, conncounter), 'info')
-    
-#     vars.Hardware['DSP001'].interface.Update('LevelControl', {'Instance Tag': 'XLRLevel'})
-#     lvlVal = vars.Hardware['DSP001'].interface.ReadStatus('LevelControl', {'Instance Tag': 'XLRLevel', 'Channel': '1'})
-#     ProgramLog('DSP Read Test: XLRLevel = {}'.format(lvlVal), 'info')
-    
-#     vars.Hardware['DSP001'].interface.Update('MuteControl', {'Instance Tag': 'ProgLevel'})
-#     muteVal = vars.Hardware['DSP001'].interface.ReadStatus('MuteControl', {'Instance Tag': 'ProgLevel', 'Channel': '1'})
-#     ProgramLog('DSP Read Test: ProgLevel Mute = {}'.format(muteVal), 'info')
-    
-#     vars.Hardware['DSP001'].interface.Update('LogicMeter', {'Instance Tag': 'LogicMeter1'})
-#     logicVal = vars.Hardware['DSP001'].interface.ReadStatus('LogicMeter', {'Instance Tag': 'LogicMeter1', 'Channel': '1'})
-#     ProgramLog('DSP Read Test: Logic Meter State = {}'.format(logicVal), 'info')
     
 ## End Device/User Interface Definition ----------------------------------------
 ##
@@ -334,9 +316,12 @@ def Initialize() -> bool:
     #### Schedule Module
     vars.SchedCtl = AutoScheduleController(vars.TP_Main)
     
+    #### Display Control Module
+    vars.DispCtl = DisplayController(vars.TP_Main)
+    
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     
-    #### Initialize Virtual Hardware
+    # Associate Virtual Hardware
     # utFn.Log('Looking for Virtual Device Interfaces')
     for Hw in vars.Hardware.values():
         # utFn.Log('Hardware ({}) - Interface Class: {}'.format(id, type(Hw.interface)))

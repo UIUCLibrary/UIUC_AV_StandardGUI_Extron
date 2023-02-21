@@ -165,15 +165,18 @@ class TechMenuController:
         return 'Tech-CameraControls_{}'.format(len(settings.cameras))
     
     def _DispCtlPage(self):
+        confs = 0
         mons = 0
         projs = 0
         for dest in settings.destinations:
             if dest['type'] == 'proj+scn' or dest['type'] == 'proj':
                 projs += 1
             elif dest['type'] == 'mon':
-                mons +=1
+                mons += 1
+            elif dest['type'] == 'conf' or dest['type'] == 'c-conf':
+                confs += 1
         
-        return 'Tech-DisplayControls_{p},{m}'.format(p = projs, m = mons)
+        return 'Tech-DisplayControls_{c},{p},{m}'.format(c = confs, p = projs, m = mons)
     
     def _ManMtxPage(self):
         return 'Tech-ManualMatrix_{i}x{o}'.format(i = settings.techMatrixSize[0], o = settings.techMatrixSize[1])

@@ -187,7 +187,6 @@ class SystemHardwareController:
             
             
     def __ConnectionStatus(self, command, value, qualifier):
-        # utilityFunctions.Log('Connection Status Callback ({}): Command: {}; Value: {}, Qualifier: {}'.format(self.Id, command, value, qualifier))
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
         if value != self.ConnectionStatus:
             self.ConnectionStatus = value
@@ -225,8 +224,8 @@ class SystemPollingController:
     def __PollInterface(self, interface, command, qualifier=None):
         try:
             interface.Update(command, qualifier=qualifier)
-        except:
-            utilityFunctions.Log('An error occured attempting to poll. {} ({})'.format(command, qualifier), 'error')
+        except Exception as inst:
+            utilityFunctions.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), 'error')
     
     def StartPolling(self, mode: str='inactive'):
         if mode == 'inactive': 
