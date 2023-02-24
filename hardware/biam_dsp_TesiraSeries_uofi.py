@@ -5,6 +5,7 @@ from decimal import Decimal, ROUND_HALF_UP
 import copy
 
 import utilityFunctions
+import vars
 class DeviceClass:
     def __init__(self):
 
@@ -118,11 +119,13 @@ class DeviceClass:
 ## Start Feedback Callback Functions
 ## -----------------------------------------------------------------------------
 
-    def FeedbackMuteHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+    def FeedbackMuteHandler(self, command, value, qualifier, hardware=None, tag=None):
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag: {}'.format(hardware.Name, command, value, qualifier, tag))
+        vars.AudioCtl.AudioMuteFeedback(tag, value)
         
-    def FeedbackLevelHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+    def FeedbackLevelHandler(self, command, value, qualifier, hardware=None, tag=None):
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
+        vars.AudioCtl.AudioLevelFeedback(tag, value)
 
 ## -----------------------------------------------------------------------------
 ## End Feedback Callback Functions

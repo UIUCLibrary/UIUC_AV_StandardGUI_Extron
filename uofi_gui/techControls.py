@@ -159,7 +159,7 @@ class TechMenuController:
     
     # Private Methods
     def _AdvVolPage(self) -> str:
-        return 'Tech-AdvancedVolume_{}'.format(settings.micCtl)
+        return 'Tech-AdvancedVolume_{}'.format(len(settings.microphones))
     
     def _CamCtlsPage(self) -> str:
         return 'Tech-CameraControls_{}'.format(len(settings.cameras))

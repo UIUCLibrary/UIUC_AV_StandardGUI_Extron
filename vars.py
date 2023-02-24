@@ -46,6 +46,7 @@ CamCtl = None
 KBCtl = None
 SchedCtl = None
 DispCtl = None
+AudioCtl = None
 
 TP_Btns = {}
 TP_Btn_Grps = {}
@@ -53,6 +54,7 @@ TP_Knobs = {}
 TP_Lvls = {}
 TP_Slds = {}
 TP_Lbls = {}
+TP_Lights = None
 
 Hardware = {}
 

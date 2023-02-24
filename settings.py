@@ -19,11 +19,9 @@ defaultSource = "PC001"       # Default source id on activity switch
 defaultCamera = 'CAM001'      # Default camera to show on camera control pages
 primaryDestination = "PRJ001" # Primary destination
 primarySwitcher = 'VMX001'    # Primary Matrix Switcher
-micCtl = 1                    # Microphone control # TODO: might need a better way to handle this
-   # 0 - no mic control
-   # 1 - mic control
 techMatrixSize = (8,4)        # (inputs, outputs) - size of the virtual matrix to display in Tech Menu
 camSwitcher = 'DEC001'        # ID of hardware device to switch between cameras
+primaryDSP = 'DSP001'         # Primary DSP for audio control
 
 # Icon Map
 #     0 - no source
@@ -163,6 +161,52 @@ cameras = \
       }
    ]
    
+microphones = \
+   [
+      {
+         'Id': 'RF001',
+         'Name': 'Wireless Lav',
+         'Number': 1,
+         'Control': 
+            {
+               'level': 
+                  {
+                     'HwId': 'DSP001',
+                     'HwCmd': 'Mic1LevelCommand',
+                     'Range': (-36, 12),
+                     'Step': 1,
+                     'StartUp': 0
+                  },
+               'mute':
+                  {
+                     'HwId': 'DSP001',
+                     'HwCmd': 'Mic1MuteCommand'
+                  }
+            }
+      },
+      {
+         'Id': 'MIC001',
+         'Name': 'Overhead Mic',
+         'Number': 2,
+         'Control': 
+            {
+               'level': 
+                  {
+                     'HwId': 'DSP001',
+                     'HwCmd': 'Mic2LevelCommand',
+                     'Range': (-36, 12),
+                     'Step': 1,
+                     'StartUp': 0
+                  },
+               'mute':
+                  {
+                     'HwId': 'MIC001',
+                     'HwCmd': 'MuteCommand'
+                  }
+            }
+      }
+   ]
+
 lights = []
 
 techPIN = "1867"           # PIN Code to access tech pages, must be a string
@@ -265,37 +309,83 @@ hardware = [
             }
          },
       'Subscriptions': [],
-      'Polling': 
+      'Polling':
          [
             {
                'command': 'LevelControl',
-               'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
+               'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
                'callback': 'FeedbackLevelHandler',
-               'active_int': 5,
+               'tag': ('prog',),
+               'active_int': 30,
                'inactive_int': 120,
             },
             {
                'command': 'LevelControl',
-               'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
+               'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'},
                'callback': 'FeedbackLevelHandler',
-               'active_int': 5,
+               'tag': ('mics', '1'),
+               'active_int': 30,
                'inactive_int': 120,
             },
             {
-               'command': 'MuteControl',
-               'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
-               'callback': 'FeedbackMuteHandler',
-               'active_int': 5,
+               'command': 'LevelControl',
+               'qualifier': {'Instance Tag': 'Mic2Level', 'Channel': '1'},
+               'callback': 'FeedbackLevelHandler',
+               'tag': ('mics', '2'),
+               'active_int': 30,
                'inactive_int': 120,
             },
             {
                'command': 'MuteControl',
                'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
                'callback': 'FeedbackMuteHandler',
-               'active_int': 5,
+               'tag': ('prog',),
+               'active_int': 30,
+               'inactive_int': 120,
+            },
+            {
+               'command': 'MuteControl',
+               'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'},
+               'callback': 'FeedbackMuteHandler',
+               'tag': ('mics', '1'),
+               'active_int': 30,
                'inactive_int': 120,
             }
-         ]
+         ],
+      'Options':
+         {
+            'Program': 
+               {
+                  'Range': (-36, 12),
+                  'Step': 1,
+                  'StartUp': 0
+               },
+            'ProgramMuteCommand': 
+               {
+                  'command': 'MuteControl',
+                  'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'}
+               },
+            'ProgramLevelCommand': 
+               {
+                  'command': 'LevelControl',
+                  'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'}
+               },
+            'Mic1MuteCommand': 
+               {
+                  'command': 'MuteControl',
+                  'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'}
+               },
+            'Mic1LevelCommand':
+               {
+                  'command': 'LevelControl',
+                  'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'}
+               },
+            'Mic2LevelCommand':
+               {
+                  'command': 'LevelControl',
+                  'qualifier': {'Instance Tag': 'Mic2Level', 'Channel': '1'}
+               },
+         }
    },
    {
       'Id': 'DEC001',
@@ -813,6 +903,45 @@ hardware = [
                   'command': 'Volume'
                },
             'VolumeRange': (0, 100)
+         }
+   },
+   {
+      'Id': 'MIC001',
+      'Name': 'Overhead Mic',
+      'Manufacturer': 'Shure',
+      'Model': 'MXA920',
+      'Interface':
+         {
+            'module': 'hardware.shur_dsp_MXA_Series_v1_3_0_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'ActiveMicChannels',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'mic001',
+               'IPPort': 2202,
+               'Model': 'MXA920'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': 
+         [
+            {
+               'command': 'DeviceAudioMute',
+               'callback': 'FeedbackMuteHandler',
+               'tag': ('mics', '2'),
+               'active_int': 10,
+               'inactive_int': 30
+            }
+         ],
+      'Options':
+         {
+            'MuteCommand':
+               {
+                  'command': 'DeviceAudioMute'
+               }
          }
    }
 ]

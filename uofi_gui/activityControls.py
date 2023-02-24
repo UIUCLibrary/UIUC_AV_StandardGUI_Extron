@@ -320,7 +320,7 @@ class ActivityController:
             self._activityBtns['indicator'].SetCurrent(1)
             # utilityFunctions.Log('Configuring for Share mode')
             self.UIHost.HidePopupGroup(8) # Activity-Controls Group
-            self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
+            self.UIHost.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(settings.microphones) > 0 else 'no_mic'))
             
             # get input assigned to the primaryDestination
             curSrc = vars.SrcCtl.PrimaryDestination.AssignedSource
@@ -349,7 +349,7 @@ class ActivityController:
             self.UIHost.ShowPopup("Activity-Control-AdvShare")
             
             self.UIHost.ShowPopup(vars.SrcCtl.GetAdvShareLayout())
-            self.UIHost.ShowPopup("Audio-Control-{}".format(settings.micCtl))
+            self.UIHost.ShowPopup("Audio-Control-{}".format('mic' if len(settings.microphones) > 0 else 'no_mic'))
         
             if vars.SrcCtl.Privacy:
                 # utilityFunctions.Log('Handling Privacy reconfigure for Adv Share')
@@ -367,7 +367,7 @@ class ActivityController:
             self._activityBtns['indicator'].SetCurrent(3)
             # utilityFunctions.Log('Configuring for Group Work mode')
             self.UIHost.ShowPopup("Activity-Control-Group")
-            self.UIHost.ShowPopup("Audio-Control-{},P".format(settings.micCtl))
+            self.UIHost.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(settings.microphones) > 0 else 'no_mic'))
             
             vars.SrcCtl.SelectSource(vars.SrcCtl.PrimaryDestination.GroupWorkSource)
             for dest in vars.SrcCtl.Destinations:

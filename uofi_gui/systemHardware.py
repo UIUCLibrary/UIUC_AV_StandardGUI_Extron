@@ -30,7 +30,6 @@ import functools
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 import utilityFunctions
-import settings
 import vars
 
 #### Extron Global Scripter Modules
@@ -103,32 +102,13 @@ class SystemHardwareController:
         # ]
         
         for sub in Subscriptions:
-            qualSub = [None]
-            if 'qualifier' in sub and sub['qualifier'] is not None:
-                if type(sub['qualifier']) is list:
-                    for q in sub['qualifier']:
-                        if type(q) is not dict:
-                            raise TypeError('Qualifier ({}) must be a dictionary'.format(q))
-                    qualSub = sub['qualifier']
-                elif type(sub['qualifier']) is dict:
-                    qualSub = [sub['qualifier']]
-                else:
-                    raise TypeError('Qualifier must be a dictionary')
+            qualSub = self.GetQualifierList(sub)
             
             for qp in qualSub:
                 # these subscriptions do not poll for updated statuses and appropriate
                 # Update or Set commands must be sent elsewhere in the program
                 # Use these subscriptions to verify changes or to handle control feedback
-                if callable(sub['callback']):
-                    callbackFn = functools.partial(sub['callback'], hardware=self)
-                elif type(sub['callback']) is str and hasattr(self.interface, sub['callback']):
-                    callbackFn = functools.partial(getattr(self.interface, sub['callback']), hardware=self)
-                else:
-                    raise TypeError('Callback must either be a callable or a string matching a name of an interface method.')
-                
-                self.interface.SubscribeStatus(sub['command'],
-                                               qp,
-                                               callbackFn)
+                self.AddSubscription(sub, qp)
         
         # polling = [
         #  {
@@ -142,17 +122,7 @@ class SystemHardwareController:
         # ]
         
         for poll in Polling:
-            qualPoll = [None]
-            if 'qualifier' in poll and poll['qualifier'] is not None:
-                if type(poll['qualifier']) is list:
-                    for q in poll['qualifier']:
-                        if type(q) is not dict:
-                            raise TypeError('Qualifier ({}) must be a dictionary'.format(q))
-                    qualPoll = poll['qualifier']
-                elif type(poll['qualifier']) is dict:
-                    qualPoll = [poll['qualifier']]
-                else:
-                    raise TypeError('Qualifier ({}) must be a dictionary'.format(poll['qualifier']))
+            qualPoll = self.GetQualifierList(poll)
             
             if 'active_int' in poll:
                 actInt = poll['active_int']
@@ -174,16 +144,39 @@ class SystemHardwareController:
                 # if a callback is included in the poll, a subscription will automatically
                 # be created on the interface
                 if 'callback' in poll:
-                    if callable(poll['callback']):
-                        callbackFn = functools.partial(poll['callback'], hardware=self)
-                    elif type(poll['callback']) is str and hasattr(self.interface, poll['callback']):
-                        callbackFn = functools.partial(getattr(self.interface, poll['callback']), hardware=self)
-                    else:
-                        raise TypeError('Callback must either be a callable or a string matching a name of an interface method.')
-                    
-                    self.interface.SubscribeStatus(poll['command'],
-                                                   qp,
-                                                   callbackFn)
+                    self.AddSubscription(poll, qp)
+
+    def GetQualifierList(self, subscription):
+        qualList = [None]
+        if 'qualifier' in subscription and subscription['qualifier'] is not None:
+            if type(subscription['qualifier']) is list:
+                for q in subscription['qualifier']:
+                    if type(q) is not dict:
+                        raise TypeError('Qualifier ({}) must be a dictionary'.format(q))
+                qualList = subscription['qualifier']
+            elif type(subscription['qualifier']) is dict:
+                qualList = [subscription['qualifier']]
+            else:
+                raise TypeError('Qualifier must be a dictionary')
+        return qualList
+
+    def AddSubscription(self, subscription, qualifier):
+        if callable(subscription['callback']):
+            if 'tag' in subscription:
+                callbackFn = functools.partial(subscription['callback'], hardware=self, tag=subscription['tag'])
+            else:
+                callbackFn = functools.partial(subscription['callback'], hardware=self)
+        elif type(subscription['callback']) is str and hasattr(self.interface, subscription['callback']):
+            if 'tag' in subscription:
+                callbackFn = functools.partial(getattr(self.interface, subscription['callback']), hardware=self, tag=subscription['tag'])
+            else:
+                callbackFn = functools.partial(getattr(self.interface, subscription['callback']), hardware=self)
+        else:
+            raise TypeError('Callback must either be a callable or a string matching a name of an interface method.')
+                
+        self.interface.SubscribeStatus(subscription['command'],
+                                       qualifier,
+                                       callbackFn)
             
             
     def __ConnectionStatus(self, command, value, qualifier):

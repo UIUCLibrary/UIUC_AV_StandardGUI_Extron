@@ -181,13 +181,13 @@
       "repeatTime": null
     },
     {
-      "Name": "Ctl-Camera-Select-CAM001",
+      "Name": "Ctl-Camera-Select-1",
       "ID": 6101,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Ctl-Camera-Select-CAM002",
+      "Name": "Ctl-Camera-Select-2",
       "ID": 6102,
       "holdTime": null,
       "repeatTime": null
@@ -925,38 +925,56 @@
       "repeatTime": null
     },
     {
-      "Name": "Vol-MIC001-Up",
+      "Name": "Vol-Mic-2-Up",
       "ID": 12304,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-MIC001-Dn",
+      "Name": "Vol-Mic-2-Dn",
       "ID": 12305,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-MIC001-Mute",
+      "Name": "Vol-Mic-2-Mute",
       "ID": 12306,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Vol-RF001-Up",
+      "Name": "Vol-Mic-1-Up",
       "ID": 12307,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-RF001-Dn",
+      "Name": "Vol-Mic-1-Dn",
       "ID": 12308,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-RF001-Mute",
+      "Name": "Vol-Mic-1-Mute",
       "ID": 12309,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Vol-Mic-3-Up",
+      "ID": 12310,
+      "holdTime": null,
+      "repeatTime": 0.5
+    },
+    {
+      "Name": "Vol-Mic-3-Dn",
+      "ID": 12311,
+      "holdTime": null,
+      "repeatTime": 0.5
+    },
+    {
+      "Name": "Vol-Mic-3-Mute",
+      "ID": 12312,
       "holdTime": null,
       "repeatTime": null
     },
@@ -2063,8 +2081,8 @@
       {
         "Name":"Camera-Select",
         "Buttons":[
-          "Ctl-Camera-Select-CAM001",
-          "Ctl-Camera-Select-CAM002"
+          "Ctl-Camera-Select-1",
+          "Ctl-Camera-Select-2"
         ]
       },
       {
@@ -2369,6 +2387,18 @@
       "ID": 10212
     },
     {
+      "Name": "Aud-Mic-1",
+      "ID": 10251
+    },
+    {
+      "Name": "Aud-Mic-2",
+      "ID": 10252
+    },
+    {
+      "Name": "Aud-Mic-3",
+      "ID": 10253
+    },
+    {
       "Name": "DispAdv-0,0",
       "ID": 10301
     },
@@ -2499,12 +2529,16 @@
       "ID": 8101
     },
     {
-      "Name": "Audio-Lvl-MIC001",
+      "Name": "Audio-Lvl-Mic-2",
       "ID": 8102
     },
     {
-      "Name": "Audio-Lvl-RF001",
+      "Name": "Audio-Lvl-Mic-1",
       "ID": 8103
+    },
+    {
+      "Name": "Audio-Lvl-Mic-3",
+      "ID": 8104
     }
   ],
   "sliders":[

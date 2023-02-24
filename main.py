@@ -39,7 +39,7 @@ from uofi_gui.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
                                      SystemStatusController,
                                      VirtualDeviceInterface)
-from uofi_gui.deviceControl import CameraController, DisplayController
+from uofi_gui.deviceControl import CameraController, DisplayController, AudioController
 from uofi_gui.keyboardControl import KeyboardController
 from uofi_gui.scheduleControls import AutoScheduleController
 
@@ -62,6 +62,15 @@ vars.CtlProc_Main = ProcessorDevice('CTL001')
 ## Begin Device/User Interface Definition --------------------------------------
 
 vars.TP_Main = UIDevice('TP001')
+
+#### Bezel Lights 
+# TODO: Figure out why this button can't be found
+vars.TP_Lights = Button(vars.TP_Main, 65533)
+vars.TP_Lights.LightIDRed = 16711680
+vars.TP_Lights.LightIDGreen = 65280
+vars.TP_Lights.LightIDOff = 0
+vars.TP_Lights.SetBlinking('Medium', [vars.TP_Lights.LightIDRed, vars.TP_Lights.LightIDOff])
+
 
 settings.ctlJSON = '/user/controls.json'
 #### Build Buttons & Button Groups
@@ -86,9 +95,7 @@ vars.PollCtl = SystemPollingController()
 
 for hw in settings.hardware:
     vars.Hardware[hw['Id']] = SystemHardwareController(**hw)
-    
 
-    
 ## End Device/User Interface Definition ----------------------------------------
 ##
 ## Begin Communication Interface Definition ------------------------------------
@@ -98,20 +105,12 @@ for hw in settings.hardware:
 ## Begin Function Definitions --------------------------------------------------
 
 def StartupActions() -> None:
-    # utFn.Log('Set Polling Mode')
     vars.PollCtl.SetPollingMode('active')
-    
-    # utFn.Log('Configure Header Buttons')
     vars.HdrCtl.ConfigSystemOn()
-    
-    # utFn.Log('Set Privacy Off')
     vars.SrcCtl.SetPrivacyOff()
-    
-    # utFn.Log('Select Default Camera')
     vars.CamCtl.SelectDefaultCamera()
-    
-    # utFn.Log('Send Cameras to Home Pos')
     vars.CamCtl.SendCameraHome()
+    vars.AudioCtl.AudioStartUp()
 
 def StartupSyncedActions(count: int) -> None:
     pass
@@ -130,6 +129,7 @@ def ShutdownActions() -> None:
     vars.PollCtl.SetPollingMode('inactive')
     vars.HdrCtl.ConfigSystemOff()
     vars.SrcCtl.MatrixSwitch(0, 'All', 'untie')
+    vars.AudioCtl.AudioShutdown()
     
     # for id, hw in vars.Hardware:
     #     if id.startswith('WPD'):
@@ -216,7 +216,7 @@ def Initialize() -> bool:
             },
             'settings': {
                 'btn': vars.TP_Btns['Header-Settings'],
-                'popover': 'Popover-Ctl-Audio_{}'.format(settings.micCtl)
+                'popover': 'Popover-Ctl-Audio_{}'.format(len(settings.microphones))
             },
             'help': {
                 'btn': vars.TP_Btns['Header-Help'],
@@ -319,6 +319,9 @@ def Initialize() -> bool:
     #### Display Control Module
     vars.DispCtl = DisplayController(vars.TP_Main)
     
+    #### Audio Control Module
+    vars.AudioCtl = AudioController(vars.TP_Main, settings.primaryDSP)
+    
     ## DO ADDITIONAL INITIALIZATION ITEMS HERE
     
     # Associate Virtual Hardware
@@ -334,7 +337,11 @@ def Initialize() -> bool:
     vars.PollCtl.StartPolling()
     
     utFn.Log('System Initialized')
+    vars.TP_Lights.SetBlinking('Fast', [vars.TP_Lights.LightIDGreen, vars.TP_Lights.LightIDRed])
     vars.TP_Main.Click(5, 0.2)
+    @Wait(3)
+    def StopTPLight():
+        vars.TP_Lights.SetState(vars.TP_Lights.LightIDOff)
     return True
 
 ## End Function Definitions ----------------------------------------------------
