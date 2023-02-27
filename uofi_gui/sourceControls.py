@@ -24,7 +24,8 @@ import re
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
+# import utilityFunctions
+from utilityFunctions import Log, RunAsync, debug
 import vars
 import settings
 
@@ -72,7 +73,7 @@ class Source:
     def AlertText(self):
         if not self.__OverrideState:
             txt =  list(self.__AlertText.keys())[self.__AlertIndex]
-            utilityFunctions.Log('AlertText: {}'.format(txt))
+            Log('AlertText: {}'.format(txt))
             self.CycleAlert()
         else:
             txt = self.__OverrideAlert
@@ -107,7 +108,6 @@ class Source:
         if self.__AlertIndex >= len(self.__AlertText):
             self.__AlertIndex = 0
     
-    @utilityFunctions.debug
     def AppendAlert(self, msg: str=None, timeout: int=0) -> None:
         if msg is None:
             msg = self.__DefaultAlert
@@ -131,7 +131,6 @@ class Source:
     def ClearOverride(self):
         self.__OverrideState = False
     
-    @utilityFunctions.debug
     def ClearAlert(self, msg: str=None):
         if msg is None:
             msg = self.__DefaultAlert
@@ -189,18 +188,18 @@ class Destination:
         self._MatrixRow = None
     
     def ToggleDestinationMute(self) -> None:
-        # utilityFunctions.Log('Toggle Destination Mute ({})'.format(self.Name), stack=True)
+        # Log('Toggle Destination Mute ({})'.format(self.Name), stack=True)
         if self.Mute:
             self.UnmuteDestination()
         else:
             self.MuteDestination
     
     def MuteDestination(self) -> None:
-        # utilityFunctions.Log('Destination Mute On ({})'.format(self.Name), stack=True)
+        # Log('Destination Mute On ({})'.format(self.Name), stack=True)
         self.Mute = True
     
     def UnmuteDestination(self) -> None:
-        # utilityFunctions.Log('Destination Mute Off ({})'.format(self.Name), stack=True)
+        # Log('Destination Mute Off ({})'.format(self.Name), stack=True)
         self.Mute = False
         
     def AssignSource(self, source: Source) -> None:
@@ -244,7 +243,7 @@ class Destination:
         
         @event(self._AdvSelectBtn, 'Pressed')
         def advSelectHandler(button, action):
-            # utilityFunctions.Log('Adv Select Handler - Source: {}, Destination: {}'
+            # Log('Adv Select Handler - Source: {}, Destination: {}'
             #                      .format(self.SourceController.SelectedSource.Name,
             #                              self.Name))
             self.SourceController.SwitchSources(self.SourceController.SelectedSource,
@@ -324,7 +323,7 @@ class Destination:
             self.SourceController.UIHost.ShowPopup('Modal-ScnCtl')
     
     def UpdateAdvUI(self) -> None:
-        # utilityFunctions.Log('Updating Advanced UI - Dest: {}, Source {}'.format(self.Name, self.AssignedSource.Name))
+        # Log('Updating Advanced UI - Dest: {}, Source {}'.format(self.Name, self.AssignedSource.Name))
         
         self._AdvSelectBtn.SetText(self.AssignedSource.Name)
         
@@ -336,15 +335,15 @@ class Destination:
             self._AdvCtlBtn.SetEnable(True)
             
     def AdvSourceAlertHandler(self) -> None:
-        utilityFunctions.Log('Checking alerts for Src ({})'.format(self.AssignedSource.Name))
+        # Log('Checking alerts for Src ({})'.format(self.AssignedSource.Name))
         # Does current source for this destination have an alert flag
         if self.AssignedSource != None and self.AssignedSource.AlertFlag:
-            utilityFunctions.Log('Alerts Found for Src ({})'.format(self.AssignedSource.Name))
+            # Log('Alerts Found for Src ({})'.format(self.AssignedSource.Name))
             self._AdvAlertBtn.SetVisible(True)
             self._AdvAlertBtn.SetEnable(True)
             self._AdvAlertBtn.SetBlinking('Medium', [0,1])
         else:
-            utilityFunctions.Log('No Alerts Found for Src ({})'.format(self.AssignedSource.Name))
+            # Log('No Alerts Found for Src ({})'.format(self.AssignedSource.Name))
             self._AdvAlertBtn.SetVisible(False)
             self._AdvAlertBtn.SetEnable(False)
             self._AdvAlertBtn.SetState(1)
@@ -372,7 +371,7 @@ class SourceController:
         """
         
         # Public Properties
-        # utilityFunctions.Log('Set Public Properties')
+        # Log('Set Public Properties')
         self.UIHost = UIHost
         vars.TP_Lbls['SourceAlertLabel'].SetText('')
         
@@ -404,7 +403,7 @@ class SourceController:
         self.OpenControlPopup = None
         
         # Private Properties
-        # utilityFunctions.Log('Set Private Properties')
+        # Log('Set Private Properties')
         self._sourceBtns = sourceDict['select']
         self._sourceInds = sourceDict['indicator']
         self._arrowBtns = sourceDict['arrows']
@@ -428,9 +427,11 @@ class SourceController:
         self.MatrixSwitch(0, 'All', 'untie')
         
         # Configure Source Selection Buttons
-        # utilityFunctions.Log('Create Class Events')
+        # Log('Create Class Events')
         @event(self._sourceBtns.Objects, 'Pressed')
         def sourceBtnHandler(button, action):
+            vars.TP_Lbls['SourceAlertLabel'].SetText('')
+            
             # capture last character of button.Name and convert to index
             btnIndex = int(button.Name[-1:]) - 1
             
@@ -536,15 +537,15 @@ class SourceController:
                 curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
                 
     def SourceAlertHandler(self) -> None:
-        utilityFunctions.Log('Checking Alerts for Src ({})'.format(self.SelectedSource.Name))
+        # Log('Checking Alerts for Src ({})'.format(self.SelectedSource.Name))
         # Does currently selected source have an alert flag
         if self.SelectedSource.AlertFlag:
-            utilityFunctions.Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
+            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
             txt = self.SelectedSource.AlertText
-            utilityFunctions.Log('Text to set: {} ({})'.format(txt, type(txt)))
+            # Log('Text to set: {} ({})'.format(txt, type(txt)))
             vars.TP_Lbls['SourceAlertLabel'].SetText(txt)
         else:
-            utilityFunctions.Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
+            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
             vars.TP_Lbls['SourceAlertLabel'].SetText('')
     
     def _GetUIForAdvDest(self, dest: Destination) -> Dict[str, Button]:
@@ -589,14 +590,14 @@ class SourceController:
         return LayoutTuple(Row = btnPR[1], Pos = btnPR[0])
     
     def TogglePrivacy(self) -> None:
-        # utilityFunctions.Log('Toggle Privacy', stack=True)
+        # Log('Toggle Privacy', stack=True)
         if self.Privacy:
             self.SetPrivacyOff()
         else:
             self.SetPrivacyOn()
     
     def SetPrivacyOn(self) -> None:
-        # utilityFunctions.Log('Privacy On', stack=True)
+        # Log('Privacy On', stack=True)
         self.Privacy = True
         self._privacyBtn.SetBlinking('medium', [1,2])
         for d in self.Destinations:
@@ -604,7 +605,7 @@ class SourceController:
                 d.MuteDestination()
     
     def SetPrivacyOff(self) -> None:
-        # utilityFunctions.Log('Privacy Off', stack=True)
+        # Log('Privacy Off', stack=True)
         self.Privacy = False
         self._privacyBtn.SetState(0)
         for d in self.Destinations:
@@ -705,7 +706,7 @@ class SourceController:
         raise LookupError("Provided Id ({}) not found".format(id))
     
     def SetPrimaryDestination(self, dest: Destination) -> None:
-        # utilityFunctions.Log('Set Primary Destination - {}'.format(dest), stack=True)
+        # Log('Set Primary Destination - {}'.format(dest), stack=True)
         
         if type(dest) != Destination:
             raise TypeError("Object of class Destination must be provided")
@@ -713,11 +714,11 @@ class SourceController:
         
     def SelectSource(self, src: Union[Source, str]) -> None:
         if type(src) == Source:
-            # utilityFunctions.Log('Select Source - {}'.format(src.Name), stack=True)
+            # Log('Select Source - {}'.format(src.Name), stack=True)
             self.SelectedSource = src
         elif type(src) == str:
             srcObj = self.GetSource(id = src, name = src)
-            # utilityFunctions.Log('Select Source - {}'.format(srcObj.Name), stack=True)
+            # Log('Select Source - {}'.format(srcObj.Name), stack=True)
             self.SelectedSource = srcObj
     
     def UpdateDisplaySourceList(self) -> None:
@@ -738,12 +739,12 @@ class SourceController:
         """Updates the formatting of the source menu. Use when the number of sources
         or the pagination of the source bar changes
         """    
-        # utilityFunctions.Log('Updating Source Menu', stack=True)
+        # Log('Updating Source Menu', stack=True)
         
         self.UpdateDisplaySourceList()
         
         offsetIter = self._offset
-        # utilityFunctions.Log('Source Control Offset - {}'.format(self._offset))
+        # Log('Source Control Offset - {}'.format(self._offset))
         for btn in self._sourceBtns.Objects:
             btn_to_config = self._DisplaySrcList[offsetIter]
             offState = int('{}0'.format(btn_to_config.Icon))
@@ -776,10 +777,10 @@ class SourceController:
 
         # reset currently selected source
         currentSourceIndex = self.GetSourceIndexByID(self.SelectedSource.Id)
-        # utilityFunctions.Log('Current Source Index - {}'.format(currentSourceIndex))
+        # Log('Current Source Index - {}'.format(currentSourceIndex))
         
         btnIndex = currentSourceIndex - self._offset
-        # utilityFunctions.Log('Button Index - {}'.format(btnIndex))
+        # Log('Button Index - {}'.format(btnIndex))
         # if btnIndex > 4:
         #     raise KeyError("Button Index Out of Range")
         
@@ -788,7 +789,7 @@ class SourceController:
             self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
         
     def ShowSelectedSource(self) -> None:
-        # utilityFunctions.Log('Show Selected Source', stack=True)
+        # Log('Show Selected Source', stack=True)
         if len(self._DisplaySrcList) > 5:
             curSourceIndex = self._DisplaySrcList.index(self.SelectedSource)
             
@@ -799,22 +800,23 @@ class SourceController:
             
             self.UpdateSourceMenu()
     
+    @RunAsync
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
         # TODO: Figure out why this function has turned into a complete mess
         if type(dest) == str and dest != 'All':
             raise TypeError("Destination string must be 'All' or a list of Destination objects, names, and/or IDs")
         
-        # utilityFunctions.Log('Switch Sources - Src Type: {}, Dest Type: {}'.format(type(src), type(dest)), stack=True)
+        # Log('Switch Sources - Src Type: {}, Dest Type: {}'.format(type(src), type(dest)), stack=True)
         
         if type(src) == str:
             srcObj = self.GetSource(id = src, name = src)
         elif type(src) == Source:
             srcObj = src
         else:
-            utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(src) == str),(type(src) == Source)))
+            Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(src) == str),(type(src) == Source)), level='warning')
         
         if type(dest) == str and dest == 'All':
-            # utilityFunctions.Log('Source Switch - Destination: All, Source: {}'.format(srcObj.Name))
+            # Log('Source Switch - Destination: All, Source: {}'.format(srcObj.Name))
             for d in self.Destinations:
                 d.AssignSource(srcObj)
                 d._MatrixRow.MakeTie(srcObj.Input, 'AV')
@@ -828,7 +830,7 @@ class SourceController:
         elif type(dest) == type([]):
             for d in dest:
                 if type(d) == Destination:
-                    # utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
+                    # Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
                     d.AssignSource(srcObj)
                     d._MatrixRow.MakeTie(srcObj.Input, 'AV')
                     self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
@@ -840,7 +842,7 @@ class SourceController:
                         d.AdvSourceAlertHandler()
                 elif type(d) == str:
                     dObj = self.GetDestination(id = d, name = d)
-                    # utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
+                    # Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
                     dObj.AssignSource(srcObj)
                     dObj._MatrixRow.MakeTie(srcObj.Input, 'AV')
                     self._Matrix.Hardware.interface.Set('MatrixTieCommand',  
@@ -851,7 +853,7 @@ class SourceController:
                     if vars.ActCtl.CurrentActivity in ['adv_share']:
                         dObj.AdvSourceAlertHandler()
         else:
-            utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == List)))
+            Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == List)))
                     
         if vars.ActCtl.CurrentActivity in ['share', 'group_work']:
             self.SourceAlertHandler()
@@ -887,7 +889,7 @@ class SourceController:
             cmdInput = srcNum
             cmdTieType = cmdDict[mode]
         
-        # utilityFunctions.Log('Source Object ({}) - Input: {}'.format(srcObj, srcNum))
+        # Log('Source Object ({}) - Input: {}'.format(srcObj, srcNum))
         
         if type(dest) == str and dest == 'All':
             for d in self.Destinations:
@@ -925,7 +927,7 @@ class SourceController:
                                                                'Output': destNum,
                                                                'Tie Type': cmdTieType})
         else:
-            utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == type([]))))
+            Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == type([]))))
 
 class MatrixController:
     def __init__(self,
@@ -936,13 +938,13 @@ class MatrixController:
                  inputLabels: List[Label],
                  outputLabels: List[Label]) -> None:
         
-        # utilityFunctions.Log('Set Public Properties')
+        # Log('Set Public Properties')
         self.SourceController = srcCtl
         self.Mode = 'AV'
         
         self.Hardware = vars.Hardware[settings.primarySwitcher]
         
-        # utilityFunctions.Log('Create Matrix Rows')
+        # Log('Create Matrix Rows')
         matrixRows = {}
         for btn in matrixBtns:
             row = int(btn.Name[-1])
@@ -971,7 +973,7 @@ class MatrixController:
         
         self._ctls.SetCurrent(0)
         
-        # utilityFunctions.Log('Create Class Events')
+        # Log('Create Class Events')
         @event(self._ctls.Objects, 'Pressed')
         def matrixModeHandler(button: Button, action: str):
             self._ctls.SetCurrent(button)
@@ -1034,7 +1036,7 @@ class MatrixRow:
             if self.Matrix.Mode == "untie":
                 self.Matrix.SourceController.MatrixSwitch(0, [self.MatrixOutput], self.Matrix.Mode)
             else:
-                # utilityFunctions.Log("Selected button input - {}".format(button.Input))
+                # Log("Selected button input - {}".format(button.Input))
                 self.Matrix.SourceController.MatrixSwitch(button.Input, [self.MatrixOutput], self.Matrix.Mode)
             
             # set pressed button's feedback

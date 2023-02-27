@@ -12,6 +12,7 @@
 #
 #print(Version()) ## Sanity check ControlScript Import
 from extronlib.system import ProgramLog
+from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
@@ -225,6 +226,18 @@ def debug(func):
         Log('{}\n  {}'.format(callStr, rtnStr))
         return value
     return wrapper_debug
+
+def RunAsync(func, callback: callable=None):
+    """Run this function asynchronously"""
+    @functools.wraps(func)
+    def wrapper_async(*args, **kwargs):
+        # using Extron wait of 10ms to make the wrapped function effectively asynchronous
+        @Wait(0.01)
+        def AsyncRun():
+            value = func(*args, **kwargs)
+            if callable(callback): # run callback with function output if callback is supplied and callable
+                callback(value)
+    return wrapper_async
 
 ## End Function Definitions ----------------------------------------------------
 ##
