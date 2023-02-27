@@ -113,6 +113,9 @@ class ActivityController:
         self._activitySplashTimer = Timer(1, self._activitySplashWaitHandler)
         self._activitySplashTimer.Stop()
         
+        self.__StatusTimer = Timer(5, self.__StatusTimerHandler)
+        self.__StatusTimer.Stop()
+        
         self._activityBtns['select'].SetCurrent(0)
         self._activityBtns['indicator'].SetCurrent(0)
 
@@ -182,6 +185,15 @@ class ActivityController:
             self._activitySplashCloseHandler(self._activitySplashTimer)
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def __StatusTimerHandler(self, timer: Timer, count: int):
+        if self.CurrentActivity == 'share':
+            vars.SrcCtl.SourceAlertHandler()
+        elif self.CurrentActivity == 'adv_share':
+            for dest in vars.SrcCtl.Destinations:
+                dest.AdvSourceAlertHandler()
+        elif self.CurrentActivity == 'group_work':
+            vars.SrcCtl.SourceAlertHandler()
+        
     def _activitySplashWaitHandler(self, timer: Timer, count: int):
         timeTillClose = self.splashTime - count
         vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(timeTillClose))
@@ -191,7 +203,7 @@ class ActivityController:
             
     def _activitySplashCloseHandler(self, timer: Timer):
         timer.Stop()
-        page = vars.SrcCtl.SelectedSource._sourceControlPage 
+        page = vars.SrcCtl.SelectedSource.SourceControlPage 
         if page == 'PC':
             page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
         self.UIHost.ShowPopup("Source-Control-{}".format(page))
@@ -293,6 +305,8 @@ class ActivityController:
         self._activitySplashTimer.Stop()
         self._selectedActivity = activity
         
+        self.__StatusTimer.Restart()
+        
         self._transition['label'].SetText(
             'System is switching to {} mode. Please Wait...'
             .format(self._activityDict[activity]))
@@ -311,6 +325,8 @@ class ActivityController:
         
         # TODO: Figure out a way to reset the activity timer
         #self.UIHost.InactivityTime = 0
+        
+        self.__StatusTimerHandler(None, None)
 
         # configure system for current activity
         # utilityFunctions.Log('Performing unsynced Activity Switch functions')
@@ -386,6 +402,8 @@ class ActivityController:
         self._activityBtns['select'].SetCurrent(0)
         self._activityBtns['indicator'].SetCurrent(0)
         self.CurrentActivity = 'off'
+        
+        self.__StatusTimer.Stop()
 
         self._transition['label']\
             .SetText('System is switching off. Please Wait...')

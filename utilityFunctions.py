@@ -20,6 +20,7 @@ import json
 from typing import Dict, Tuple, List
 import inspect
 import re
+import functools
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -51,6 +52,8 @@ def Log(content, level: str='info', stack: bool=False) -> None:
     mod = fileName.replace('/', '.')
     ws = '    '
     
+    content = content.replace('\n', '\n{0}'.format(ws))
+    
     if stack:
         # show call stack back to main
         message = 'Logging from {module} - {func} ({line})\n'.format(
@@ -79,7 +82,7 @@ def Log(content, level: str='info', stack: bool=False) -> None:
                  or (parent_mod == 'extronlib.system.Timer' and parent.function == '__callback')
                  or (parent_mod == 'Extron.ButtonObject' and parent.function == '_handleMsgAcquired')):
                 break
-            
+        
         message = message + '{w}{content}'.format(w = ws, content = content)
     else:
         message = ("Logging from {module} - {func} ({line})\n{w}{content}""".
@@ -206,6 +209,22 @@ def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, captur
         return find_dict
     else:
         raise ValueError('regex must be true if capture_dict is true')
+
+def debug(func):
+    """Print the function signature and return value"""
+    @functools.wraps(func)
+    def wrapper_debug(*args, **kwargs):
+        args_repr = [repr(a) for a in args]
+        kwargs_repr = ["{}={!r}".format(k, v) for k, v in kwargs.items()]
+        signature = ", ".join(args_repr + kwargs_repr)
+        callStr = "Calling {}({})".format(func.__name__, signature)
+        print(callStr)
+        value = func(*args, **kwargs)
+        rtnStr = "{!r} returned {!r}".format(func.__name__, value)
+        print(rtnStr)
+        Log('{}\n  {}'.format(callStr, rtnStr))
+        return value
+    return wrapper_debug
 
 ## End Function Definitions ----------------------------------------------------
 ##

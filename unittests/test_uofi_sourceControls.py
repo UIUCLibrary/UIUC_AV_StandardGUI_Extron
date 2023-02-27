@@ -671,9 +671,9 @@ class Source_TestClass(unittest.TestCase):
         self.assertIs(type(self.Source.AlertFlag), type(False))
         
     def test_Source_PrivateProperties(self):
-        self.assertIs(type(self.Source._defaultAlert), type('a'))
-        self.assertIs(type(self.Source._sourceControlPage), type('a'))
-        self.assertIs(type(self.Source._advSourceControlPage), type('a'))
+        self.assertIs(type(self.Source.__DefaultAlert), type('a'))
+        self.assertIs(type(self.Source.SourceControlPage), type('a'))
+        self.assertIs(type(self.Source.AdvSourceControlPage), type('a'))
     
     # TODO: Append Alert test
     

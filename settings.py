@@ -40,7 +40,12 @@ sources = \
          "input": 3,
          "alert": "Ensure the PC is awake.",
          "src-ctl": "PC",
-         "adv-src-ctl": None
+         "adv-src-ctl": None,
+         "alert-check": 
+            {
+               'HwId': 'VMX001',
+               'HwCmd': 'InputSignalStatusCommand'
+            }
       },
       {
          "id": "PL001-1",
@@ -839,7 +844,14 @@ hardware = [
                'active_int': 10,
                'inactive_int': 600
             }
-         ]
+         ],
+      'Options':
+         {
+            'InputSignalStatusCommand': 
+               {
+                  'command': 'InputSignalStatus'
+               }
+         }
    },
    {
       'Id': 'MON001',

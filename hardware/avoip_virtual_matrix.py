@@ -3,6 +3,7 @@ from extronlib.system import Wait, ProgramLog
 
 from uofi_gui.systemHardware import VirtualDeviceInterface
 import utilityFunctions
+import vars
 
 class DeviceClass:
     def __init__(self):
@@ -137,6 +138,11 @@ class DeviceClass:
             
     def FeedbackInputSignalStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        srcObj = vars.SrcCtl.GetSourceByInput(qualifier['Input'])
+        if value == 'Active':
+            srcObj.ClearAlert()
+        elif value == 'Not Active':
+            srcObj.AppendAlert()
 
     def SetMatrixTieCommand(self, value, qualifier):
         # Value: None

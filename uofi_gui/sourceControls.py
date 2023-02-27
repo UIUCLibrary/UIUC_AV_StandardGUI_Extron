@@ -56,28 +56,104 @@ class Source:
         self.Name = name
         self.Icon = icon
         self.Input = input
-        self.AlertText = alert
-        self.AlertFlag = False
+        self.SourceControlPage = srcCtl
+        self.AdvSourceControlPage = advSrcCtl
         
-        self._defaultAlert = alert
-        self._sourceControlPage = srcCtl
-        self._advSourceControlPage = advSrcCtl
+        self.__AlertText = {}
+        self.__AlertIndex = 0
+        self.__OverrideAlert = None
+        self.__OverrideState = False
+        self.__DefaultAlert = alert
         
-    def AppendAlert(self, msg: str, raiseFlag: bool=False) -> None:
-        self.AlertText = "{existing}\n{append}".format(existing = self.AlertText, append = msg)
-        if raiseFlag:
-            self.AlertFlag = True
+        self.__AlertTimer = Timer(1, self.__AlertTimerHandler)
+        self.__AlertTimer.Stop()
+
+    @property
+    def AlertText(self):
+        if not self.__OverrideState:
+            txt =  list(self.__AlertText.keys())[self.__AlertIndex]
+            utilityFunctions.Log('AlertText: {}'.format(txt))
+            self.CycleAlert()
+        else:
+            txt = self.__OverrideAlert
+        return txt
+    
+    @property
+    def AlertBlock(self):
+        block = '\n'.join(self.__AlertText)
+        block = block.strip()
+        if self.__OverrideState:
+            block = '{}\n{}'.format(self.__OverrideAlert, block)
+        return block
+    
+    @property
+    def Alerts(self):
+        count = len(self.__AlertText)
+        if self.__OverrideState:
+            count += 1
+        return count
+    
+    @property
+    def AlertFlag(self):
+        if len(self.__AlertText) > 0:
+            return True
+        elif self.__OverrideState:
+            return True
+        else:
+            return False
+    
+    def CycleAlert(self):
+        self.__AlertIndex += 1
+        if self.__AlertIndex >= len(self.__AlertText):
+            self.__AlertIndex = 0
+    
+    @utilityFunctions.debug
+    def AppendAlert(self, msg: str=None, timeout: int=0) -> None:
+        if msg is None:
+            msg = self.__DefaultAlert
+            
+        if timeout > 0:
+            self.__AlertText[msg] = timeout
+        else: 
+            self.__AlertText[msg] = -1
         
-    def OverrideAlert(self, msg: str, raiseFlag: bool=False) -> None:
-        self.AlertText = msg
-        if raiseFlag:
-            self.AlertFlag = True
+        if self.__AlertTimer.State in ['Paused', 'Stopped']:
+            self.__AlertTimer.Restart()
         
-    def ResetAlert(self, raiseFlag: bool=False) -> None:
-        self.AlertText = self._defaultAlert
-        if raiseFlag:
-            self.AlertFlag = True
+    def OverrideAlert(self, msg: str, timeout: int=60) -> None:
+        self.__OverrideAlert = msg
+        self.__OverrideState = True
+        if timeout > 0:
+            @Wait(timeout)
+            def OverrideTimeoutHandler():
+                self.__OverrideState = False
+    
+    def ClearOverride(self):
+        self.__OverrideState = False
+    
+    @utilityFunctions.debug
+    def ClearAlert(self, msg: str=None):
+        if msg is None:
+            msg = self.__DefaultAlert
+            
+        self.__AlertText.pop(msg)
         
+        if len(self.__AlertText) == 0:
+            self.__AlertTimer.Stop()
+    
+    def ResetAlert(self) -> None:
+        self.__AlertText = {}
+        self.__AlertTimer.Stop()
+        
+    def __AlertTimerHandler(self, timer: Timer, count: int):
+        for msg in self.__AlertText.keys():
+            if self.__AlertText[msg] > 0:
+                self.__AlertText[msg] -= 1
+                if self.__AlertText[msg] == 0:
+                    self.__AlertText.pop(msg)
+        if len(self.__AlertText) == 0:
+            timer.Stop()
+                
 class Destination:
     def __init__(self,
                  SrcCtl, #: SourceController,
@@ -182,7 +258,7 @@ class Destination:
         @event(self._AdvCtlBtn, 'Pressed')
         def advSrcCtrHandler(button, action):
             # configure source control page
-            modal = 'Modal-SrcCtl-{}'.format(self.AssignedSource._advSourceControlPage)
+            modal = 'Modal-SrcCtl-{}'.format(self.AssignedSource.AdvSourceControlPage)
             
             if modal == 'Modal-SrcCtl-WPD':
                 PodFeedbackHelper(self.AssignedSource.Id, blank_on_fail=True)
@@ -229,24 +305,8 @@ class Destination:
         
         @event(self._AdvAlertBtn, 'Pressed')
         def destAlertHandler(button, action):
-            vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
+            vars.TP_Lbls['SourceAlertLabel'].SetText(self.AssignedSource.AlertText)
             self.SourceController.UIHost.ShowPopup('Modal-SrcErr')
-            
-        @Timer(2)
-        def SourceAlertHandler(timer, count) -> None:
-            # Does current source for this destination have an alert flag
-            if self.AssignedSource != None and self.AssignedSource.AlertFlag:
-                self._AdvAlertBtn.SetVisible(True)
-                self._AdvAlertBtn.SetEnable(True)
-                self._AdvAlertBtn.SetBlinking('Medium', [0,1])
-                if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
-                    vars.TP_Lbls['SourceAlertLabel'] = self.AssignedSource.AlertText
-            else:
-                self._AdvAlertBtn.SetVisible(False)
-                self._AdvAlertBtn.SetEnable(False)
-                self._AdvAlertBtn.SetState(1)
-                if self.SourceController.PrimaryDestination == self and vars.ActCtl.CurrentActivity != 'adv_share':
-                    vars.TP_Lbls['SourceAlertLabel'] = ''
         
         # Screen Control Buttons
         if self._type == "proj+scn":
@@ -268,12 +328,26 @@ class Destination:
         
         self._AdvSelectBtn.SetText(self.AssignedSource.Name)
         
-        if self.AssignedSource._advSourceControlPage == None:
+        if self.AssignedSource.AdvSourceControlPage == None:
             self._AdvCtlBtn.SetVisible(False)
             self._AdvCtlBtn.SetEnable(False)
         else:
             self._AdvCtlBtn.SetVisible(True)
             self._AdvCtlBtn.SetEnable(True)
+            
+    def AdvSourceAlertHandler(self) -> None:
+        utilityFunctions.Log('Checking alerts for Src ({})'.format(self.AssignedSource.Name))
+        # Does current source for this destination have an alert flag
+        if self.AssignedSource != None and self.AssignedSource.AlertFlag:
+            utilityFunctions.Log('Alerts Found for Src ({})'.format(self.AssignedSource.Name))
+            self._AdvAlertBtn.SetVisible(True)
+            self._AdvAlertBtn.SetEnable(True)
+            self._AdvAlertBtn.SetBlinking('Medium', [0,1])
+        else:
+            utilityFunctions.Log('No Alerts Found for Src ({})'.format(self.AssignedSource.Name))
+            self._AdvAlertBtn.SetVisible(False)
+            self._AdvAlertBtn.SetEnable(False)
+            self._AdvAlertBtn.SetState(1)
             
 class SourceController:
     def __init__(self, 
@@ -300,6 +374,7 @@ class SourceController:
         # Public Properties
         # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
+        vars.TP_Lbls['SourceAlertLabel'].SetText('')
         
         self.Sources = []
         for src in sources:
@@ -371,19 +446,18 @@ class SourceController:
 
             # advanced share doesn't switch until destination has been selected
             # all other activities switch immediately
-            if vars.ActCtl.CurrentActivity != "adv_share": 
+            if vars.ActCtl.CurrentActivity != "adv_share":
                 if vars.ActCtl.CurrentActivity == 'share':
                     self.SwitchSources(self.SelectedSource)
                 elif vars.ActCtl.CurrentActivity == 'group_work':
                     self.SwitchSources(self.SelectedSource, [self.PrimaryDestination])
                     
-                # TODO: Format Source Control Popup
-                page = self.SelectedSource._sourceControlPage 
+                page = self.SelectedSource.SourceControlPage 
                 if page == 'PC':
                     page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
                 elif page == 'WPD':
                     PodFeedbackHelper(self.SelectedSource.Id, blank_on_fail=True)
-                    
+                
                 self.UIHost.ShowPopup("Source-Control-{}".format(page))
 
         @event(self._arrowBtns, 'Pressed')
@@ -460,6 +534,18 @@ class SourceController:
                     curHW = vars.Hardware[self.OpenControlPopup['source'].Id]
                 
                 curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
+                
+    def SourceAlertHandler(self) -> None:
+        utilityFunctions.Log('Checking Alerts for Src ({})'.format(self.SelectedSource.Name))
+        # Does currently selected source have an alert flag
+        if self.SelectedSource.AlertFlag:
+            utilityFunctions.Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
+            txt = self.SelectedSource.AlertText
+            utilityFunctions.Log('Text to set: {} ({})'.format(txt, type(txt)))
+            vars.TP_Lbls['SourceAlertLabel'].SetText(txt)
+        else:
+            utilityFunctions.Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
+            vars.TP_Lbls['SourceAlertLabel'].SetText('')
     
     def _GetUIForAdvDest(self, dest: Destination) -> Dict[str, Button]:
         """Get Advanced Display button objects for a given destination ID
@@ -712,7 +798,7 @@ class SourceController:
                 self._offset = curSourceIndex - 4
             
             self.UpdateSourceMenu()
-        
+    
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
         # TODO: Figure out why this function has turned into a complete mess
         if type(dest) == str and dest != 'All':
@@ -735,8 +821,10 @@ class SourceController:
                 self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None,
                                                     qualifier={'Input': srcObj.Input, 
-                                                               'Output': d.Output,
-                                                               'Tie Type': 'Audio/Video'})
+                                                            'Output': d.Output,
+                                                            'Tie Type': 'Audio/Video'})
+                if vars.ActCtl.CurrentActivity in ['adv_share']:
+                        d.AdvSourceAlertHandler()
         elif type(dest) == type([]):
             for d in dest:
                 if type(d) == Destination:
@@ -748,7 +836,8 @@ class SourceController:
                                                         qualifier={'Input': srcObj.Input, 
                                                                    'Output': d.Output,
                                                                    'Tie Type': 'Audio/Video'})
-                    
+                    if vars.ActCtl.CurrentActivity in ['adv_share']:
+                        d.AdvSourceAlertHandler()
                 elif type(d) == str:
                     dObj = self.GetDestination(id = d, name = d)
                     # utilityFunctions.Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
@@ -759,10 +848,13 @@ class SourceController:
                                                         qualifier={'Input': srcObj.Input, 
                                                                    'Output': dObj.Output,
                                                                    'Tie Type': 'Audio/Video'})
+                    if vars.ActCtl.CurrentActivity in ['adv_share']:
+                        dObj.AdvSourceAlertHandler()
         else:
             utilityFunctions.Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == List)))
                     
-        
+        if vars.ActCtl.CurrentActivity in ['share', 'group_work']:
+            self.SourceAlertHandler()
 
     def MatrixSwitch(self, src: Union[Source, str, int], dest: Union[str, List[Union[Destination, str, int]]]='All', mode: str='AV') -> None:
         if type(dest) == str and dest != 'All':
