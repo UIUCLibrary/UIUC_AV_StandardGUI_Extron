@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -26,7 +25,7 @@ from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 class PINController:
     def __init__(self,
-                 UIHost: ExUIDevice,
+                 UIHost: 'ExUIDevice',
                  pinCode: str,
                  destPage: str,
                  openFn: Callable) -> None:
@@ -81,7 +80,7 @@ class PINController:
         self.maskPIN()
 
         @event(self._pinPadBtns['numPad'], ['Pressed','Released'])
-        def UpdatePIN(button: Button, action: str):
+        def UpdatePIN(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -102,7 +101,7 @@ class PINController:
                 button.SetState(0)
         
         @event(self._pinPadBtns['backspace'], ['Pressed','Released'])
-        def BackspacePIN(button: Button, action: str):
+        def BackspacePIN(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -111,7 +110,7 @@ class PINController:
                 button.SetState(0)
 
         @event(self._pinPadBtns['cancel'], ['Pressed','Released'])
-        def CancelBtnHandler(button: Button, action: str):
+        def CancelBtnHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -120,7 +119,7 @@ class PINController:
 
         @event(self._startBtn, 'Held')
         # triggers on startBtn defined long press, 3 sec recommended
-        def StartBtnHandler(button: Button, action: str):
+        def StartBtnHandler(button: 'Button', action: str):
             button.SetState(0)
             self.showPINMenu()
     

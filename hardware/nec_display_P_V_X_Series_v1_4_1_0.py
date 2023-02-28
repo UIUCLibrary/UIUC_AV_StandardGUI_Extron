@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+
 from extronlib.interface import SerialInterface, EthernetClientInterface
 from struct import pack
 from binascii import hexlify
 
 import utilityFunctions
-import vars
 
 class DeviceEthernetClass:
 
@@ -72,15 +75,18 @@ class DeviceEthernetClass:
 
     def AudioMuteStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        vars.DispCtl.DisplayMuteFeedback(hardware.Id, value)
+        for TP in self.GUIHost.TPs:
+            TP.DispCtl.DisplayMuteFeedback(hardware.Id, value)
         
     def PowerStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        vars.DispCtl.DisplayPowerFeedback(hardware.Id, value)
+        for TP in self.GUIHost.TPs:
+            TP.DispCtl.DisplayPowerFeedback(hardware.Id, value)
         
     def VolumeStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        vars.DispCtl.DisplayVolumeFeedback(hardware.Id, value)
+        for TP in self.GUIHost.TPs:
+            TP.DispCtl.DisplayVolumeFeedback(hardware.Id, value)
 
 ## -----------------------------------------------------------------------------
 ## End Feedback Callback Functions
@@ -2870,9 +2876,10 @@ class SerialOverEthernetClass(EthernetClientInterface, DeviceSerialClass):
 
 class EthernetClass(EthernetClientInterface, DeviceEthernetClass):
 
-    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, GUIHost: 'GUIController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Ethernet'
+        self.GUIHost = GUIHost
         DeviceEthernetClass.__init__(self)
         # Check if Model belongs to a subclass
         if len(self.Models) > 0:

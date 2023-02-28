@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+
 from extronlib.interface import SerialInterface, EthernetClientInterface
 import re
 from extronlib.system import Wait, ProgramLog
 
 import utilityFunctions
-import vars
 
 class DeviceClass:
     def __init__(self):
@@ -83,7 +86,8 @@ class DeviceClass:
 
     def FeedbackMuteHandler(self, command, value, qualifier, hardware=None, tag=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag: {}'.format(hardware.Name, command, value, qualifier, tag))
-        vars.AudioCtl.AudioMuteFeedback(tag, value)
+        for TP in self.GUIHost.TPs:
+            TP.AudioCtl.AudioMuteFeedback(tag, value)
 
 ## -----------------------------------------------------------------------------
 ## End Feedback Callback Functions
@@ -998,9 +1002,10 @@ class DeviceClass:
 
 class EthernetClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, GUIHost: 'GUIController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Ethernet'
+        self.GUIHost = GUIHost
         DeviceClass.__init__(self) 
         # Check if Model belongs to a subclass       
         if len(self.Models) > 0:

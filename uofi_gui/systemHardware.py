@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -55,7 +54,7 @@ class VirtualDeviceInterface:
                         value[getattr(Hw, key)] = Hw
 
 class SystemHardwareController:
-    def __init__(self, GUIHost: GUIController, Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
+    def __init__(self, GUIHost: 'GUIController', Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
         self.GUIHost = GUIHost
         self.Id = Id
         self.Name = Name
@@ -84,7 +83,7 @@ class SystemHardwareController:
         self.__constructor = getattr(self.__module,
                                      Interface['interface_class'])
         
-        
+        Interface['GUIHost'] = self.GUIHost
         if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
             self.interface = GetConnectionHandler(self.__constructor(**Interface['interface_configuration']),
                                                   **Interface['ConnectionHandler'])
@@ -297,7 +296,7 @@ class SystemPollingController:
                 break
     
 class SystemStatusController:
-    def __init__(self, UIHost: ExUIDevice) -> None:
+    def __init__(self, UIHost: 'ExUIDevice') -> None:
 
         self.UIHost = UIHost
         self.GUIHost = self.UIHost.GUIHost
@@ -332,7 +331,7 @@ class SystemStatusController:
         self.__update_pagination()
         
         @event(list(self.__arrows.values()), ['Pressed','Released'])
-        def paginationHandler(button: Button, action: str):
+        def paginationHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':

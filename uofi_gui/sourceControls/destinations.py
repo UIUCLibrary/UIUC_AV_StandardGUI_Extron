@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -12,7 +11,7 @@ from hardware.mersive_solstice_pod import PodFeedbackHelper
 
 class Destination:
     def __init__(self,
-                 SrcCtl: SourceController,
+                 SrcCtl: 'SourceController',
                  id: str,
                  name: str,
                  output: int,
@@ -59,7 +58,7 @@ class Destination:
         # Log('Destination Mute Off ({})'.format(self.Name), stack=True)
         self.Mute = False
         
-    def AssignSource(self, source: Source) -> None:
+    def AssignSource(self, source: 'Source') -> None:
         self.AssignedSource = source
         self._AssignedVidInput = source.Input
         self._AssignedAudInput = source.Input
@@ -84,7 +83,7 @@ class Destination:
     def GetMatrix(self) -> None:
         return MatrixTuple(Vid=self._AssignedVidInput, Aud=self._AssignedAudInput)
     
-    def AssignAdvUI(self, ui: Dict[str, Union[Button, Label]]) -> None:
+    def AssignAdvUI(self, ui: Dict[str, Union['Button', 'Label']]) -> None:
         self._AdvSelectBtn = ui['select']
         self._AdvCtlBtn = ui['ctl']
         self._AdvAudBtn = ui['aud']
@@ -99,7 +98,7 @@ class Destination:
         self._AdvSelectBtn.SetText("") 
         
         @event(self._AdvSelectBtn, 'Pressed')
-        def advSelectHandler(button: Button, action: str):
+        def advSelectHandler(button: 'Button', action: str):
             # Log('Adv Select Handler - Source: {}, Destination: {}'
             #                      .format(self.SourceController.SelectedSource.Name,
             #                              self.Name))
@@ -112,7 +111,7 @@ class Destination:
         self._AdvCtlBtn.SetEnable(False)
         
         @event(self._AdvCtlBtn, 'Pressed')
-        def advSrcCtrHandler(button: Button, action: str):
+        def advSrcCtrHandler(button: 'Button', action: str):
             # configure source control page
             modal = 'Modal-SrcCtl-{}'.format(self.AssignedSource.AdvSourceControlPage)
             
@@ -130,7 +129,7 @@ class Destination:
         self._AdvAudBtn.SetState(1)
         
         @event(self._AdvAudBtn, ['Tapped', 'Released'])
-        def advAudHandler(button: Button, action: str):
+        def advAudHandler(button: 'Button', action: str):
             if action == "Tapped":
                 # TODO: handle system audio changes
                 if button.State == 0: # system audio unmuted
@@ -160,7 +159,7 @@ class Destination:
         self._AdvAlertBtn.SetEnable(False)
         
         @event(self._AdvAlertBtn, 'Pressed')
-        def destAlertHandler(button: Button, action: str):
+        def destAlertHandler(button: 'Button', action: str):
             self.SourceController.UIHost.Lbls['SourceAlertLabel'].SetText(self.AssignedSource.AlertText)
             self.SourceController.UIHost.ShowPopup('Modal-SrcErr')
         
@@ -173,7 +172,7 @@ class Destination:
             self._AdvScnBtn.SetEnable(False)
             
         @event(self._AdvScnBtn, 'Pressed')
-        def destScnHandler(button: Button, action: str):
+        def destScnHandler(button: 'Button', action: str):
             # Configure Screen Control Modal
             # TODO: Configure screen control modal
             # Show Screen Control Modal

@@ -1,3 +1,7 @@
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+
 from extronlib.interface import SerialInterface, EthernetClientInterface
 import re
 from extronlib.system import Wait, ProgramLog
@@ -769,9 +773,10 @@ class DeviceClass:
 
 class EthernetClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None, Credentials=('admin','password')):
+    def __init__(self, GUIHost: 'GUIController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None, Credentials=('admin','password')):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort, Credentials)
         self.ConnectionType = 'Ethernet'
+        self.GUIHost = GUIHost
         DeviceClass.__init__(self) 
         # Check if Model belongs to a subclass       
         if len(self.Models) > 0:

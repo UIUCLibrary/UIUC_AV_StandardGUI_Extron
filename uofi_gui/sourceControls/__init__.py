@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -44,8 +43,7 @@ LayoutTuple = namedtuple('LayoutTuple', ['Row', 'Pos'])
 MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
 class SourceController:
-    def __init__(self,
-                 UIHost: ExUIDevice) -> None:
+    def __init__(self, UIHost: 'ExUIDevice') -> None:
         """Initializes Source Switching module
 
         Args:
@@ -136,7 +134,7 @@ class SourceController:
         # Configure Source Selection Buttons
         # Log('Create Class Events')
         @event(self._sourceBtns.Objects, 'Pressed')
-        def sourceBtnHandler(button: Button, action: str):
+        def sourceBtnHandler(button: 'Button', action: str):
             self.UIHost.Lbls['SourceAlertLabel'].SetText('')
             
             # capture last character of button.Name and convert to index
@@ -169,7 +167,7 @@ class SourceController:
                 self.UIHost.ShowPopup("Source-Control-{}".format(page))
 
         @event(self._arrowBtns, 'Pressed')
-        def sourcePageHandler(button: Button, action: str):
+        def sourcePageHandler(button: 'Button', action: str):
             # capture last 4 characters of button.Name
             btnAction = button.Name[-4:]
             # determine if we are adding or removing offset
@@ -183,7 +181,7 @@ class SourceController:
             self.UpdateSourceMenu()
 
         @event(self.UIHost.Btns['Modal-Close'], 'Pressed')
-        def modalCloseHandler(button: Button, action: str):
+        def modalCloseHandler(button: 'Button', action: str):
             self.UIHost.HidePopup('Modal-SrcCtl-WPD')
             self.UIHost.HidePopup('Modal-SrcCtl-Camera')
             self.UIHost.HidePopup('Modal-SrcErr')
@@ -191,11 +189,11 @@ class SourceController:
             self.OpenControlPopup = None
             
         @event(self._privacyBtn, 'Pressed')
-        def PrivacyHandler(button: Button, action: str):
+        def PrivacyHandler(button: 'Button', action: str):
             self.TogglePrivacy()
     
         @event(self._sndToAllBtn, ['Pressed', 'Released'])
-        def SendToAllHandler(button: Button, action: str):
+        def SendToAllHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -205,7 +203,7 @@ class SourceController:
                     button.SetState(0)
                     
         @event(self._rtnToGrpBtn, ['Pressed', 'Released'])
-        def ReturnToGroupHandler(button: Button, action: str):
+        def ReturnToGroupHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -218,7 +216,7 @@ class SourceController:
                     button.SetState(0)
                     
         @event(self.UIHost.Btns['WPD-ClearPosts'], ['Pressed', 'Released'])
-        def WPDClearPostsHandler(button: Button, action: str):
+        def WPDClearPostsHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -231,7 +229,7 @@ class SourceController:
                 curHW.interface.Set('ClearPosts', value=None, qualifier={'hw': curHW})
                 
         @event(self.UIHost.Btns['WPD-ClearAll'], ['Pressed', 'Released'])
-        def WPDClearAllHandler(button: Button, action: str):
+        def WPDClearAllHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':

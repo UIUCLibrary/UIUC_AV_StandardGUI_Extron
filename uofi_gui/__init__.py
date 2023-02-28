@@ -1,18 +1,7 @@
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
-
-print(Version()) ## Sanity check ControlScript Import
+from extronlib.device import ProcessorDevice
+from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
-##
 
 from typing import Dict, Tuple, List, Callable, Union
 
@@ -33,10 +22,6 @@ class GUIController:
         {
             'E1': '{} must be a string device alias or a list of string device alaises. {} ({}) provided'
         }
-    
-    @classmethod
-    def GetErrorStr(cls, Error: str, *args, **kwargs):
-        return cls.errorMap[Error].format(*args, **kwargs)
     
     def __init__(self, 
                  Settings: object,
@@ -206,3 +191,7 @@ class GUIController:
         @Wait(3)
         def StopTPLight():
             self.TP_Main.LightsOff()
+            
+    @classmethod
+    def GetErrorStr(cls, Error: str, *args, **kwargs):
+        return cls.errorMap[Error].format(*args, **kwargs)

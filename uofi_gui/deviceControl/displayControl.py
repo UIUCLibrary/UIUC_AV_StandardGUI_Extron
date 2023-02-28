@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -26,7 +25,7 @@ from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 ## Begin Class Definitions -----------------------------------------------------
 
 class DisplayController:
-    def __init__(self, UIHost: ExUIDevice) -> None:
+    def __init__(self, UIHost: 'ExUIDevice') -> None:
         self.UIHost = UIHost
         self.GUIHost = self.UIHost.GUIHost
         

@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -14,12 +13,12 @@ import re
 
 class MatrixController:
     def __init__(self,
-                 srcCtl: SourceController,
-                 matrixBtns: List[Button],
-                 matrixCtls: MESet,
-                 matrixDelAll: Button,
-                 inputLabels: List[Label],
-                 outputLabels: List[Label]) -> None:
+                 srcCtl: 'SourceController',
+                 matrixBtns: List['Button'],
+                 matrixCtls: 'MESet',
+                 matrixDelAll: 'Button',
+                 inputLabels: List['Label'],
+                 outputLabels: List['Label']) -> None:
         
         # Log('Set Public Properties')
         self.SourceController = srcCtl
@@ -58,7 +57,7 @@ class MatrixController:
         
         # Log('Create Class Events')
         @event(self._ctls.Objects, 'Pressed')
-        def matrixModeHandler(button: Button, action: str):
+        def matrixModeHandler(button: 'Button', action: str):
             self._ctls.SetCurrent(button)
             if button.Name.endswith('AV'):
                 self.Mode = 'AV'
@@ -70,7 +69,7 @@ class MatrixController:
                 self.Mode = 'untie'
         
         @event(self._del, ['Pressed','Released'])
-        def matrixDelAllTiesHandler(button: Button, action: str):
+        def matrixDelAllTiesHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -96,8 +95,8 @@ class MatrixController:
         
 class MatrixRow:
     def __init__(self,
-                 Matrix: MatrixController,
-                 rowBtns: List[Button],
+                 Matrix: 'MatrixController',
+                 rowBtns: List['Button'],
                  output: int) -> None:
         
         self.Matrix = Matrix
@@ -114,7 +113,7 @@ class MatrixRow:
             btn.Input = int(re_match.group(1))
         
         @event(self.Objects, 'Pressed')
-        def matrixSelectHandler(button: Button, action: str):
+        def matrixSelectHandler(button: 'Button', action: str):
             # send switch commands
             if self.Matrix.Mode == "untie":
                 self.Matrix.SourceController.MatrixSwitch(0, [self.MatrixOutput], self.Matrix.Mode)
@@ -125,7 +124,7 @@ class MatrixRow:
             # set pressed button's feedback
             self.MakeTie(button, self.Matrix.Mode)
         
-    def _UpdateRowBtns(self, modBtn: Button, tieType: str="AV") -> None:
+    def _UpdateRowBtns(self, modBtn: 'Button', tieType: str="AV") -> None:
         for btn in self.Objects:
             if btn != modBtn:
                 if tieType == 'AV':
@@ -146,7 +145,7 @@ class MatrixRow:
                         btn.SetState(2)
                         btn.SetText('Aud')
     
-    def MakeTie(self, input: Union[int, Button], tieType: str="AV") -> None:
+    def MakeTie(self, input: Union[int, 'Button'], tieType: str="AV") -> None:
         if not (tieType == 'AV' or tieType == 'Aud' or tieType == 'Vid' or tieType == 'untie'):
             raise ValueError("TieType must be one of 'AV', 'Aud', 'Vid', or 'untie")
         

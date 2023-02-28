@@ -1,10 +1,6 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
-
-import sys
-TESTING = ('unittest' in sys.modules.keys())
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib.device import UIDevice
@@ -14,6 +10,9 @@ from extronlib.system import MESet, File
 ##
 ## Begin Python Imports --------------------------------------------------------
 import json
+import sys
+TESTING = ('unittest' in sys.modules.keys())
+
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
@@ -35,8 +34,8 @@ from uofi_gui.scheduleControls import AutoScheduleController
 ## Begin Function Definitions --------------------------------------------------
 
 class ExUIDevice(UIDevice):
-    def __init__(self, GUIHost: GUIController, DeviceAlias: str, PartNumber: str = None) -> object:
-        super().__init__(DeviceAlias, PartNumber)
+    def __init__(self, GUIHost: 'GUIController', DeviceAlias: str, PartNumber: str = None) -> object:
+        UIDevice.__init__(DeviceAlias, PartNumber)
         self.GUIHost = GUIHost
         self.Id = DeviceAlias
         self.TP_Lights = Button(self, 65533)

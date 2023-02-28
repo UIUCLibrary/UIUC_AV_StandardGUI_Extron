@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -27,7 +26,7 @@ from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 ## Begin Class Definitions -----------------------------------------------------
 
 class CameraController:
-    def __init__(self, UIHost: ExUIDevice) -> None:
+    def __init__(self, UIHost: 'ExUIDevice') -> None:
         self.__presetsFilePath = '/user/states/camera_presets.json'
         
         self.UIHost = UIHost
@@ -357,7 +356,7 @@ class CameraController:
         #self.__switcher.interface.Set(self.__switcher.SwitchCommand['command'], str(input), qual)
         self.UpdatePresetButtons()
         
-    def SendCameraHome(self, camera: Union[SystemHardwareController, str]=None): 
+    def SendCameraHome(self, camera: Union['SystemHardwareController', str]=None): 
         if camera is None:
             for cam in self.GUIHost.Cameras:
                 if cam['Id'] in self.GUIHost.Hardware:

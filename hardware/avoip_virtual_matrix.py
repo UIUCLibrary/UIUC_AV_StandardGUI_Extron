@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -7,7 +6,6 @@ from extronlib.system import ProgramLog
 
 from uofi_gui.systemHardware import VirtualDeviceInterface
 import utilityFunctions
-import vars
 
 class DeviceClass:
     def __init__(self):
@@ -142,11 +140,12 @@ class DeviceClass:
             
     def FeedbackInputSignalStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        srcObj = vars.SrcCtl.GetSourceByInput(qualifier['Input'])
-        if value == 'Active':
-            srcObj.ClearAlert()
-        elif value == 'Not Active':
-            srcObj.AppendAlert()
+        for TP in self.GUIHost.TPs:
+            srcObj = TP.SrcCtl.GetSourceByInput(qualifier['Input'])
+            if value == 'Active':
+                srcObj.ClearAlert()
+            elif value == 'Not Active':
+                srcObj.AppendAlert()
 
     def SetMatrixTieCommand(self, value, qualifier):
         # Value: None
@@ -392,7 +391,7 @@ class DeviceClass:
 
 class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
 
-    def __init__(self, GUIHost: GUIController, VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
+    def __init__(self, GUIHost: 'GUIController', VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
         DeviceClass.__init__(self) 
         VirtualDeviceInterface.__init__(self,
                                         VirtualDeviceID,

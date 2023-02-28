@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -30,7 +29,7 @@ from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 # TODO: need to make sure that schedule changes properly propigate across all UIHosts
 class AutoScheduleController:
-    def __init__(self, UIHost: ExUIDevice) -> None:
+    def __init__(self, UIHost: 'ExUIDevice') -> None:
         self.UIHost = UIHost
         self.GUIHost = self.UIHost.GUIHost
         self.AutoStart = False
@@ -141,7 +140,7 @@ class AutoScheduleController:
         self.__LoadSchedule()
         
         @event([self.__toggle_start, self.__toggle_shutdown], ['Released'])
-        def toggleHandler(button: Button, action: str):
+        def toggleHandler(button: 'Button', action: str):
             if button.Value == 'start' and self.AutoStart is True:
                 self.AutoStart = False
                 button.SetState(0)
@@ -157,7 +156,7 @@ class AutoScheduleController:
             self.__SaveSchedule()
                 
         @event([self.__pattern_start, self.__pattern_shutdown], ['Pressed', 'Released'])
-        def patternEditHandler(button: Button, action: str):
+        def patternEditHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -168,14 +167,14 @@ class AutoScheduleController:
                 button.SetState(0)
                 
         @event(self.__activity_start.Objects, ['Pressed'])
-        def activitySelectHandler(button: Button, action: str):
+        def activitySelectHandler(button: 'Button', action: str):
             self.__activity_start.SetCurrent(button)
             re_match = re.match(r'Schedule-Start-Act-(\w+)', button.Name)
             self.__pattern_start.Activity = re_match.group(1)
             self.__SaveSchedule()
             
         @event(list(self.__btns_days.values()), ['Pressed'])
-        def DayOfWeekSelectHandler(button: Button, action: str):
+        def DayOfWeekSelectHandler(button: 'Button', action: str):
             if button.State == 0:
                 button.SetState(1)
                 self.__editor_pattern.Pattern['Days'].append(button.Value)
@@ -185,7 +184,7 @@ class AutoScheduleController:
             self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
                 
         @event(self.__btn_sel_all, ['Pressed', 'Released'])
-        def SelectAllHandler(button: Button, action: str):
+        def SelectAllHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -196,7 +195,7 @@ class AutoScheduleController:
                 button.SetState(0)
         
         @event(self.__btn_sel_wkdys, ['Pressed', 'Released'])
-        def SelectWeekdaysHandler(button: Button, action: str):
+        def SelectWeekdaysHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -217,7 +216,7 @@ class AutoScheduleController:
                 button.SetState(0)
         
         @event(self.__btns_time, ['Pressed', 'Released'])
-        def TimeEditHandler(button: Button, action: str):
+        def TimeEditHandler(button: 'Button', action: str):
             if action == 'Pressesd':
                 button.SetState(1)
             elif action == 'Released':
@@ -255,13 +254,13 @@ class AutoScheduleController:
                 button.SetState(0)
                 
         @event(self.__btns_ampm.Objects, ['Pressed'])
-        def AMPMEditHandler(button: Button, action: str):
+        def AMPMEditHandler(button: 'Button', action: str):
             self.__btns_ampm.SetCurrent(button)
             self.__editor_pattern.Pattern['Time']['ampm'] = button.Value
             self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
             
         @event(self.__btn_save, ['Pressed', 'Released'])
-        def EditorSaveHandler(button: Button, action: str):
+        def EditorSaveHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -278,7 +277,7 @@ class AutoScheduleController:
                 button.SetState(0)
                 
         @event(self.__btn_cancel, ['Pressed', 'Released'])
-        def EditorCancelHandler(button: Button, action: str):
+        def EditorCancelHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':

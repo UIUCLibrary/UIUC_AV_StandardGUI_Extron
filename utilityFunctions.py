@@ -220,7 +220,10 @@ def debug(func):
         signature = ", ".join(args_repr + kwargs_repr)
         callStr = "Calling {}({})".format(func.__name__, signature)
         print(callStr)
-        value = func(*args, **kwargs)
+        try:
+            value = func(*args, **kwargs)
+        except Exception as inst:
+            Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}'.format(func.__name__, signature, type(inst), inst), 'error')
         rtnStr = "{!r} returned {!r}".format(func.__name__, value)
         print(rtnStr)
         Log('{}\n  {}'.format(callStr, rtnStr))

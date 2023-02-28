@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -45,8 +44,7 @@ class ActivityController:
             "adv_share": "Adv. Sharing",
             "group_work": "Group Work"
         }
-    def __init__(self,
-                 UIHost: ExUIDevice) -> None:
+    def __init__(self, UIHost: 'ExUIDevice') -> None:
         """Initializes the Activity Selection Controller
     
         Args:

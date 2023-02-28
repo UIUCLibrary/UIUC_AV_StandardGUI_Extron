@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING:
     from uofi_gui import GUIController
@@ -10,7 +9,7 @@ from utilityFunctions import Log, RunAsync, debug
 
 class Source:
     def __init__(self,
-                 SrcCtl: SourceController,
+                 SrcCtl: 'SourceController',
                  id: str,
                  name: str,
                  icon: int,
@@ -111,7 +110,7 @@ class Source:
         self.__AlertText = {}
         self.__AlertTimer.Stop()
         
-    def __AlertTimerHandler(self, timer: Timer, count: int):
+    def __AlertTimerHandler(self, timer: 'Timer', count: int):
         for msg in self.__AlertText.keys():
             if self.__AlertText[msg] > 0:
                 self.__AlertText[msg] -= 1

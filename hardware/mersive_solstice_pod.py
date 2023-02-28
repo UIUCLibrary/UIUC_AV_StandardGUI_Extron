@@ -1,3 +1,9 @@
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
+    from uofi_gui.systemHardware import SystemHardwareController
+
 from urllib import request, error, parse
 import ssl
 import re
@@ -5,20 +11,18 @@ import base64
 import json
 from extronlib.system import Wait, ProgramLog
 
-import vars
-import uofi_gui.systemHardware as SysHW
 import utilityFunctions
 
-def PodFeedbackHelper(hardware, blank_on_fail = True) -> None:
-    podIdLabel = vars.TP_Lbls['WPD-PodIDs']
-    podKeyLabel = vars.TP_Lbls['WPD-Key']
+def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = True) -> None:
+    podIdLabel = touchpanel.Lbls['WPD-PodIDs']
+    podKeyLabel = touchpanel.Lbls['WPD-Key']
     
     podHW = None
     
     if type(hardware) is str:
         # utilityFunctions.Log('Hardware ID String Submitted - {}'.format(hardware))
-        podHW = vars.Hardware.get(hardware, None)
-    elif type(hardware) is SysHW.SystemHardwareController:
+        podHW = touchpanel.GUIHost.Hardware.get(hardware, None)
+    elif type(hardware) is SystemHardwareController:
         podHW = hardware
     
     if podHW is not None:
@@ -144,15 +148,16 @@ class DeviceClass:
         
     def FeedbackStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback - Value: {}; Qualifier: {}'.format(hardware.Name, command, value, qualifier))
-    
-        if vars.ActCtl.CurrentActivity != 'adv_share':
-            if vars.SrcCtl.SelectedSource.Id == hardware.Id:
-                PodFeedbackHelper(hardware, blank_on_fail=False)
-        else:
-            if (vars.SrcCtl.OpenControlPopup is not None and
-                vars.SrcCtl.OpenControlPopup['page'] == 'Modal-SrcCtl-WPD' and 
-                vars.SrcCtl.OpenControlPopup['source'].Id == hardware.Id):
-                    PodFeedbackHelper(hardware, blank_on_fail=False)
+
+        for TP in self.GUIHost.TPs:
+            if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
+                if TP.SrcCtl.SelectedSource.Id == hardware.Id:
+                    PodFeedbackHelper(TP, hardware, blank_on_fail=False)
+            else:
+                if (TP.SrcCtl.OpenControlPopup is not None and
+                    TP.SrcCtl.OpenControlPopup['page'] == 'Modal-SrcCtl-WPD' and 
+                    TP.SrcCtl.OpenControlPopup['source'].Id == hardware.Id):
+                        PodFeedbackHelper(TP, hardware, blank_on_fail=False)
 
 ## -----------------------------------------------------------------------------
 ## End Command & Callback Functions
@@ -388,8 +393,9 @@ class DeviceClass:
         
 class RESTClass(DeviceClass):
 
-    def __init__(self, host, protocol='https', port='443', devicePassword=None, Model=None):
+    def __init__(self, GUIHost: 'GUIController', host, protocol='https', port='443', devicePassword=None, Model=None):
         self.ConnectionType = 'REST'
+        self.GUIHost = GUIHost
         DeviceClass.__init__(self, host, protocol, port, devicePassword)
         # Check if Model belongs to a subclass      
         if len(self.Models) > 0:
