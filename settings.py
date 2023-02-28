@@ -40,12 +40,7 @@ sources = \
          "input": 3,
          "alert": "Ensure the PC is awake.",
          "src-ctl": "PC",
-         "adv-src-ctl": None,
-         "alert-check": 
-            {
-               'HwId': 'VMX001',
-               'HwCmd': 'InputSignalStatusCommand'
-            }
+         "adv-src-ctl": None
       },
       {
          "id": "PL001-1",

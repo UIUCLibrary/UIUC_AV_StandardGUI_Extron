@@ -1,3 +1,10 @@
+# from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
+    from extronlib.ui import Button, Knob, Label, Level, Slider
+
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event, Version
 from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
@@ -6,20 +13,14 @@ from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
     EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
     RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
     VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
+
 from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
     ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
-
-print(Version()) ## Sanity check ControlScript Import
-
-from ConnectionHandler import GetConnectionHandler
 
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
 from datetime import datetime
-import json
-from typing import Dict, Tuple, List, Callable
 import importlib
 import math
 import re
@@ -29,8 +30,9 @@ import functools
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
-import vars
+
+from ConnectionHandler import GetConnectionHandler
+from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey
 
 #### Extron Global Scripter Modules
 
@@ -45,15 +47,16 @@ class VirtualDeviceInterface:
         self.__AssignmentDict = AssignmentDict
     
     def FindAssociatedHardware(self):
-        # iterate through vars.Hardware and find devices with matching 'MatrixAssignment'
-        for Hw in vars.Hardware.values():
+        # iterate through self.GUIHost.Hardware and find devices with matching 'MatrixAssignment'
+        for Hw in self.GUIHost.Hardware.values(): # GUIHost attribute must exist in parent class
             if hasattr(Hw, self.__AssignmentAttribute) and getattr(Hw, self.__AssignmentAttribute) == self.VirtualDeviceID:
                 for key, value in self.__AssignmentDict.items():
                     if hasattr(Hw, key):
                         value[getattr(Hw, key)] = Hw
 
 class SystemHardwareController:
-    def __init__(self, Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
+    def __init__(self, GUIHost: GUIController, Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
+        self.GUIHost = GUIHost
         self.Id = Id
         self.Name = Name
         self.Manufacturer = Manufacturer
@@ -134,11 +137,11 @@ class SystemHardwareController:
                 inactInt = None
             
             for qp in qualPoll:
-                vars.PollCtl.AddPolling(self.interface,
-                                        poll['command'],
-                                        qualifier=qp,
-                                        active_duration=actInt,
-                                        inactive_duration=inactInt)
+                self.GUIHost.PollCtl.AddPolling(self.interface,
+                                                poll['command'],
+                                                qualifier=qp,
+                                                active_duration=actInt,
+                                                inactive_duration=inactInt)
                 
                 # To prevent the need to duplicate polling and subscriptions in settings
                 # if a callback is included in the poll, a subscription will automatically
@@ -180,7 +183,7 @@ class SystemHardwareController:
             
             
     def __ConnectionStatus(self, command, value, qualifier):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
+        Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
         if value != self.ConnectionStatus:
             self.ConnectionStatus = value
             self.LastStatusChange = datetime.now()
@@ -218,7 +221,7 @@ class SystemPollingController:
         try:
             interface.Update(command, qualifier=qualifier)
         except Exception as inst:
-            utilityFunctions.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), 'error')
+            Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), 'error')
     
     def StartPolling(self, mode: str='inactive'):
         if mode == 'inactive': 
@@ -294,16 +297,28 @@ class SystemPollingController:
                 break
     
 class SystemStatusController:
-    def __init__(self, HardwareDict, StatusDict) -> None:
-        self.Hardware = list(HardwareDict.values())
+    def __init__(self, UIHost: ExUIDevice) -> None:
+
+        self.UIHost = UIHost
+        self.GUIHost = self.UIHost.GUIHost
+        self.Hardware = list(self.GUIHost.Hardware.values())
         self.Hardware.sort(key=self.__hardware_sort)
         
-        self.__status_icons = StatusDict['icons']
+        self.__status_icons = DictValueSearchByKey(self.UIHost.Btns, r'DeviceStatusIcon-\d+', regex=True)
         self.__status_icons.sort(key=self.__status_sort)
-        self.__status_labels = StatusDict['labels']
+        self.__status_labels = DictValueSearchByKey(self.UIHost.Lbls, r'DeviceStatusLabel-\d+', regex=True)
         self.__status_labels.sort(key=self.__status_sort)
-        self.__arrows = StatusDict['arrows']
-        self.__page_lables = StatusDict['pages']
+        self.__arrows = \
+            {
+                'prev': self.UIHost.Btns['DeviceStatus-PageDown'],
+                'next': self.UIHost.Btns['DeviceStatus-PageUp']
+            }
+        self.__page_lables = \
+            {
+                'current': self.UIHost.Lbls['DeviceStatusPage-Current'],
+                'total': self.UIHost.Lbls['DeviceStatusPage-Total'],
+                'div': self.UIHost.Lbls['PaginationSlash']
+            }
         
         self.__hardware_count = len(self.Hardware)
         self.__display_pages = math.ceil(self.__hardware_count / 15)
@@ -317,7 +332,7 @@ class SystemStatusController:
         self.__update_pagination()
         
         @event(list(self.__arrows.values()), ['Pressed','Released'])
-        def paginationHandler(button, action):
+        def paginationHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':

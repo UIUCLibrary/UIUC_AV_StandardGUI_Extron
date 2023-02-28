@@ -1,16 +1,14 @@
-## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+# from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
 
-print(Version()) ## Sanity check ControlScript Import
+## Begin ControlScript Import --------------------------------------------------
+from extronlib import event
+from extronlib.system import Timer
+    
+
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
@@ -22,9 +20,7 @@ from typing import Dict, Tuple, List, Callable
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
-import settings
-import vars
+from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 #### Extron Global Scripter Modules
 
@@ -33,7 +29,7 @@ import vars
 ## Begin Class Definitions -----------------------------------------------------
 
 class KeyboardController:
-    def __init__(self, UIHost: UIDevice) -> None:
+    def __init__(self, UIHost: ExUIDevice) -> None:
         self.UIHost = UIHost
         
         self.__kbDict = \
@@ -89,23 +85,23 @@ class KeyboardController:
             }
         self.__charBtns = []
         for key in self.__kbDict:
-            btn = vars.TP_Btns['KB-{}'.format(key)]
+            btn = self.UIHost.Btns['KB-{}'.format(key)]
             btn.char = self.__kbDict[key]
             btn.SetText(btn.char[0])
             self.__charBtns.append(btn)
         
-        self.__saveBtn = vars.TP_Btns['KB-save']
-        self.__cancelBtn = vars.TP_Btns['KB-cancel']
-        self.__leftBtn = vars.TP_Btns['KB-left']
+        self.__saveBtn = self.UIHost.Btns['KB-save']
+        self.__cancelBtn = self.UIHost.Btns['KB-cancel']
+        self.__leftBtn = self.UIHost.Btns['KB-left']
         self.__leftBtn.shift = -1
-        self.__rightBtn = vars.TP_Btns['KB-right']
+        self.__rightBtn = self.UIHost.Btns['KB-right']
         self.__rightBtn.shift = 1
-        self.__shiftBtn = vars.TP_Btns['KB-shift']
-        self.__capsBtn = vars.TP_Btns['KB-caps']
-        self.__bsBtn = vars.TP_Btns['KB-bs']
-        self.__delBtn = vars.TP_Btns['KB-del']
+        self.__shiftBtn = self.UIHost.Btns['KB-shift']
+        self.__capsBtn = self.UIHost.Btns['KB-caps']
+        self.__bsBtn = self.UIHost.Btns['KB-bs']
+        self.__delBtn = self.UIHost.Btns['KB-del']
         
-        self.__textLbl = vars.TP_Lbls['KB-Editor']
+        self.__textLbl = self.UIHost.Lbls['KB-Editor']
         
         self.__cursor = ('\u2502','\u2588')
         self.__pos = 0

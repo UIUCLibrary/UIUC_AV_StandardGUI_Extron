@@ -1,31 +1,26 @@
-## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+# from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
+    from extronlib.device import UIDevice
+    from extronlib.ui import Button, Knob, Label, Level, Slider
 
-print(Version()) ## Sanity check ControlScript Import
+## Begin ControlScript Import --------------------------------------------------
+from extronlib import event
+from extronlib.system import Clock, File
+
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
 import json
 import re
-from typing import Dict, Tuple, List
 
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
-import settings
-import vars
+from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 #### Extron Global Scripter Modules
 
@@ -33,9 +28,11 @@ import vars
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
+# TODO: need to make sure that schedule changes properly propigate across all UIHosts
 class AutoScheduleController:
-    def __init__(self, UIHost: UIDevice) -> None:
+    def __init__(self, UIHost: ExUIDevice) -> None:
         self.UIHost = UIHost
+        self.GUIHost = self.UIHost.GUIHost
         self.AutoStart = False
         self.AutoShutdown = False
         
@@ -49,7 +46,7 @@ class AutoScheduleController:
             
         self.UIHost.SetInactivityTime(list(self.__inactivityHandlers.keys()))
         @event(self.UIHost, 'InactivityChanged')
-        def inactivityMethodHandler(tlp, time):
+        def inactivityMethodHandler(tlp: Union[UIDevice, ExUIDevice], time):
             if time in self.__inactivityHandlers:
                 self.__inactivityHandlers[time]()
         
@@ -71,70 +68,70 @@ class AutoScheduleController:
             }
         self.__scheduleFilePath = '/user/states/room_schedule.json'
         
-        self.__toggle_start = vars.TP_Btns['Schedule-Start-Toggle']
+        self.__toggle_start = self.UIHost.Btns['Schedule-Start-Toggle']
         self.__toggle_start.Value = 'start'
-        self.__toggle_shutdown = vars.TP_Btns['Schedule-Shutdown-Toggle']
+        self.__toggle_shutdown = self.UIHost.Btns['Schedule-Shutdown-Toggle']
         self.__toggle_shutdown.Value = 'shutdown'
         
-        self.__pattern_start = vars.TP_Btns['Schedule-Start-Pattern']
+        self.__pattern_start = self.UIHost.Btns['Schedule-Start-Pattern']
         self.__pattern_start.Value = 'start'
         self.__pattern_start.Pattern = None
-        self.__pattern_shutdown = vars.TP_Btns['Schedule-Shutdown-Pattern']
+        self.__pattern_shutdown = self.UIHost.Btns['Schedule-Shutdown-Pattern']
         self.__pattern_shutdown.Value = 'shutdown'
         self.__pattern_shutdown.Pattern = None
         
-        self.__activity_start = vars.TP_Btn_Grps['Schedule-Start-Activity-Mode']
+        self.__activity_start = self.UIHost.Btn_Grps['Schedule-Start-Activity-Mode']
         
         self.__edit_modal = 'Modal-Scheduler'
         
         self.__btns_days = \
             {
-                'Monday': vars.TP_Btns['Schedule-Mon'],
-                'Tuesday': vars.TP_Btns['Schedule-Tue'],
-                'Wednesday': vars.TP_Btns['Schedule-Wed'],
-                'Thursday': vars.TP_Btns['Schedule-Thu'],
-                'Friday': vars.TP_Btns['Schedule-Fri'],
-                'Saturday': vars.TP_Btns['Schedule-Sat'],
-                'Sunday': vars.TP_Btns['Schedule-Sun']
+                'Monday': self.UIHost.Btns['Schedule-Mon'],
+                'Tuesday': self.UIHost.Btns['Schedule-Tue'],
+                'Wednesday': self.UIHost.Btns['Schedule-Wed'],
+                'Thursday': self.UIHost.Btns['Schedule-Thu'],
+                'Friday': self.UIHost.Btns['Schedule-Fri'],
+                'Saturday': self.UIHost.Btns['Schedule-Sat'],
+                'Sunday': self.UIHost.Btns['Schedule-Sun']
             }
             
         for dow, btn in self.__btns_days.items():
             btn.Value = dow
             
-        self.__btn_sel_all = vars.TP_Btns['Schedule-All']
-        self.__btn_sel_wkdys = vars.TP_Btns['Schedule-Weekdays']
+        self.__btn_sel_all = self.UIHost.Btns['Schedule-All']
+        self.__btn_sel_wkdys = self.UIHost.Btns['Schedule-Weekdays']
         
-        vars.TP_Btns['Schedule-Hr-Up'].fn = 'up'
-        vars.TP_Btns['Schedule-Hr-Dn'].fn = 'down'
-        vars.TP_Btns['Schedule-Min-Up'].fn = 'up'
-        vars.TP_Btns['Schedule-Min-Dn'].fn = 'down'
-        vars.TP_Btns['Schedule-Hr-Up'].mode = 'hr'
-        vars.TP_Btns['Schedule-Hr-Dn'].mode = 'hr'
-        vars.TP_Btns['Schedule-Min-Up'].mode = 'min'
-        vars.TP_Btns['Schedule-Min-Dn'].mode = 'min'
+        self.UIHost.Btns['Schedule-Hr-Up'].fn = 'up'
+        self.UIHost.Btns['Schedule-Hr-Dn'].fn = 'down'
+        self.UIHost.Btns['Schedule-Min-Up'].fn = 'up'
+        self.UIHost.Btns['Schedule-Min-Dn'].fn = 'down'
+        self.UIHost.Btns['Schedule-Hr-Up'].mode = 'hr'
+        self.UIHost.Btns['Schedule-Hr-Dn'].mode = 'hr'
+        self.UIHost.Btns['Schedule-Min-Up'].mode = 'min'
+        self.UIHost.Btns['Schedule-Min-Dn'].mode = 'min'
         self.__btns_time = [
-            vars.TP_Btns['Schedule-Hr-Up'],
-            vars.TP_Btns['Schedule-Hr-Dn'],
-            vars.TP_Btns['Schedule-Min-Up'],
-            vars.TP_Btns['Schedule-Min-Dn']
+            self.UIHost.Btns['Schedule-Hr-Up'],
+            self.UIHost.Btns['Schedule-Hr-Dn'],
+            self.UIHost.Btns['Schedule-Min-Up'],
+            self.UIHost.Btns['Schedule-Min-Dn']
         ]
         self.__lbls_time = \
             {
-                'hr': vars.TP_Lbls['Schedule-Hr'],
-                'min': vars.TP_Lbls['Schedule-Min']
+                'hr': self.UIHost.Lbls['Schedule-Hr'],
+                'min': self.UIHost.Lbls['Schedule-Min']
             }
         self.__lbls_time['hr'].Value = 12
         self.__lbls_time['min'].Value = 0
             
-        vars.TP_Btns['Schedule-AM'].Value = 'AM'
-        vars.TP_Btns['Schedule-PM'].Value = 'PM'
-        self.__btns_ampm = vars.TP_Btn_Grps['Schedule-AMPM']
-        # utilityFunctions.Log('AM/PM MESet - Len: {}, Obj: {}'.format(len(self.__btns_ampm.Objects), self.__btns_ampm.Objects))
+        self.UIHost.Btns['Schedule-AM'].Value = 'AM'
+        self.UIHost.Btns['Schedule-PM'].Value = 'PM'
+        self.__btns_ampm = self.UIHost.Btn_Grps['Schedule-AMPM']
+        # Log('AM/PM MESet - Len: {}, Obj: {}'.format(len(self.__btns_ampm.Objects), self.__btns_ampm.Objects))
         
-        self.__btn_save = vars.TP_Btns['Schedule-Save']
-        self.__btn_cancel = vars.TP_Btns['Schedule-Cancel']
+        self.__btn_save = self.UIHost.Btns['Schedule-Save']
+        self.__btn_cancel = self.UIHost.Btns['Schedule-Cancel']
         
-        self.__editor_pattern = vars.TP_Lbls['Schedule-Calc']
+        self.__editor_pattern = self.UIHost.Lbls['Schedule-Calc']
         self.__editor_pattern.Mode = None
         self.__editor_pattern.Pattern = None
         
@@ -144,7 +141,7 @@ class AutoScheduleController:
         self.__LoadSchedule()
         
         @event([self.__toggle_start, self.__toggle_shutdown], ['Released'])
-        def toggleHandler(button, action):
+        def toggleHandler(button: Button, action: str):
             if button.Value == 'start' and self.AutoStart is True:
                 self.AutoStart = False
                 button.SetState(0)
@@ -160,7 +157,7 @@ class AutoScheduleController:
             self.__SaveSchedule()
                 
         @event([self.__pattern_start, self.__pattern_shutdown], ['Pressed', 'Released'])
-        def patternEditHandler(button, action):
+        def patternEditHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -171,14 +168,14 @@ class AutoScheduleController:
                 button.SetState(0)
                 
         @event(self.__activity_start.Objects, ['Pressed'])
-        def activitySelectHandler(button, action):
+        def activitySelectHandler(button: Button, action: str):
             self.__activity_start.SetCurrent(button)
             re_match = re.match(r'Schedule-Start-Act-(\w+)', button.Name)
             self.__pattern_start.Activity = re_match.group(1)
             self.__SaveSchedule()
             
         @event(list(self.__btns_days.values()), ['Pressed'])
-        def DayOfWeekSelectHandler(button, action):
+        def DayOfWeekSelectHandler(button: Button, action: str):
             if button.State == 0:
                 button.SetState(1)
                 self.__editor_pattern.Pattern['Days'].append(button.Value)
@@ -188,7 +185,7 @@ class AutoScheduleController:
             self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
                 
         @event(self.__btn_sel_all, ['Pressed', 'Released'])
-        def SelectAllHandler(button, action):
+        def SelectAllHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -199,7 +196,7 @@ class AutoScheduleController:
                 button.SetState(0)
         
         @event(self.__btn_sel_wkdys, ['Pressed', 'Released'])
-        def SelectWeekdaysHandler(button, action):
+        def SelectWeekdaysHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -220,7 +217,7 @@ class AutoScheduleController:
                 button.SetState(0)
         
         @event(self.__btns_time, ['Pressed', 'Released'])
-        def TimeEditHandler(button, action):
+        def TimeEditHandler(button: Button, action: str):
             if action == 'Pressesd':
                 button.SetState(1)
             elif action == 'Released':
@@ -258,13 +255,13 @@ class AutoScheduleController:
                 button.SetState(0)
                 
         @event(self.__btns_ampm.Objects, ['Pressed'])
-        def AMPMEditHandler(button, action):
+        def AMPMEditHandler(button: Button, action: str):
             self.__btns_ampm.SetCurrent(button)
             self.__editor_pattern.Pattern['Time']['ampm'] = button.Value
             self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
             
         @event(self.__btn_save, ['Pressed', 'Released'])
-        def EditorSaveHandler(button, action):
+        def EditorSaveHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -281,7 +278,7 @@ class AutoScheduleController:
                 button.SetState(0)
                 
         @event(self.__btn_cancel, ['Pressed', 'Released'])
-        def EditorCancelHandler(button, action):
+        def EditorCancelHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -394,7 +391,7 @@ class AutoScheduleController:
             scheduleFile = File(self.__scheduleFilePath, 'rt')
             scheduleString = scheduleFile.read()
             scheduleObj = json.loads(scheduleString)
-            # utilityFunctions.Log('JSON Obj: {}'.format(scheduleObj))
+            # Log('JSON Obj: {}'.format(scheduleObj))
             scheduleFile.close()
             
             #### iterate over objects and load presets
@@ -405,7 +402,7 @@ class AutoScheduleController:
             self.__pattern_shutdown.Pattern = scheduleObj['auto_shutdown']['pattern']
 
         else:
-            utilityFunctions.Log('No presets file exists')
+            Log('No presets file exists')
             
             # load defaults
             self.AutoStart = False
@@ -428,7 +425,7 @@ class AutoScheduleController:
             self.__toggle_shutdown.SetState(0)
             self.__AutoShutdownClock.Disable()
             
-        self.__activity_start.SetCurrent(vars.TP_Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
+        self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
 
         self.__AutoStartClock.SetDays(self.__pattern_start.Pattern['Days'])
         self.__AutoStartClock.SetTimes([self.__ClockTime(self.__pattern_start.Pattern['Time'])])
@@ -455,20 +452,20 @@ class AutoScheduleController:
         self.__lbls_time['min'].Value = int(Pattern['Time']['min'])
         
         # Update AM/PM
-        self.__btns_ampm.SetCurrent(vars.TP_Btns['Schedule-{}'.format(Pattern['Time']['ampm'])])
+        self.__btns_ampm.SetCurrent(self.UIHost.Btns['Schedule-{}'.format(Pattern['Time']['ampm'])])
         
         # Update Pattern
         self.__editor_pattern.SetText(self.__PatternToText(Pattern))
         
     def __ScheduleShutdownHandler(self, Clock, Time):
-        if vars.ActCtl.CurrentActivity != 'off':
-            vars.ActCtl.SystemShutdown()
+        if self.GUIHost.ActCtl.CurrentActivity != 'off':
+            self.GUIHost.ActCtl.SystemShutdown()
         
     def __ScheduleStartHandler(self, Clock, Time):
-        if vars.ActCtl.CurrentActivity == 'off':
-            vars.ActCtl.SystemStart(self.__pattern_start.Activity)
-        elif vars.ActCtl.CurrentActivity != self.__pattern_start.Activity:
-            vars.ActCtl.SystemSwitch(self.__pattern_start.Activity)
+        if self.GUIHost.ActCtl.CurrentActivity == 'off':
+            self.GUIHost.ActCtl.SystemStart(self.__pattern_start.Activity)
+        elif self.GUIHost.ActCtl.CurrentActivity != self.__pattern_start.Activity:
+            self.GUIHost.ActCtl.SystemSwitch(self.__pattern_start.Activity)
     
     def __SortWeekdays(self, Day):
         if Day == 'Monday':
@@ -501,20 +498,20 @@ class AutoScheduleController:
         return '{:02d}:{}:00'.format(hrs, Time['min'])
     
     def __PopoverInactivityHandler(self):
-        for p in vars.PopoverPageList:
+        for p in self.UIHost.PopoverPageList:
             self.UIHost.HidePopup(p)
     
     def __TechPageInactivityHandler(self):
-        if vars.TechCtl.TechMenuOpen:
-            vars.TechCtl.CloseTechMenu()
+        if self.UIHost.TechCtl.TechMenuOpen:
+            self.UIHost.TechCtl.CloseTechMenu()
     
     def __SplashPageInactivityHandler(self):
-        if vars.ActCtl.CurrentActivity == 'off':
+        if self.GUIHost.ActCtl.CurrentActivity == 'off':
             self.UIHost.Click()
             self.UIHost.ShowPage('Splash')
     
     def __SystemInactivityHandler(self):
-        vars.ActCtl.StartShutdownConfirmation(click=True)
+        self.GUIHost.ActCtl.StartShutdownConfirmation(click=True)
 
 ## End Class Definitions -------------------------------------------------------
 ##

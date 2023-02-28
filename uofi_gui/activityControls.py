@@ -1,3 +1,9 @@
+# from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
+
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event, Version
 from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
@@ -14,9 +20,9 @@ print(Version()) ## Sanity check ControlScript Import
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
+
 from datetime import datetime
 import json
-from typing import Dict, Tuple, List, Union, Callable
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -24,9 +30,6 @@ from typing import Dict, Tuple, List, Union, Callable
 #### Custom Code Modules
 # import utilityFunctions
 from utilityFunctions import Log, RunAsync, TimeIntToStr, debug
-import vars
-import settings
-
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
@@ -36,18 +39,14 @@ import settings
 ## Begin Class Definitions -----------------------------------------------------
 
 class ActivityController:
-    _activityDict = \
+    __activityDict = \
         {
             "share": "Sharing", 
             "adv_share": "Adv. Sharing",
             "group_work": "Group Work"
         }
     def __init__(self,
-                 UIHost: UIDevice,
-                 activityBtns: Dict[str, Union[MESet, Button]],
-                 transitionDict: Dict[str, Union[Label, Level, Dict[str, Callable]]],
-                 confTimeLbl: Label,
-                 confTimeLvl: Level) -> None:
+                 UIHost: ExUIDevice) -> None:
         """Initializes the Activity Selection Controller
     
         Args:
@@ -72,31 +71,57 @@ class ActivityController:
                     sync: Callback synced to shutdown progress, take a count argument corresponding to the startup progress
             confTimeLbl (extronlib.ui.Label): Shutdown confirmation text label
             confTimeLvl (extronlib.ui.Level): Shutdown confirmation level indicator
-
-        Returns:
-            bool: True on success or False on failure
         """
+        
+        # TODO: update this to work better with mutiple UIHosts. 
+        # Maybe use one ActCtl at the GUIHost level and have the one controller find the gui buttons for each UIHost
+        
         # Public Properties ====================================================
         # Log('Set Public Properties')
         self.UIHost = UIHost
+        self.GUIHost = self.UIHost.GUIHost
         self.CurrentActivity = 'off'
-        self.startupTime = settings.startupTimer
-        self.switchTime = settings.switchTimer
-        self.shutdownTime = settings.shutdownTimer
-        self.confirmationTime = settings.shutdownConfTimer
-        self.splashTime = settings.activitySplashTimer
+        self.startupTime = self.GUIHost.Timers['startup']
+        self.switchTime = self.GUIHost.Timers['switch']
+        self.shutdownTime = self.GUIHost.Timers['shutdown']
+        self.confirmationTime = self.GUIHost.Timers['shutdownConf']
+        self.splashTime = self.GUIHost.Timers['activitySplash']
         
+                                        
         # Private Properties ===================================================
         # Log('Set Private Properties')
-        self._activityBtns = activityBtns
-        self._confTimeLbl = confTimeLbl
-        self._confTimeLvl = confTimeLvl
-        self._transition = transitionDict
+        self._activityBtns = \
+            {
+                "select": self.UIHost.Btn_Grps['Activity-Select'],
+                "indicator": self.UIHost.Btn_Grps['Activity-Indicator'],
+                "end": self.UIHost.Btns['Shutdown-EndNow'],
+                "cancel": self.UIHost.Btns['Shutdown-Cancel']
+            }
+        self._confTimeLbl = self.UIHost.Lbls['ShutdownConf-Count'],
+        self._confTimeLvl = self.UIHost.Lvls['ShutdownConfIndicator']
+        self._transition = \
+            {
+                "label": self.UIHost.Lbls['PowerTransLabel-State'],
+                "level": self.UIHost.Lvls['PowerTransIndicator'],
+                "count": self.UIHost.Lbls['PowerTransLabel-Count'],
+                "start": {
+                    "init": self.GUIHost.StartupActions,
+                    "sync": self.GUIHost.StartupSyncedActions
+                },
+                "switch": {
+                    "init": self.GUIHost.SwitchActions,
+                    "sync": self.GUIHost.SwitchSyncedActions
+                },
+                "shutdown": {
+                    "init": self.GUIHost.ShutdownActions,
+                    "sync": self.GUIHost.ShutdownSyncedActions
+                }
+            }
         
         # Inital Class Setup ===================================================
-        # Log('Show Activity Popups, Mode: {}'.format(settings.activityMode))
-        self.UIHost.ShowPopup('Menu-Activity-{}'.format(settings.activityMode))
-        self.UIHost.ShowPopup('Menu-Activity-open-{}'.format(settings.activityMode))
+        # Log('Show Activity Popups, Mode: {}'.format(self.GUIHost.ActivityMode))
+        self.UIHost.ShowPopup('Menu-Activity-{}'.format(self.GUIHost.ActivityMode))
+        self.UIHost.ShowPopup('Menu-Activity-open-{}'.format(self.GUIHost.ActivityMode))
         
         # Log("Create Timers")
         self._confirmationTimer = Timer(1, self._ConfimationHandler)
@@ -177,36 +202,36 @@ class ActivityController:
                 if self.CurrentActivity == 'share' or self.CurrentActivity == 'group_work':
                     self._activitySplashTimer.Restart() 
 
-        @event(vars.TP_Btns['Splash'], 'Pressed')
+        @event(self.UIHost.Btns['Splash'], 'Pressed')
         def SplashScreenHandler(button, action):
             self.UIHost.ShowPage('Opening')
         
-        @event(vars.TP_Btns['Activity-Splash-Close'], 'Pressed')
+        @event(self.UIHost.Btns['Activity-Splash-Close'], 'Pressed')
         def CloseTipHandler(button, action):
             self._activitySplashCloseHandler(self._activitySplashTimer)
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def __StatusTimerHandler(self, timer: Timer, count: int):
         if self.CurrentActivity == 'share':
-            vars.SrcCtl.SourceAlertHandler()
+            self.UIHost.SrcCtl.SourceAlertHandler()
         elif self.CurrentActivity == 'adv_share':
-            for dest in vars.SrcCtl.Destinations:
+            for dest in self.UIHost.SrcCtl.Destinations:
                 dest.AdvSourceAlertHandler()
         elif self.CurrentActivity == 'group_work':
-            vars.SrcCtl.SourceAlertHandler()
+            self.UIHost.SrcCtl.SourceAlertHandler()
         
     def _activitySplashWaitHandler(self, timer: Timer, count: int):
         timeTillClose = self.splashTime - count
-        vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(timeTillClose))
+        self.UIHost.Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(timeTillClose))
         
         if count > self.splashTime:
             self._activitySplashCloseHandler(timer)
             
     def _activitySplashCloseHandler(self, timer: Timer):
         timer.Stop()
-        page = vars.SrcCtl.SelectedSource.SourceControlPage 
+        page = self.UIHost.SrcCtl.SelectedSource.SourceControlPage 
         if page == 'PC':
-            page = '{p}_{c}'.format(p=page, c=len(settings.cameras))
+            page = '{p}_{c}'.format(p=page, c=len(self.GUIHost.Cameras))
         self.UIHost.ShowPopup("Source-Control-{}".format(page))
     
     def _ConfimationHandler(self, timer: Timer, count: int) -> None:
@@ -296,8 +321,8 @@ class ActivityController:
 
         # STARTUP ONLY ITEMS HERE - function in main
         # Log('Performing unsynced Startup functions')
-        vars.SrcCtl.SelectSource(settings.defaultSource)
-        vars.SrcCtl.SwitchSources(vars.SrcCtl.SelectedSource, 'All')
+        self.UIHost.SrcCtl.SelectSource(self.GUIHost.DefaultSourceId)
+        self.UIHost.SrcCtl.SwitchSources(self.UIHost.SrcCtl.SelectedSource, 'All')
         self._transition['start']['init']()
         
     def SystemSwitch(self, activity: str) -> None:
@@ -309,7 +334,7 @@ class ActivityController:
         
         self._transition['label'].SetText(
             'System is switching to {} mode. Please Wait...'
-            .format(self._activityDict[activity]))
+            .format(self.__activityDict[activity]))
         self._transition['level'].SetRange(0, self.switchTime, 1)
         self._transition['level'].SetLevel(0)
 
@@ -336,26 +361,26 @@ class ActivityController:
             self._activityBtns['indicator'].SetCurrent(1)
             # Log('Configuring for Share mode')
             self.UIHost.HidePopupGroup(8) # Activity-Controls Group
-            self.UIHost.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(settings.microphones) > 0 else 'no_mic'))
+            self.UIHost.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
             
             # get input assigned to the primaryDestination
-            curSrc = vars.SrcCtl.PrimaryDestination.AssignedSource
+            curSrc = self.UIHost.SrcCtl.PrimaryDestination.AssignedSource
             # Log("Pre-Activity Change Source - Name: {}, Id: {}".format(curSrc.Name, curSrc.Id))
             
             if curSrc.Name == 'None':
-                # Log('Current Source = None, Setting current source to default, ID = {}'.format(settings.defaultSource))
-                curSrc = vars.SrcCtl.GetSource(id=settings.defaultSource)
+                # Log('Current Source = None, Setting current source to default, ID = {}'.format(self.UIHost.DefaultSourceID))
+                curSrc = self.UIHost.SrcCtl.GetSource(id=self.UIHost.DefaultSourceId)
                 # Log('New Current Source - Name: {}, ID: {}'.format(curSrc.Name, curSrc.Id))
-                vars.SrcCtl.SelectSource(curSrc)
-                # Log('Selected Source - Name: {}, Id: {}'.format(vars.SrcCtl.SelectedSource.Name, vars.SrcCtl.SelectedSource.Id))
-                vars.SrcCtl.SetPrivacyOn()
+                self.UIHost.SrcCtl.SelectSource(curSrc)
+                # Log('Selected Source - Name: {}, Id: {}'.format(self.UIHost.SrcCtl.SelectedSource.Name, self.UIHost.SrcCtl.SelectedSource.Id))
+                self.UIHost.SrcCtl.SetPrivacyOn()
             
             # update source selection to match primaryDestination
-            vars.SrcCtl.SwitchSources(curSrc, 'All')
+            self.UIHost.SrcCtl.SwitchSources(curSrc, 'All')
             
             # show activity splash screen, will be updated config.activitySplash
             # seconds after the activity switch timer stops
-            vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
+            self.UIHost.Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
             self.UIHost.ShowPopup("Source-Control-Splash-Share")
             
         elif activity == "adv_share":
@@ -364,35 +389,35 @@ class ActivityController:
             # Log('Configuring for Adv Share mode')
             self.UIHost.ShowPopup("Activity-Control-AdvShare")
             
-            self.UIHost.ShowPopup(vars.SrcCtl.GetAdvShareLayout())
-            self.UIHost.ShowPopup("Audio-Control-{}".format('mic' if len(settings.microphones) > 0 else 'no_mic'))
+            self.UIHost.ShowPopup(self.UIHost.SrcCtl.GetAdvShareLayout())
+            self.UIHost.ShowPopup("Audio-Control-{}".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
         
-            if vars.SrcCtl.Privacy:
+            if self.UIHost.SrcCtl.Privacy:
                 # Log('Handling Privacy reconfigure for Adv Share')
-                vars.SrcCtl.SetPrivacyOff()
+                self.UIHost.SrcCtl.SetPrivacyOff()
                 destList = []
-                for dest in vars.SrcCtl.Destinations:
+                for dest in self.UIHost.SrcCtl.Destinations:
                     if dest._type != 'conf':
                         # Log('Non-Confidence destination found - {}'.format(dest.Name))
                         destList.append(dest)
                 # Log('Count of non-Confidence destinations: {}'.format(len(destList)))
-                vars.SrcCtl.SwitchSources(vars.SrcCtl._none_source, destList)
+                self.UIHost.SrcCtl.SwitchSources(self.UIHost.SrcCtl._none_source, destList)
                         
         elif  activity == "group_work":
             self._activityBtns['select'].SetCurrent(3)
             self._activityBtns['indicator'].SetCurrent(3)
             # Log('Configuring for Group Work mode')
             self.UIHost.ShowPopup("Activity-Control-Group")
-            self.UIHost.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(settings.microphones) > 0 else 'no_mic'))
+            self.UIHost.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
             
-            vars.SrcCtl.SelectSource(vars.SrcCtl.PrimaryDestination.GroupWorkSource)
-            for dest in vars.SrcCtl.Destinations:
-                vars.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
-            vars.SrcCtl.SetPrivacyOff()
+            self.UIHost.SrcCtl.SelectSource(self.UIHost.SrcCtl.PrimaryDestination.GroupWorkSource)
+            for dest in self.UIHost.SrcCtl.Destinations:
+                self.UIHost.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
+            self.UIHost.SrcCtl.SetPrivacyOff()
             
             # show activity splash screen, will be updated config.activitySplash
             # seconds after the activity switch timer stops
-            vars.TP_Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
+            self.UIHost.Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.splashTime))
             self.UIHost.ShowPopup("Source-Control-Splash-GrpWrk")
 
         self._transition['switch']['init']()

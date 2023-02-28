@@ -1,5 +1,9 @@
-import re
-from extronlib.system import Wait, ProgramLog
+from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+
+from extronlib.system import ProgramLog
 
 from uofi_gui.systemHardware import VirtualDeviceInterface
 import utilityFunctions
@@ -388,7 +392,7 @@ class DeviceClass:
 
 class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
 
-    def __init__(self, VirtualDeviceID, AssignmentAttribute, Model=None):
+    def __init__(self, GUIHost: GUIController, VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
         DeviceClass.__init__(self) 
         VirtualDeviceInterface.__init__(self,
                                         VirtualDeviceID,
@@ -397,6 +401,7 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
                                             'MatrixInput': self.VirtualInputDevices,
                                             'MatrixOutput': self.VirtualOutputDevices
                                         })
+        self.GUIHost = GUIHost
         self.ConnectionType = 'Virtual'
         # Check if Model belongs to a subclass       
         if len(self.Models) > 0:

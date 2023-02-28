@@ -1,3 +1,9 @@
+# from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
+
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event, Version
 from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
@@ -14,17 +20,13 @@ print(Version()) ## Sanity check ControlScript Import
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
-import json
-from typing import Dict, Tuple, List, Union
+
 
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-import utilityFunctions
-import settings
-import vars
+from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 #### Extron Global Scripter Modules
 
@@ -34,12 +36,11 @@ import vars
 
 class TechMenuController:
     def __init__(self,
-                 UIHost: UIDevice,
-                 ControlDict: Dict,
-                 BtnList: List) -> None:
+                 UIHost: ExUIDevice) -> None:
         # Public Properties
         # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
+        self.GUIHost = self.UIHost.GUIHost
         self.TechMenuOpen = False
         
         # Private Properties
@@ -60,7 +61,7 @@ class TechMenuController:
         self._menuBtns = MESet([])
         self._defaultPage = 'Tech-SystemStatus'
         self._defaultBtn = None
-        for btn in BtnList:
+        for btn in DictValueSearchByKey(self.UIHost.Btns, r'Tech-\w+$', regex=True):
             if btn.Name in self._PageSelects.keys():
                 btn.Page = self._PageSelects[btn.Name]()
             else:
@@ -69,7 +70,16 @@ class TechMenuController:
             if btn.Name in self._defaultPage:
                 self._defaultBtn = btn
         
-        self._ctlBtns = ControlDict
+        self._ctlBtns = \
+            {
+                'prev': self.UIHost.Btns['Tech-Menu-Previous'],
+                'next': self.UIHost.Btns['Tech-Menu-Next'],
+                'exit': self.UIHost.Btns['Tech-Menu-Exit'],
+                'menu-pages': [
+                    'Menu-Tech-1',
+                    'Menu-Tech-2'
+                ]
+            }
         self._pageIndex = 0
         # utilityFunctions.Log('Length of Menu Button MESet: {}'.format(len(self._menuBtns.Objects)))
         # utilityFunctions.Log('Create Class Events')
@@ -150,7 +160,7 @@ class TechMenuController:
     
     def CloseTechMenu(self):
         self.TechMenuOpen = False
-        if vars.ActCtl.CurrentActivity == 'off':
+        if self.UIHost.ActCtl.CurrentActivity == 'off':
             self.UIHost.ShowPage('Opening')
         else:
             self.UIHost.ShowPage('Main')
@@ -159,16 +169,16 @@ class TechMenuController:
     
     # Private Methods
     def _AdvVolPage(self) -> str:
-        return 'Tech-AdvancedVolume_{}'.format(len(settings.microphones))
+        return 'Tech-AdvancedVolume_{}'.format(len(self.GUIHost.Microphones))
     
     def _CamCtlsPage(self) -> str:
-        return 'Tech-CameraControls_{}'.format(len(settings.cameras))
+        return 'Tech-CameraControls_{}'.format(len(self.GUIHost.Cameras))
     
     def _DispCtlPage(self):
         confs = 0
         mons = 0
         projs = 0
-        for dest in settings.destinations:
+        for dest in self.GUIHost.Destinations:
             if dest['type'] == 'proj+scn' or dest['type'] == 'proj':
                 projs += 1
             elif dest['type'] == 'mon':
@@ -179,17 +189,17 @@ class TechMenuController:
         return 'Tech-DisplayControls_{c},{p},{m}'.format(c = confs, p = projs, m = mons)
     
     def _ManMtxPage(self):
-        return 'Tech-ManualMatrix_{i}x{o}'.format(i = settings.techMatrixSize[0], o = settings.techMatrixSize[1])
+        return 'Tech-ManualMatrix_{i}x{o}'.format(i = self.GUIHost.TechMatrixSize[0], o = self.GUIHost.TechMatrixSize[1])
     
     def _RmCfgPage(self):
-        return 'Tech-RoomConfig_{}'.format(len(settings.lights))
+        return 'Tech-RoomConfig_{}'.format(len(self.GUIHost.Lights))
     
     def _StatusPage(self, show: bool=False):
         if show:
-            vars.StatusCtl.resetPages()
-            vars.StatusCtl.UpdateTimer.Restart()
+            self.UIHost.StatusCtl.resetPages()
+            self.UIHost.StatusCtl.UpdateTimer.Restart()
         else:
-            vars.StatusCtl.UpdateTimer.Stop()
+            self.UIHost.StatusCtl.UpdateTimer.Stop()
     
 
 ## End Class Definitions -------------------------------------------------------

@@ -1,26 +1,22 @@
-## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+# from __future__ import annotations
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING:
+    from uofi_gui import GUIController
+    from uofi_gui.uiObjects import ExUIDevice
+    from extronlib.ui import Button, Knob, Label, Level, Slider
 
-print(Version()) ## Sanity check ControlScript Import
+## Begin ControlScript Import --------------------------------------------------
+from extronlib import event
+
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
-import json
-from typing import Dict, Tuple, List, Union, Callable
+
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
+from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 #### Extron Global Scripter Modules
 
@@ -30,10 +26,7 @@ from typing import Dict, Tuple, List, Union, Callable
 
 class PINController:
     def __init__(self,
-                 UIHost: UIDevice,
-                 startBtn: Button,
-                 pinBtns: Dict[str, Union[List[Button], Button]],
-                 pinLbl: Label,
+                 UIHost: ExUIDevice,
                  pinCode: str,
                  destPage: str,
                  openFn: Callable) -> None:
@@ -74,16 +67,21 @@ class PINController:
         
         # Private Properties
         self._currentPIN = ""
-        self._pinPadBtns = pinBtns
-        self._pinLbl = pinLbl
+        self._pinPadBtns = \
+            {
+                "numPad": DictValueSearchByKey(self.UIHost.Btns, r'PIN-\d', regex=True),
+                "backspace": self.UIHost.Btns['PIN-Del'],
+                "cancel": self.UIHost.Btns['PIN-Cancel']
+            }
+        self._pinLbl = self.UIHost.Lbls['PIN-Label']
         self._destPage = destPage
         self._destPageFn = openFn
-        self._startBtn = startBtn
+        self._startBtn = self.UIHost.Btns['Header-Settings']
         
         self.maskPIN()
 
         @event(self._pinPadBtns['numPad'], ['Pressed','Released'])
-        def UpdatePIN(button, action):
+        def UpdatePIN(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -104,7 +102,7 @@ class PINController:
                 button.SetState(0)
         
         @event(self._pinPadBtns['backspace'], ['Pressed','Released'])
-        def BackspacePIN(button, action):
+        def BackspacePIN(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -113,7 +111,7 @@ class PINController:
                 button.SetState(0)
 
         @event(self._pinPadBtns['cancel'], ['Pressed','Released'])
-        def CancelBtnHandler(button, action):
+        def CancelBtnHandler(button: Button, action: str):
             if action == 'Pressed':
                 button.SetState(1)
             elif action == 'Released':
@@ -122,7 +120,7 @@ class PINController:
 
         @event(self._startBtn, 'Held')
         # triggers on startBtn defined long press, 3 sec recommended
-        def StartBtnHandler(button, action):
+        def StartBtnHandler(button: Button, action: str):
             button.SetState(0)
             self.showPINMenu()
     
