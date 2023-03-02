@@ -6,10 +6,12 @@ def event(obj, EventName):
     if type(obj) == type([]):
         for o in obj:
             def event_wrapper(func1):
-                func1(o, EventName)
+                #func1(o, EventName)
+                pass
     else:
         def event_wrapper(func2):
-            func2(obj, EventName)
+            #func2(obj, EventName)
+            pass
     return event_wrapper
 
 def Version() -> str:

@@ -181,33 +181,39 @@
       "repeatTime": null
     },
     {
-      "Name": "Ctl-Camera-Select-CAM001",
+      "Name": "Ctl-Camera-Select-1",
       "ID": 6101,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Ctl-Camera-Select-CAM002",
+      "Name": "Ctl-Camera-Select-2",
       "ID": 6102,
       "holdTime": null,
       "repeatTime": null
     },
     {
+      "Name": "Ctl-Camera-Home",
+      "ID": 6110,
+      "holdTime": 3,
+      "repeatTime": null
+    },
+    {
       "Name": "Ctl-Camera-Preset-1",
       "ID": 6111,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
       "Name": "Ctl-Camera-Preset-2",
       "ID": 6112,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
       "Name": "Ctl-Camera-Preset-3",
       "ID": 6113,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -475,7 +481,7 @@
       "repeatTime": null
     },
     {
-      "Name": "PIN-Cancel",
+      "Name": "PIN-0",
       "ID": 9000,
       "holdTime": null,
       "repeatTime": null
@@ -535,7 +541,7 @@
       "repeatTime": null
     },
     {
-      "Name": "PIN-0",
+      "Name": "PIN-Cancel",
       "ID": 9010,
       "holdTime": null,
       "repeatTime": null
@@ -631,6 +637,12 @@
       "repeatTime": null
     },
     {
+      "Name": "Activity-Splash-Close",
+      "ID": 11997,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
       "Name": "Popover-Close",
       "ID": 11998,
       "holdTime": null,
@@ -643,7 +655,7 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-Exit",
+      "Name": "Tech-Menu-Exit",
       "ID": 12000,
       "holdTime": null,
       "repeatTime": null
@@ -739,134 +751,152 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-PRJ001-On",
+      "Name": "Tech-Display-proj-1-On",
       "ID": 12201,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-PRJ001-Off",
+      "Name": "Tech-Display-proj-1-Off",
       "ID": 12202,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-PRJ001-Src",
+      "Name": "Tech-Display-proj-1-Src",
       "ID": 12203,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-SCN001-Up",
+      "Name": "Tech-Display-scn-1-Up",
       "ID": 12231,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-SCN001-Stop",
+      "Name": "Tech-Display-scn-1-Stop",
       "ID": 12232,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-SCN001-Dn",
+      "Name": "Tech-Display-scn-1-Dn",
       "ID": 12233,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-On",
+      "Name": "Tech-Display-mon-1-On",
       "ID": 12261,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-Off",
+      "Name": "Tech-Display-mon-1-Off",
       "ID": 12262,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-Src",
+      "Name": "Tech-Display-mon-1-Src",
       "ID": 12263,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON001-Mute",
+      "Name": "Tech-Display-mon-1-Mute",
       "ID": 12264,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-On",
+      "Name": "Tech-Display-mon-2-On",
       "ID": 12266,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-Off",
+      "Name": "Tech-Display-mon-2-Off",
       "ID": 12267,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-Src",
+      "Name": "Tech-Display-mon-2-Src",
       "ID": 12268,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON002-Mute",
+      "Name": "Tech-Display-mon-2-Mute",
       "ID": 12269,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-On",
+      "Name": "Tech-Display-mon-3-On",
       "ID": 12271,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-Off",
+      "Name": "Tech-Display-mon-3-Off",
       "ID": 12272,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-Src",
+      "Name": "Tech-Display-mon-3-Src",
       "ID": 12273,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON003-Mute",
+      "Name": "Tech-Display-mon-3-Mute",
       "ID": 12274,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-On",
+      "Name": "Tech-Display-mon-4-On",
       "ID": 12276,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-Off",
+      "Name": "Tech-Display-mon-4-Off",
       "ID": 12277,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-Src",
+      "Name": "Tech-Display-mon-4-Src",
       "ID": 12278,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Display-MON004-Mute",
+      "Name": "Tech-Display-mon-4-Mute",
       "ID": 12279,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Tech-Display-conf-1-On",
+      "ID": 12281,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Tech-Display-conf-1-Off",
+      "ID": 12282,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Tech-Display-conf-1-Src",
+      "ID": 12283,
       "holdTime": null,
       "repeatTime": null
     },
@@ -895,38 +925,56 @@
       "repeatTime": null
     },
     {
-      "Name": "Vol-MIC001-Up",
+      "Name": "Vol-Mic-2-Up",
       "ID": 12304,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-MIC001-Dn",
+      "Name": "Vol-Mic-2-Dn",
       "ID": 12305,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-MIC001-Mute",
+      "Name": "Vol-Mic-2-Mute",
       "ID": 12306,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Vol-RF001-Up",
+      "Name": "Vol-Mic-1-Up",
       "ID": 12307,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-RF001-Dn",
+      "Name": "Vol-Mic-1-Dn",
       "ID": 12308,
       "holdTime": null,
       "repeatTime": 0.5
     },
     {
-      "Name": "Vol-RF001-Mute",
+      "Name": "Vol-Mic-1-Mute",
       "ID": 12309,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "Vol-Mic-3-Up",
+      "ID": 12310,
+      "holdTime": null,
+      "repeatTime": 0.5
+    },
+    {
+      "Name": "Vol-Mic-3-Dn",
+      "ID": 12311,
+      "holdTime": null,
+      "repeatTime": 0.5
+    },
+    {
+      "Name": "Vol-Mic-3-Mute",
+      "ID": 12312,
       "holdTime": null,
       "repeatTime": null
     },
@@ -1441,7 +1489,7 @@
       "repeatTime": null
     },
     {
-      "Name": "Schedule-WeekDays",
+      "Name": "Schedule-Weekdays",
       "ID": 12509,
       "holdTime": null,
       "repeatTime": null
@@ -1507,19 +1555,19 @@
       "repeatTime": null
     },
     {
-      "Name": "Schedule-Start-Act-Share",
+      "Name": "Schedule-Start-Act-share",
       "ID": 12520,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Schedule-Start-Act-AdvShare",
+      "Name": "Schedule-Start-Act-adv_share",
       "ID": 12521,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Schedule-Start-Act-Group",
+      "Name": "Schedule-Start-Act-group_work",
       "ID": 12522,
       "holdTime": null,
       "repeatTime": null
@@ -1657,14 +1705,374 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-Previous",
+      "Name": "Tech-Menu-Previous",
       "ID": 12901,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-Next",
+      "Name": "Tech-Menu-Next",
       "ID": 12902,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-tilda",
+      "ID": 12701,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-1",
+      "ID": 12702,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-2",
+      "ID": 12703,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-3",
+      "ID": 12704,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-4",
+      "ID": 12705,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-5",
+      "ID": 12706,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-6",
+      "ID": 12707,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-7",
+      "ID": 12708,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-8",
+      "ID": 12709,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-9",
+      "ID": 12710,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-0",
+      "ID": 12711,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-dash",
+      "ID": 12712,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-equals",
+      "ID": 12713,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-q",
+      "ID": 12714,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-w",
+      "ID": 12715,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-e",
+      "ID": 12716,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-r",
+      "ID": 12717,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-t",
+      "ID": 12718,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-y",
+      "ID": 12719,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-u",
+      "ID": 12720,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-i",
+      "ID": 12721,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-o",
+      "ID": 12722,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-p",
+      "ID": 12723,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-openBracket",
+      "ID": 12724,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-closeBracket",
+      "ID": 12725,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-backslash",
+      "ID": 12726,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-a",
+      "ID": 12727,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-s",
+      "ID": 12728,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-d",
+      "ID": 12729,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-f",
+      "ID": 12730,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-g",
+      "ID": 12731,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-h",
+      "ID": 12732,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-j",
+      "ID": 12733,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-k",
+      "ID": 12734,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-l",
+      "ID": 12735,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-semicolon",
+      "ID": 12736,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-apostrophy",
+      "ID": 12737,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-z",
+      "ID": 12738,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-x",
+      "ID": 12739,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-c",
+      "ID": 12740,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-v",
+      "ID": 12741,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-b",
+      "ID": 12742,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-n",
+      "ID": 12743,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-m",
+      "ID": 12744,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-comma",
+      "ID": 12745,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-period",
+      "ID": 12746,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-slash",
+      "ID": 12747,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-del",
+      "ID": 12748,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-bs",
+      "ID": 12749,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-caps",
+      "ID": 12750,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-shift",
+      "ID": 12751,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-space",
+      "ID": 12752,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-left",
+      "ID": 12753,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-right",
+      "ID": 12754,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-save",
+      "ID": 12755,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "KB-cancel",
+      "ID": 12756,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Name",
+      "ID": 12761,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Home",
+      "ID": 12762,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Cancel",
+      "ID": 12763,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
+      "Name": "CamPreset-Save",
+      "ID": 12764,
       "holdTime": null,
       "repeatTime": null
     }
@@ -1673,8 +2081,8 @@
       {
         "Name":"Camera-Select",
         "Buttons":[
-          "Ctl-Camera-Select-CAM001",
-          "Ctl-Camera-Select-CAM002"
+          "Ctl-Camera-Select-1",
+          "Ctl-Camera-Select-2"
         ]
       },
       {
@@ -1723,6 +2131,21 @@
           "Tech-Matrix-Mode-Vid",
           "Tech-Matrix-Mode-Untie"
         ]
+      },
+      {
+        "Name": "Schedule-Start-Activity-Mode",
+        "Buttons": [
+          "Schedule-Start-Act-share",
+          "Schedule-Start-Act-adv_share",
+          "Schedule-Start-Act-group_work"
+        ]
+      },
+      {
+        "Name": "Schedule-AMPM",
+        "Buttons": [
+          "Schedule-AM",
+          "Schedule-PM"
+        ]
       }
   ],
   "knobs":[],
@@ -1756,63 +2179,63 @@
       "ID": 10013
     },
     {
-      "Name": "DeviceSatusLabel-1",
+      "Name": "DeviceStatusLabel-1",
       "ID": 10101
     },
     {
-      "Name": "DeviceSatusLabel-2",
+      "Name": "DeviceStatusLabel-2",
       "ID": 10102
     },
     {
-      "Name": "DeviceSatusLabel-3",
+      "Name": "DeviceStatusLabel-3",
       "ID": 10103
     },
     {
-      "Name": "DeviceSatusLabel-4",
+      "Name": "DeviceStatusLabel-4",
       "ID": 10104
     },
     {
-      "Name": "DeviceSatusLabel-5",
+      "Name": "DeviceStatusLabel-5",
       "ID": 10105
     },
     {
-      "Name": "DeviceSatusLabel-6",
+      "Name": "DeviceStatusLabel-6",
       "ID": 10106
     },
     {
-      "Name": "DeviceSatusLabel-7",
+      "Name": "DeviceStatusLabel-7",
       "ID": 10107
     },
     {
-      "Name": "DeviceSatusLabel-8",
+      "Name": "DeviceStatusLabel-8",
       "ID": 10108
     },
     {
-      "Name": "DeviceSatusLabel-9",
+      "Name": "DeviceStatusLabel-9",
       "ID": 10109
     },
     {
-      "Name": "DeviceSatusLabel-10",
+      "Name": "DeviceStatusLabel-10",
       "ID": 10110
     },
     {
-      "Name": "DeviceSatusLabel-11",
+      "Name": "DeviceStatusLabel-11",
       "ID": 10111
     },
     {
-      "Name": "DeviceSatusLabel-12",
+      "Name": "DeviceStatusLabel-12",
       "ID": 10112
     },
     {
-      "Name": "DeviceSatusLabel-13",
+      "Name": "DeviceStatusLabel-13",
       "ID": 10113
     },
     {
-      "Name": "DeviceSatusLabel-14",
+      "Name": "DeviceStatusLabel-14",
       "ID": 10114
     },
     {
-      "Name": "DeviceSatusLabel-15",
+      "Name": "DeviceStatusLabel-15",
       "ID": 10115
     },
     {
@@ -1822,6 +2245,10 @@
     {
       "Name": "DeviceStatusPage-Total",
       "ID": 10117
+    },
+    {
+      "Name": "PaginationSlash",
+      "ID": 10118
     },
     {
       "Name": "MatrixLabel-In-1",
@@ -1924,28 +2351,32 @@
       "ID": 10161
     },
     {
-      "Name": "DisplayCtl-PrjLabel-1",
+      "Name": "DisplayCtl-proj-1",
+      "ID": 10200
+    },
+    {
+      "Name": "DisplayCtl-scn-1",
       "ID": 10201
     },
     {
-      "Name": "DisplayCtl-ScnLabel-1",
-      "ID": 10202
-    },
-    {
-      "Name": "DisplayCtl-MonLabel-1",
-      "ID": 10203
-    },
-    {
-      "Name": "DisplayCtl-MonLabel-2",
+      "Name": "DisplayCtl-mon-1",
       "ID": 10204
     },
     {
-      "Name": "DisplayCtl-MonLabel-3",
-      "ID": 10204
+      "Name": "DisplayCtl-mon-2",
+      "ID": 10205
     },
     {
-      "Name": "DisplayCtl-MonLabel-4",
-      "ID": 10204
+      "Name": "DisplayCtl-mon-3",
+      "ID": 10206
+    },
+    {
+      "Name": "DisplayCtl-mon-4",
+      "ID": 10207
+    },
+    {
+      "Name": "DisplayCtl-conf-1",
+      "ID": 10208
     },
     {
       "Name": "WPD-PodIDs",
@@ -1954,6 +2385,18 @@
     {
       "Name": "WPD-Key",
       "ID": 10212
+    },
+    {
+      "Name": "Aud-Mic-1",
+      "ID": 10251
+    },
+    {
+      "Name": "Aud-Mic-2",
+      "ID": 10252
+    },
+    {
+      "Name": "Aud-Mic-3",
+      "ID": 10253
     },
     {
       "Name": "DispAdv-0,0",
@@ -2062,6 +2505,14 @@
     {
       "Name": "AudioInput-Page-Max",
       "ID": 10699
+    },
+    {
+      "Name": "CameraPreset-Title",
+      "ID": 10801
+    },
+    {
+      "Name": "KB-Editor",
+      "ID": 10811
     }
   ],
   "levels":[
@@ -2078,12 +2529,16 @@
       "ID": 8101
     },
     {
-      "Name": "Audio-Lvl-MIC001",
+      "Name": "Audio-Lvl-Mic-2",
       "ID": 8102
     },
     {
-      "Name": "Audio-Lvl-RF001",
+      "Name": "Audio-Lvl-Mic-1",
       "ID": 8103
+    },
+    {
+      "Name": "Audio-Lvl-Mic-3",
+      "ID": 8104
     }
   ],
   "sliders":[
@@ -2100,19 +2555,19 @@
       "ID": 13003
     },
     {
-      "Name": "Tech-Display-MON001-Vol",
+      "Name": "Tech-Display-mon-1-Vol",
       "ID": 12265
     },
     {
-      "Name": "Tech-Display-MON002-Vol",
+      "Name": "Tech-Display-mon-2-Vol",
       "ID": 12270
     },
     {
-      "Name": "Tech-Display-MON003-Vol",
+      "Name": "Tech-Display-mon-3-Vol",
       "ID": 12275
     },
     {
-      "Name": "Tech-Display-MON004-Vol",
+      "Name": "Tech-Display-mon-4-Vol",
       "ID": 12280
     }
   ]

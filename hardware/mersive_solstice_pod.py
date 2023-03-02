@@ -10,10 +10,13 @@ import re
 import base64
 import json
 from extronlib.system import Wait, ProgramLog
+import traceback
 
 import utilityFunctions
 
+@utilityFunctions.debug
 def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = True) -> None:
+    utilityFunctions.Log('Feedback TP: {} ({})'.format(touchpanel.Id, touchpanel))
     podIdLabel = touchpanel.Lbls['WPD-PodIDs']
     podKeyLabel = touchpanel.Lbls['WPD-Key']
     
@@ -25,7 +28,8 @@ def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = T
     elif type(hardware) is SystemHardwareController:
         podHW = hardware
     
-    if podHW is not None:
+    #if podHW is not None:
+    try:
         podStatus = podHW.interface.ReadStatus('PodStatus')
         podName = podStatus['m_displayInformation']['m_displayName']
         podIP = podStatus['m_displayInformation']['m_ipv4']
@@ -33,10 +37,14 @@ def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = T
 
         podIdLabel.SetText('{} ({})'.format(podName, podIP))
         podKeyLabel.SetText('Key: {}'.format(podKey))
-    elif blank_on_fail:
-        # utilityFunctions.Log('Pod HW not found')
-        podIdLabel.SetText('')
-        podKeyLabel.SetText('')
+    except Exception as inst:
+        tb = traceback.format_exc()
+        print(tb)
+        utilityFunctions.Log('An error occured attempting set pod feedback.\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(type(inst), inst, tb), 'error')
+        if blank_on_fail:
+            # utilityFunctions.Log('Pod HW not found')
+            podIdLabel.SetText('')
+            podKeyLabel.SetText('')
 class DeviceClass:
     def __init__(self, host, protocol, port, devicePassword=None):
 

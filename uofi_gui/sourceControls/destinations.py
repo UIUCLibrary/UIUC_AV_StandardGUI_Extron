@@ -16,24 +16,21 @@ class Destination:
                  name: str,
                  output: int,
                  destType: str,
-                 rly: List,
+                 rly: 'RelayTuple',
                  groupWrkSrc: str,
-                 advLayout: Dict[str, int]) -> None:
+                 advLayout: 'LayoutTuple') -> None:
         
         self.SourceController = SrcCtl
         self.Id = id
         self.Name = name
         self.Output = output
-        self.AdvLayoutPosition = LayoutTuple(Row=advLayout['row'], Pos=advLayout['pos'])
+        self.AdvLayoutPosition = advLayout
         self.AssignedSource = None
         self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
         self.Mute = False
         
         self._type = destType
-        if type(rly) != type(None):
-            self._relay = RelayTuple(Up=rly[0], Down=rly[1])
-        else:
-            self._relay = RelayTuple(Up=None, Down=None)
+        self._relay = rly
         self._AssignedVidInput = 0
         self._AssignedAudInput = 0
         self._AdvSelectBtn = None
@@ -116,7 +113,7 @@ class Destination:
             modal = 'Modal-SrcCtl-{}'.format(self.AssignedSource.AdvSourceControlPage)
             
             if modal == 'Modal-SrcCtl-WPD':
-                PodFeedbackHelper(self.AssignedSource.Id, blank_on_fail=True)
+                PodFeedbackHelper(self.SourceController.UIHost, self.AssignedSource.Id, blank_on_fail=True)
             
             # show source control page
             self.SourceController.UIHost.ShowPopup(modal)

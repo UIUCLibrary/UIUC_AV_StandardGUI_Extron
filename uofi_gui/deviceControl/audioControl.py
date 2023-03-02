@@ -29,7 +29,6 @@ class AudioController:
         self.__step_sm = 1
         self.__step_lg = 3
         
-        Log('Creating microphones dict')
         self.Microphones = {}
         for mic in self.GUIHost.Microphones:
             self.Microphones[str(mic['Number'])] = mic
@@ -37,7 +36,6 @@ class AudioController:
             self.Microphones[str(mic['Number'])]['mute'] = False
         self.__ProgMute = False
         
-        Log('Creating levels and controls')
         self.__levels = {'prog': self.UIHost.Lvls['Audio-Lvl-Prog'], 'mics': {}}
         self.__levels['prog'].SetRange(self.DSP.Program['Range'][0],
                                        self.DSP.Program['Range'][1],
@@ -61,7 +59,6 @@ class AudioController:
         self.__controls['prog']['mute'].CtlType = 'mute'
         
         for i in range(1, len(self.GUIHost.Microphones) + 1):
-            Log('Creating microphone controls {}'.format(str(i)))
             self.__controls['mics'][str(i)] = \
                 {
                     'up': self.UIHost.Btns['Vol-Mic-{}-Up'.format(str(i))],
@@ -82,7 +79,6 @@ class AudioController:
             self.__labels[str(i)] = self.UIHost.Lbls['Aud-Mic-{}'.format(str(i))]
             self.__labels[str(i)].SetText(self.Microphones[str(i)]['Name'])
         
-        Log('Creating events')
         # Program Buttons
         @event(list(self.__controls['prog'].values()), ['Pressed', 'Released', 'Repeated'])
         def ProgramControlHandler(button, action):
@@ -124,16 +120,13 @@ class AudioController:
         # All Mics Mute Button
         @event(self.__controls['all-mics'], ['Pressed'])
         def AllMicsMuteHandler(button, action):
-            # Log('Original Mute State: {}'.format(self.AllMicsMute))
             self.AllMicsMute = not self.AllMicsMute 
-            # Log('Updated Mute State: {}'.format(self.AllMicsMute))
     
     @property
     def AllMicsMute(self)->bool:
         test = True
         for mic in self.Microphones.values():
             if not mic['mute']:
-                # Log('Microphone ({}) not muted'.format(mic['Id']))
                 test = False
         return test
     
@@ -143,10 +136,8 @@ class AudioController:
             raise TypeError('Mute State must be boolean or "on" or "off"')
         
         if state == True or state == 'on':
-            Log('Muting all mics')
             state = True
         else:
-            Log('Unmuting all mics')
             state = False
         
         for numStr in self.Microphones.keys():

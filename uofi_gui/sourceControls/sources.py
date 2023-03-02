@@ -39,7 +39,7 @@ class Source:
     def AlertText(self):
         if not self.__OverrideState:
             txt =  list(self.__AlertText.keys())[self.__AlertIndex]
-            Log('AlertText: {}'.format(txt))
+            # Log('AlertText: {}'.format(txt))
             self.CycleAlert()
         else:
             txt = self.__OverrideAlert

@@ -22,6 +22,7 @@ from typing import Dict, Tuple, List
 import inspect
 import re
 import functools
+import traceback
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -53,7 +54,7 @@ def Log(content, level: str='info', stack: bool=False) -> None:
     mod = fileName.replace('/', '.')
     ws = '    '
     
-    content = content.replace('\n', '\n{0}'.format(ws))
+    content = str(content).replace('\n', '\n{0}'.format(ws))
     
     if stack:
         # show call stack back to main
@@ -222,12 +223,14 @@ def debug(func):
         print(callStr)
         try:
             value = func(*args, **kwargs)
+            rtnStr = "{!r} returned {!r}".format(func.__name__, value)
+            print(rtnStr)
+            Log('{}\n  {}'.format(callStr, rtnStr))
+            return value
         except Exception as inst:
-            Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}'.format(func.__name__, signature, type(inst), inst), 'error')
-        rtnStr = "{!r} returned {!r}".format(func.__name__, value)
-        print(rtnStr)
-        Log('{}\n  {}'.format(callStr, rtnStr))
-        return value
+            tb = traceback.format_exc()
+            print(tb)
+            Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), 'error')
     return wrapper_debug
 
 def RunAsync(func, callback: callable=None):

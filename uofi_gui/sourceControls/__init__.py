@@ -85,14 +85,18 @@ class SourceController:
             
         self.Destinations = []
         for dest in self.GUIHost.Destinations:
+            if type(dest['rly']) != type(None):
+                dest_relay = RelayTuple(Up=dest['rly'][0], Down=dest['rly'][1])
+            else:
+                dest_relay = RelayTuple(Up=None, Down=None)
             destObj = Destination(self,
                                   dest['id'],
                                   dest['name'],
                                   dest['output'],
                                   dest['type'],
-                                  dest['rly'],
+                                  dest_relay,
                                   dest['group-work-src'],
-                                  dest['adv-layout'])
+                                  LayoutTuple(Row=dest['adv-layout']['row'], Pos=dest['adv-layout']['pos']))#dest['adv-layout'])
             self.Destinations.append(destObj)
             if dest.get('destObj') is None:
                 dest['destObj'] = {}
@@ -118,7 +122,7 @@ class SourceController:
         self._offset = 0
         self._advLayout = self.GetAdvShareLayout()
         self._none_source = Source(self, 'none', 'None', 0, 0, None, None)
-        self._DisplaySrcList = self.UpdateDisplaySourceList()
+        #self._DisplaySrcList = self.UpdateDisplaySourceList()
         self._Matrix = MatrixController(self,
                                         DictValueSearchByKey(self.UIHost.Btns, r'Tech-Matrix-\d+,\d+', regex=True),
                                         self.UIHost.Btn_Grps['Tech-Matrix-Mode'],
@@ -162,7 +166,7 @@ class SourceController:
                 if page == 'PC':
                     page = '{p}_{c}'.format(p=page, c=len(self.GUIHost.Cameras))
                 elif page == 'WPD':
-                    PodFeedbackHelper(self.SelectedSource.Id, blank_on_fail=True)
+                    PodFeedbackHelper(self.UIHost, self.SelectedSource.Id, blank_on_fail=True)
                 
                 self.UIHost.ShowPopup("Source-Control-{}".format(page))
 
@@ -513,14 +517,14 @@ class SourceController:
         
         # Log('Switch Sources - Src Type: {}, Dest Type: {}'.format(type(src), type(dest)), stack=True)
         
-        if type(src) == str:
+        if type(src) is str:
             srcObj = self.GetSource(id = src, name = src)
-        elif type(src) == Source:
+        elif type(src) is Source:
             srcObj = src
         else:
-            Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(src) == str),(type(src) == Source)), level='warning')
+            raise TypeError('Src must be either a string or Source object.')
         
-        if type(dest) == str and dest == 'All':
+        if type(dest) is str and dest == 'All':
             # Log('Source Switch - Destination: All, Source: {}'.format(srcObj.Name))
             for d in self.Destinations:
                 d.AssignSource(srcObj)
@@ -532,7 +536,7 @@ class SourceController:
                                                             'Tie Type': 'Audio/Video'})
                 if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
                         d.AdvSourceAlertHandler()
-        elif type(dest) == type([]):
+        elif type(dest) is list:
             for d in dest:
                 if type(d) == Destination:
                     # Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
@@ -558,14 +562,14 @@ class SourceController:
                     if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
                         dObj.AdvSourceAlertHandler()
         else:
-            Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == List)))
+            raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
                     
         if self.GUIHost.ActCtl.CurrentActivity in ['share', 'group_work']:
             self.SourceAlertHandler()
 
     def MatrixSwitch(self, src: Union[Source, str, int], dest: Union[str, List[Union[Destination, str, int]]]='All', mode: str='AV') -> None:
         if type(dest) == str and dest != 'All':
-            raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integer")
+            raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
         
         cmdDict = \
             {
@@ -584,7 +588,7 @@ class SourceController:
             srcNum = src
             srcObj = self.GetSourceByInput(src)
         else:
-            raise TypeError("Source must be a source object, source name string, source Id string, or switcher input integer")
+            raise TypeError("Source must be a source object, source name string, source Id string, or switcher input integers")
         
         if mode == 'untie':
             cmdInput = 0
@@ -596,7 +600,7 @@ class SourceController:
         
         # Log('Source Object ({}) - Input: {}'.format(srcObj, srcNum))
         
-        if type(dest) == str and dest == 'All':
+        if type(dest) is str and dest == 'All':
             for d in self.Destinations:
                 #d.AssignSource(self._none_source)
                 d.AssignMatrix(srcNum, mode)
@@ -606,7 +610,7 @@ class SourceController:
                                                     qualifier={'Input': cmdInput, 
                                                                'Output': d.Output,
                                                                'Tie Type': cmdTieType})
-        elif type(dest) == type([]):
+        elif type(dest) is list:
             for d in dest:
                 if type(d) == Destination:
                     #d.AssignSource(self._none_source)
@@ -632,9 +636,7 @@ class SourceController:
                                                                'Output': destNum,
                                                                'Tie Type': cmdTieType})
         else:
-            Log('Oops, something fell through the if/elif. IF - {}; ELIF - {}'.format((type(dest) == str and dest == 'All'),(type(dest) == type([]))))
-
-
+            raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
 
 ## End Class Definitions -------------------------------------------------------
 ##

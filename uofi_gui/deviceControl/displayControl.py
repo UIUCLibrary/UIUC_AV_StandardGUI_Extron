@@ -3,12 +3,12 @@ if TYPE_CHECKING:
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import Destination
-    from extronlib.ui import Button, Knob, Label, Level, Slider
     
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
 from extronlib.system import Wait
 from extronlib.interface import RelayInterface
+from extronlib.ui import Button, Knob, Label, Level, Slider
 
 ## End ControlScript Import ----------------------------------------------------
 ##
@@ -152,7 +152,7 @@ class DisplayController:
                     else:
                         control.SetState(1)
             elif action == 'Released':
-                Log('Display Control - Hardware: {} ({}), CtlType: {}, HwType: {}'.format(control.DestID, control.CtlGroup, control.CtlType, control.HwType))
+                # Log('Display Control - Hardware: {} ({}), CtlType: {}, HwType: {}'.format(control.DestID, control.CtlGroup, control.CtlType, control.HwType))
                 if control.CtlType == 'On':
                     # set display on, clear off button state
                     if control.HwType == 'conf' and control.ConfControlType == 'switcher':

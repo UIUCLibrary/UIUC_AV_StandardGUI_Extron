@@ -83,7 +83,7 @@ class SystemHardwareController:
         self.__constructor = getattr(self.__module,
                                      Interface['interface_class'])
         
-        Interface['GUIHost'] = self.GUIHost
+        Interface['interface_configuration']['GUIHost'] = self.GUIHost
         if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
             self.interface = GetConnectionHandler(self.__constructor(**Interface['interface_configuration']),
                                                   **Interface['ConnectionHandler'])

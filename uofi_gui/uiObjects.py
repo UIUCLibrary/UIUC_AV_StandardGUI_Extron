@@ -3,9 +3,11 @@ if TYPE_CHECKING:
     from uofi_gui import GUIController
 
 ## Begin ControlScript Import --------------------------------------------------
+from extronlib import event
 from extronlib.device import UIDevice
 from extronlib.ui import Button, Knob, Label, Level, Slider
 from extronlib.system import MESet, File
+from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
@@ -17,7 +19,6 @@ TESTING = ('unittest' in sys.modules.keys())
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from uofi_gui.activityControls import ActivityController
 from uofi_gui.sourceControls import SourceController
 from uofi_gui.headerControls import HeaderController
 from uofi_gui.systemHardware import SystemStatusController
@@ -29,13 +30,15 @@ from uofi_gui.scheduleControls import AutoScheduleController
 
 #### Extron Global Scripter Modules
 
+from utilityFunctions import Log, RunAsync, debug
+
 ## End User Import -------------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
 
 class ExUIDevice(UIDevice):
     def __init__(self, GUIHost: 'GUIController', DeviceAlias: str, PartNumber: str = None) -> object:
-        UIDevice.__init__(DeviceAlias, PartNumber)
+        UIDevice.__init__(self, DeviceAlias, PartNumber)
         self.GUIHost = GUIHost
         self.Id = DeviceAlias
         self.TP_Lights = Button(self, 65533)
@@ -83,8 +86,11 @@ class ExUIDevice(UIDevice):
                 "Activity-Controls"
             ]
         
+        self.HideAllPopups()
+        
+    def InitializeUIControllers(self):
         #### Activity Control Module
-        self.ActCtl = ActivityController(self)
+        # self.ActCtl = ActivityController(self)
         
         #### Source Control Module
         self.SrcCtl = SourceController(self)
@@ -109,18 +115,18 @@ class ExUIDevice(UIDevice):
         self.AudioCtl = AudioController(self)
         
         #### Schedule Module
-        self.SchedCtl = AutoScheduleController(self.TP_Main)
+        self.SchedCtl = AutoScheduleController(self)
         
         #### Keyboard Module
         self.KBCtl = KeyboardController(self)
         
         #### PIN Code Module
         self.TechPINCtl = PINController(self,
-                                    self.GUIHost.TechPIN, 
-                                    'Tech',
-                                    self.TechCtl.OpenTechMenu)
+                                        self.GUIHost.TechPIN, 
+                                        'Tech',
+                                        self.TechCtl.OpenTechMenu)
 
-    def BlinkLights(self, Rate: str='Medium', StateList: List=None):
+    def BlinkLights(self, Rate: str='Medium', StateList: List=None, Timeout: Union[int, float]=0):
         if StateList is None:
             StateList = [self.TP_Lights.StateIds['off'], self.TP_Lights.StateIds['red']]
         
@@ -130,16 +136,19 @@ class ExUIDevice(UIDevice):
         
         self.TP_Lights.SetBlinking(Rate, StateList)
         
+        if Timeout != 0:
+            Wait(float(Timeout), self.LightsOff)
+        
     def LightsOff(self):
         self.TP_Lights.SetState(self.TP_Lights.StateIds['off'])
     
     def BuildAll(self, jsonObj: Dict = {}, jsonPath: str = '') -> None:
+        # Log('Build All Buttons for TP: {}'.format(self.Id))
         self.BuildButtons(jsonObj=jsonObj, jsonPath=jsonPath)
         self.BuildButtonGroups(jsonObj=jsonObj, jsonPath=jsonPath)
         self.BuildKnobs(jsonObj=jsonObj, jsonPath=jsonPath)
         self.BuildLevels(jsonObj=jsonObj, jsonPath=jsonPath)
         self.BuildSliders(jsonObj=jsonObj, jsonPath=jsonPath)
-        self.BuildButtons(jsonObj=jsonObj, jsonPath=jsonPath)
         self.BuildLabels(jsonObj=jsonObj, jsonPath=jsonPath)
         
     def BuildButtons(self,
@@ -157,13 +166,9 @@ class ExUIDevice(UIDevice):
             ValueError: if specified fileat jsonPath does not exist
             ValueError: if neither jsonObj or jsonPath are specified
         """
-
+        
         ## do not expect both jsonObj and jsonPath
         ## jsonObj should take priority over jsonPath
-        btnDict = {}
-        print('Building Buttons')
-        print(jsonObj)
-        print(jsonPath)
         if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
             if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
                 jsonFile = File(jsonPath)
@@ -175,30 +180,39 @@ class ExUIDevice(UIDevice):
         elif jsonObj == {} and jsonPath == "":
             raise ValueError('Either jsonObj or jsonPath must be specified')
         
-        ## format button info into btnDict
+        ## format button info into self.Btns
         for button in jsonObj['buttons']:
             ## only sets holdTime or repeatTime for non null/None values
-            if button['holdTime'] == None and button['repeatTime'] == None:
-                btnDict[button['Name']] = Button(self, button['ID'])
-            elif button['holdTime'] != None and button['repeatTime'] == None:
-                btnDict[button['Name']] = Button(self, button['ID'],
-                                                    holdTime = button['holdTime'])
-                btnDict[button['Name']].holdTime = button['holdTime']
-            elif button['holdTime'] == None and button['repeatTime'] != None:
-                btnDict[button['Name']] = Button(self, button['ID'], 
-                                                    repeatTime = button['repeatTime'])
-                btnDict[button['Name']].repeatTime = button['repeatTime']
-            elif button['holdTime'] != None and button['repeatTime'] != None:
-                btnDict[button['Name']] = Button(self, button['ID'],
-                                                    holdTime = button['holdTime'],
-                                                    repeatTime = button['repeatTime'])
-                btnDict[button['Name']].holdTime = button['holdTime']
-                btnDict[button['Name']].repeatTime = button['repeatTime']
-            
+            # if button['holdTime'] == None and button['repeatTime'] == None:
+            #     self.Btns[button['Name']] = Button(self, button['ID'])
+            # elif button['holdTime'] != None and button['repeatTime'] == None:
+            #     self.Btns[button['Name']] = Button(self, button['ID'],
+            #                                         holdTime = button['holdTime'])
+            #     self.Btns[button['Name']].holdTime = button['holdTime']
+            # elif button['holdTime'] == None and button['repeatTime'] != None:
+            #     self.Btns[button['Name']] = Button(self, button['ID'], 
+            #                                         repeatTime = button['repeatTime'])
+            #     self.Btns[button['Name']].repeatTime = button['repeatTime']
+            # elif button['holdTime'] != None and button['repeatTime'] != None:
+            #     self.Btns[button['Name']] = Button(self, button['ID'],
+            #                                         holdTime = button['holdTime'],
+            #                                         repeatTime = button['repeatTime'])
+            #     self.Btns[button['Name']].holdTime = button['holdTime']
+            #     self.Btns[button['Name']].repeatTime = button['repeatTime']
+            btnName = button['Name']
+            button.pop('Name')
+            self.Btns[btnName] = Button(self, **button)
+            self.Btns[btnName].holdTime = button['holdTime']
+            self.Btns[btnName].repeatTime = button['repeatTime']
+                
             if TESTING is True:
-                btnDict[button['Name']].Name = button['Name']
-        ## return btnDict
-        self.Btns = btnDict
+                self.Btns[btnName].Name = btnName
+                
+            self.Btns[btnName].SetState(0)
+            
+            @event(self.Btns[btnName], 'Pressed')
+            def TempBtnHandler(button: 'Button', event: str):
+                Log('Unconfigured Press Action: {} ({}, {})'.format(button.Name, button.ID, button))
 
     def BuildButtonGroups(self,
                         jsonObj: Dict = {},
@@ -217,9 +231,7 @@ class ExUIDevice(UIDevice):
             ValueError: if neither jsonObj or jsonPath are specified
         """
         ## do not expect both jsonObj and jsonPath
-        ## jsonObj should take priority over jsonPath
-        grpDict = {}
-        
+        ## jsonObj should take priority over jsonPath        
         if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
             if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
                 jsonFile = File(jsonPath)
@@ -231,17 +243,16 @@ class ExUIDevice(UIDevice):
         elif jsonObj == {} and jsonPath == "":
             raise ValueError('Either jsonObj or jsonPath must be specified')
 
-        ## create MESets and build grpDict
+        ## create MESets and build self.Btn_Grps
         for group in jsonObj['buttonGroups']:
             ## reset btnList and populate it from the jsonObj
             btnList = []
             for btn in group['Buttons']:
                 ## get button objects from Dict and add to list
                 btnList.append(self.Btns[btn])
-            grpDict[group['Name']] = MESet(btnList)
-        
-        ## return grpDict
-        self.Btn_Grps = grpDict
+            self.Btn_Grps[group['Name']] = MESet(btnList)
+            
+        # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.Btn_Grps['Activity-Select'].Objects])
 
     def BuildKnobs(self,
                 jsonObj: Dict = {},
@@ -261,7 +272,6 @@ class ExUIDevice(UIDevice):
         
         ## do not expect both jsonObj and jsonPath
         ## jsonObj should take priority over jsonPath
-        knobDict = {}
 
         if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
             if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
@@ -275,12 +285,9 @@ class ExUIDevice(UIDevice):
             raise ValueError('Either jsonObj or jsonPath must be specified')
         
         
-        ## format knob info into knobDict
+        ## format knob info into self.Knobs
         for knob in jsonObj['knobs']:
-            knobDict[knob['Name']] = Knob(self, knob['ID'])
-        
-        ## return knobDict
-        self.Knobs = knobDict
+            self.Knobs[knob['Name']] = Knob(self, knob['ID'])
 
     def BuildLevels(self,
                     jsonObj: Dict = {},
@@ -303,8 +310,6 @@ class ExUIDevice(UIDevice):
         
         ## do not expect both jsonObj and jsonPath
         ## jsonObj should take priority over jsonPath
-        lvlDict = {}
-
         if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
             if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
                 jsonFile = File(jsonPath)
@@ -316,15 +321,12 @@ class ExUIDevice(UIDevice):
         elif jsonObj == {} and jsonPath == "":
             raise ValueError('Either jsonObj or jsonPath must be specified')
         
-        ## format level info into lvlDict
+        ## format level info into self.Lvls
         for lvl in jsonObj['levels']:
-            lvlDict[lvl['Name']] = Level(self, lvl['ID'])
+            self.Lvls[lvl['Name']] = Level(self, lvl['ID'])
             
             if TESTING is True:
-                lvlDict[lvl['Name']].Name = lvl['Name']
-        
-        ## return lvlDict
-        self.Lvls = lvlDict
+                self.Lvls[lvl['Name']].Name = lvl['Name']
 
     def BuildSliders(self,
                     jsonObj: Dict = {},
@@ -347,8 +349,6 @@ class ExUIDevice(UIDevice):
         
         ## do not expect both jsonObj and jsonPath
         ## jsonObj should take priority over jsonPath
-        sliderDict = {}
-        
         if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
             if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
                 jsonFile = File(jsonPath)
@@ -360,15 +360,12 @@ class ExUIDevice(UIDevice):
         elif jsonObj == {} and jsonPath == "":
             raise ValueError('Either jsonObj or jsonPath must be specified')
             
-        ## format slider info into sliderDict
+        ## format slider info into self.Slds
         for slider in jsonObj['sliders']:
-            sliderDict[slider['Name']] = Slider(self, slider['ID'])
+            self.Slds[slider['Name']] = Slider(self, slider['ID'])
             
             if TESTING is True:
-                sliderDict[slider['Name']].Name = slider['Name']
-        
-        ## return sliderDict
-        self.Slds = sliderDict
+                self.Slds[slider['Name']].Name = slider['Name']
 
     def BuildLabels(self,
                     jsonObj: Dict = {},
@@ -391,8 +388,6 @@ class ExUIDevice(UIDevice):
         
         ## do not expect both jsonObj and jsonPath
         ## jsonObj should take priority over jsonPath
-        labelDict = {}
-
         if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
             if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
                 jsonFile = File(jsonPath)
@@ -404,14 +399,11 @@ class ExUIDevice(UIDevice):
         elif jsonObj == {} and jsonPath == "":
             raise ValueError('Either jsonObj or jsonPath must be specified')
         
-        ## format label info into labelDict
+        ## format label info into self.Lbls
         for lbl in jsonObj['labels']:
-            labelDict[lbl['Name']] = Label(self, lbl['ID'])
+            self.Lbls[lbl['Name']] = Label(self, lbl['ID'])
             
             if TESTING is True:
-                labelDict[lbl['Name']].Name = lbl['Name']
-        
-        ## return labelDict
-        self.Lbls = labelDict
+                self.Lbls[lbl['Name']].Name = lbl['Name']
 
 ## End Function Definitions ----------------------------------------------------

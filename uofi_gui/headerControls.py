@@ -85,7 +85,7 @@ class HeaderController:
         def HeaderBtnHandler(button: 'Button', action: str):
             if action == 'Pressed':
                 button.SetState(1)
-            elif (action == 'Released' and not hasattr(button, 'holdTime')) or action == 'Tapped':
+            elif (action == 'Released' and button.holdTime is None) or action == 'Tapped':
                 button.SetState(0)
                 self.UIHost.ShowPopup(button.PopoverName)
         

@@ -45,7 +45,7 @@ class AutoScheduleController:
             
         self.UIHost.SetInactivityTime(list(self.__inactivityHandlers.keys()))
         @event(self.UIHost, 'InactivityChanged')
-        def inactivityMethodHandler(tlp: Union[UIDevice, ExUIDevice], time):
+        def inactivityMethodHandler(tlp: Union['UIDevice', 'ExUIDevice'], time):
             if time in self.__inactivityHandlers:
                 self.__inactivityHandlers[time]()
         
@@ -423,8 +423,15 @@ class AutoScheduleController:
         else:
             self.__toggle_shutdown.SetState(0)
             self.__AutoShutdownClock.Disable()
-            
-        self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
+        
+        # DEBUG: There is an issue with the button instnace in self.UIHost.Btns doesn't match the button instance in self.__activity_start
+        try:
+            self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
+        except ValueError:
+            Log('Button Object Not Found in MESet. Finding by Name instead.', level='warning')
+            for obj in self.__activity_start.Objects:
+                if obj.Name == 'Schedule-Start-Act-{}'.format(self.__pattern_start.Activity):
+                    self.__activity_start.SetCurrent(obj)
 
         self.__AutoStartClock.SetDays(self.__pattern_start.Pattern['Days'])
         self.__AutoStartClock.SetTimes([self.__ClockTime(self.__pattern_start.Pattern['Time'])])

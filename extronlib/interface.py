@@ -251,7 +251,10 @@ class EthernetClientInterface:
         
         self.Credentials = Credentials
         self.Hostname = Hostname
-        self.IPAddress = socket.gethostbyname(Hostname)
+        try:
+            self.IPAddress = socket.gethostbyname(Hostname)
+        except:
+            self.IPAddress = '0.0.0.0'
         self.IPPort = IPPort
         if Protocol not in self._valid_protocols:
             raise ValueError('Protocol must be one of TCP, UDP, or SSH')

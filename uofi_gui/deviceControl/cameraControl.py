@@ -51,7 +51,7 @@ class CameraController:
             re_match = re.match(r'Ctl-Camera-Select-(\d+)', selBtn.Name)
             camNum = int(re_match.group(1))
             cam = [cam for cam in self.Cameras.values() if camNum == cam['Number']][0]
-            Log('Cam selection: {} ({})'.format(cam, type(cam)))
+            # Log('Cam selection: {} ({})'.format(cam, type(cam)))
                     
             if cam['Id'] in self.Cameras:
                 selBtn.camera = cam

@@ -1,6 +1,5 @@
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib.device import ProcessorDevice
-from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 
 from typing import Dict, Tuple, List, Callable, Union
@@ -8,6 +7,7 @@ from typing import Dict, Tuple, List, Callable, Union
 from utilityFunctions import Log, RunAsync, debug
 
 from uofi_gui.uiObjects import ExUIDevice
+from uofi_gui.activityControls import ActivityController
 from uofi_gui.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
                                      VirtualDeviceInterface)
@@ -93,8 +93,9 @@ class GUIController:
         ## Touch Panel Definition ----------------------------------------------
         
         if type(TouchPanels) is str:
-            tp = ExUIDevice(TouchPanels)
+            tp = ExUIDevice(self, TouchPanels)
             tp.BuildAll(jsonPath=self.CtlJSON)
+            tp.BlinkLights('Slow', ['red', 'off'])
             self.TPs = [tp]
         elif type(TouchPanels) is list:
             self.TPs = []
@@ -103,60 +104,53 @@ class GUIController:
                     raise TypeError(type(self).GetErrorStr('E1','TPs', tp, type(tp)))
                 panel = ExUIDevice(self, tp)
                 panel.BuildAll(jsonPath=self.CtlJSON)
+                panel.BlinkLights('Slow', ['red', 'off'])
                 self.TPs.append(panel)
+                # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in panel.Btn_Grps['Activity-Select'].Objects])
         else:
             raise TypeError(type(self).GetErrorStr('E1','TPs', TouchPanels, type(TouchPanels)))
         
+        # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TPs[0].Btn_Grps['Activity-Select'].Objects])
+        
         if hasattr(Settings, 'primaryTouchPanel'):
+            Log('Set TP_Main by settings.primaryTouchPanel')
             self.TP_Main = [panel for panel in self.TPs if panel.Id == Settings.primaryTouchPanel][0]
         else:
+            Log('Set TP_Main by index')
             self.TP_Main = self.TPs[0]
+        # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TP_Main.Btn_Grps['Activity-Select'].Objects])
         
         ## Button Panel Definition ---------------------------------------------
         # TODO: button panel init
-        
-        ## Create Controllers --------------------------------------------------
-        
-        self.ActCtl = self.TP_Main.ActCtl
-        
-        self.SrcCtl = self.TP_Main.SrcCtl
-        
-        Log('Source List: {}'.format(self.Sources))
-        Log('Destination List: {}'.format(self.Destinations))
-        
-        # self.HdrCtl = self.TP_Main.HdrCtl
-        
-        # self.TechCtl = self.TP_Main.TechCtl
-        
-        # self.StatusCtl = self.TP_Main.StatusCtl
-        
-        # self.CamCtl = self.TP_Main.CamCtl
-        
+
         ## End of GUIController Init ___________________________________________
 
     def StartupActions(self) -> None:
         self.PollCtl.SetPollingMode('active')
-        self.HdrCtl.ConfigSystemOn()
         self.SrcCtl.SetPrivacyOff()
-        self.CamCtl.SelectDefaultCamera()
-        self.CamCtl.SendCameraHome()
-        self.AudioCtl.AudioStartUp()
+        self.TP_Main.CamCtl.SendCameraHome()
+        self.TP_Main.AudioCtl.AudioStartUp()
+        for tp in self.TPs:
+            tp.HdrCtl.ConfigSystemOn()
+            tp.CamCtl.SelectDefaultCamera()
 
     def StartupSyncedActions(self, count: int) -> None:
         pass
 
     def SwitchActions(self) -> None:
-        self.SrcCtl.UpdateSourceMenu()
         self.SrcCtl.ShowSelectedSource()
+        for tp in self.TPs:
+            tp.SrcCtl.UpdateSourceMenu()
 
     def SwitchSyncedActions(self, count: int) -> None:
         pass
 
     def ShutdownActions(self) -> None:
         self.PollCtl.SetPollingMode('inactive')
-        self.HdrCtl.ConfigSystemOff()
         self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
-        self.AudioCtl.AudioShutdown()
+        self.TP_Main.AudioCtl.AudioShutdown()
+        for tp in self.TPs:
+            tp.HdrCtl.ConfigSystemOff()
         
         # for id, hw in self.Hardware:
         #     if id.startswith('WPD'):
@@ -166,31 +160,41 @@ class GUIController:
         pass
 
     def Initialize(self) -> None:
-        #### Set initial page & room name
-        self.TP_Main.HideAllPopups()
+        ## Create Controllers --------------------------------------------------
+        # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TPs[0].Btn_Grps['Activity-Select'].Objects])
+        self.ActCtl = ActivityController(self)
+        
+        for tp in self.TPs:
+            tp.InitializeUIControllers()
+        
+        self.SrcCtl = self.TP_Main.SrcCtl
+        
+        # Log('Source List: {}'.format(self.Sources))
+        # Log('Destination List: {}'.format(self.Destinations))
+        
+        ## GUI Display Initialization ------------------------------------------
         self.TP_Main.ShowPage('Splash')
         self.TP_Main.Btns['Room-Label'].SetText(self.RoomName)
+        for tp in self.TPs:
+            tp.SrcCtl.UpdateDisplaySourceList()
         
-        ## DO ADDITIONAL INITIALIZATION ITEMS HERE
-        
-        # Associate Virtual Hardware
-        # utFn.Log('Looking for Virtual Device Interfaces')
+        ## Associate Virtual Hardware ------------------------------------------
+        # Log('Looking for Virtual Device Interfaces')
         for Hw in self.Hardware.values():
-            # utFn.Log('Hardware ({}) - Interface Class: {}'.format(id, type(Hw.interface)))
+            # Log('Hardware ({}) - Interface Class: {}'.format(id, type(Hw.interface)))
             if issubclass(type(Hw.interface), VirtualDeviceInterface):
                 Hw.interface.FindAssociatedHardware()
-                # utFn.Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
+                # Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
         
         #### Start Polling
         self.PollCtl.PollEverything()
         self.PollCtl.StartPolling()
         
+        print('System Initialized')
         Log('System Initialized')
-        self.TP_Main.BlinkLights(Rate='Fast', StateList=['green', 'red'])
-        self.TP_Main.Click(5, 0.2)
-        @Wait(3)
-        def StopTPLight():
-            self.TP_Main.LightsOff()
+        for tp in self.TPs:
+            tp.BlinkLights(Rate='Fast', StateList=['green', 'red'])
+            tp.Click(5, 0.2)
             
     @classmethod
     def GetErrorStr(cls, Error: str, *args, **kwargs):

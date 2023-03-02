@@ -159,7 +159,7 @@ class TechMenuController:
     
     def CloseTechMenu(self):
         self.TechMenuOpen = False
-        if self.UIHost.ActCtl.CurrentActivity == 'off':
+        if self.GUIHost.ActCtl.CurrentActivity == 'off':
             self.UIHost.ShowPage('Opening')
         else:
             self.UIHost.ShowPage('Main')

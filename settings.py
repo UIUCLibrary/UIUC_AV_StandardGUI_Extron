@@ -19,6 +19,7 @@ defaultSource = "PC001"       # Default source id on activity switch
 defaultCamera = 'CAM001'      # Default camera to show on camera control pages
 primaryDestination = "PRJ001" # Primary destination
 primarySwitcher = 'VMX001'    # Primary Matrix Switcher
+primaryTouchPanel = 'TP001'   # Primary Touch Panel
 techMatrixSize = (8,4)        # (inputs, outputs) - size of the virtual matrix to display in Tech Menu
 camSwitcher = 'DEC001'        # ID of hardware device to switch between cameras
 primaryDSP = 'DSP001'         # Primary DSP for audio control
