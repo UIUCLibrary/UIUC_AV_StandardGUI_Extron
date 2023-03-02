@@ -51,7 +51,7 @@ class AutoScheduleController:
         
         self.__default_pattern = \
             {
-                'days': 
+                'Days': 
                     [
                         'Monday',
                         'Tuesday',
@@ -59,7 +59,7 @@ class AutoScheduleController:
                         'Thursday',
                         'Friday'
                     ],
-                'time': {
+                'Time': {
                     'hr': '12',
                     'min': '00',
                     'ampm': 'AM'
@@ -290,11 +290,13 @@ class AutoScheduleController:
                 self.__pattern_start.SetText(self.__PatternToText(self.__pattern_start.Pattern))
             else:
                 self.__pattern_start.SetText('')
-        if Mode == 'shutdown' or Mode is None:
+        elif Mode == 'shutdown' or Mode is None:
             if self.__pattern_shutdown.Pattern is not None:
                 self.__pattern_shutdown.SetText(self.__PatternToText(self.__pattern_shutdown.Pattern))
             else:
                 self.__pattern_shutdown.SetText('')
+        else:
+            raise ValueError('Mode must be "start", "shutdown", or None.')
                 
     def __PatternToText(self, Pattern: Dict):
         DoW = ''
@@ -432,7 +434,7 @@ class AutoScheduleController:
             for obj in self.__activity_start.Objects:
                 if obj.Name == 'Schedule-Start-Act-{}'.format(self.__pattern_start.Activity):
                     self.__activity_start.SetCurrent(obj)
-
+        
         self.__AutoStartClock.SetDays(self.__pattern_start.Pattern['Days'])
         self.__AutoStartClock.SetTimes([self.__ClockTime(self.__pattern_start.Pattern['Time'])])
             
@@ -466,6 +468,8 @@ class AutoScheduleController:
     def __ScheduleShutdownHandler(self, Clock, Time):
         if self.GUIHost.ActCtl.CurrentActivity != 'off':
             self.GUIHost.ActCtl.SystemShutdown()
+        else:
+            Log('System already off at scheduled shutdown.')
         
     def __ScheduleStartHandler(self, Clock, Time):
         if self.GUIHost.ActCtl.CurrentActivity == 'off':
@@ -489,7 +493,7 @@ class AutoScheduleController:
         elif Day == 'Sunday':
             return 6
         
-    def __ClockTime(self, Time):
+    def __ClockTime(self, Time: Dict):
         if Time['ampm'] == 'PM':
             if int(Time['hr']) == 12:
                 hrs = 12

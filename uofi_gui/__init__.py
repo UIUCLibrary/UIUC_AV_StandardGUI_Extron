@@ -193,8 +193,10 @@ class GUIController:
         print('System Initialized')
         Log('System Initialized')
         for tp in self.TPs:
-            tp.BlinkLights(Rate='Fast', StateList=['green', 'red'])
+            tp.BlinkLights(Rate='Fast', StateList=['green', 'red'], Timeout=2.5)
             tp.Click(5, 0.2)
+            
+        return True
             
     @classmethod
     def GetErrorStr(cls, Error: str, *args, **kwargs):

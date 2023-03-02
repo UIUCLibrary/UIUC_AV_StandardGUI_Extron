@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, NamedTuple, Union, Callable
+from typing import Dict, Tuple, List, NamedTuple, Union, Callable, Any
 from datetime import datetime
 import re
 import os
@@ -482,106 +482,196 @@ class Timer:
         self.State = 'Stopped'
         self.Count = 0
 
-class Wait:
-    def __init__(self, Time: float, Function: Callable=None) -> None:
-        """The wait class allows the user to execute programmed actions after a desired delay without blocking other processor activity.
+# class Wait:
+#     def __init__(self, Time: float, Function: Callable=None) -> None:
+#         """The wait class allows the user to execute programmed actions after a desired delay without blocking other processor activity.
 
-        ---
-        ```
-        @event(PowerOn, 'Pressed')
-        def HandlePowerButton(button, state):
-            mainProjector.Send('Power=On\r')
-            @Wait(30)
-            def CheckPowerState():
-                mainProjector.Send('get Power\r')
-        ```
-        ---
+#         ---
+#         ```
+#         @event(PowerOn, 'Pressed')
+#         def HandlePowerButton(button, state):
+#             mainProjector.Send('Power=On\r')
+#             @Wait(30)
+#             def CheckPowerState():
+#                 mainProjector.Send('get Power\r')
+#         ```
+#         ---
 
-        In addition to being used as a one-shot (decorator), Wait can be named and reusable.
+#         In addition to being used as a one-shot (decorator), Wait can be named and reusable.
 
-        Parameters:	
-            - Time (float) – Expiration time of the wait in seconds
-            - Function (function) – Code to execute when Time expires
-        ---
+#         Parameters:	
+#             - Time (float) – Expiration time of the wait in seconds
+#             - Function (function) – Code to execute when Time expires
+#         ---
         
-        ```
-        closeWait = None    # Delay to hide Setup Page
+#         ```
+#         closeWait = None    # Delay to hide Setup Page
 
-        @event(ShowSetup, 'Released')
-        def handleShowSetup(button, state):
-            global closeWait
-            def CloseSetupPage():
-                ConfRoomWall.ShowPage('Main')
-            closeWait = Wait(60, CloseSetupPage)
-            ConfRoomWall.ShowPage('Setup')
-        ```
-        """
+#         @event(ShowSetup, 'Released')
+#         def handleShowSetup(button, state):
+#             global closeWait
+#             def CloseSetupPage():
+#                 ConfRoomWall.ShowPage('Main')
+#             closeWait = Wait(60, CloseSetupPage)
+#             ConfRoomWall.ShowPage('Setup')
+#         ```
+#         """
         
-        self.Function = Function
-        self.Time = Time
-        self._currentTime = Time
-        
-        def wait_wrapper(func=self.Function):
-            func(Time = self.Time, Count = self.Count)
+#         self.Function = Function
+#         self.Time = Time
+#         self.Count = 0 # dummy data
+#         self._currentTime = Time
+    
+#         def wait_wrapper(func=self.Function):
+#             print(self.Time)
+#             print(self.Count)
+#             func(Time = self.Time, Count = self.Count)
             
-    def Add(self, Time: float) -> None:
-        """Add time to current interval.
+#         self._wait_wrapper = wait_wrapper
+            
+#     def __call__(self, *args: Any, **kwds: Any) -> Any:
+#         self._wait_wrapper()
+            
+#     def Add(self, Time: float) -> None:
+#         """Add time to current interval.
 
-        Note - Add() does not modify Time.
+#         Note - Add() does not modify Time.
 
-        Parameters:	Time (float) – Time in seconds
+#         Parameters:	Time (float) – Time in seconds
 
-        ```
-        QueryDelay = Wait(3)
+#         ```
+#         QueryDelay = Wait(3)
 
-        def ErrorRecieved():    # Called by received data handler
-            QueryDelay.Add(1)
-        ```
-        """
-        self._currentTime = self._currentTime + Time
+#         def ErrorRecieved():    # Called by received data handler
+#             QueryDelay.Add(1)
+#         ```
+#         """
+#         self._currentTime = self._currentTime + Time
         
-    def Cancel(self) -> None:
-        """Stop Function from executing when the Time expires.
+#     def Cancel(self) -> None:
+#         """Stop Function from executing when the Time expires.
 
-        ```
-        @event(CloseSetup, 'Released')
-        def CloseSetup(button, state):
-            global closeWait
-            if closeWait:
-                closeWait.Cancel()
-                closeWait = None
-            ConfRoomWall.ShowPage('Main')
-        ```
-        """
-        self._currentTime = 0
+#         ```
+#         @event(CloseSetup, 'Released')
+#         def CloseSetup(button, state):
+#             global closeWait
+#             if closeWait:
+#                 closeWait.Cancel()
+#                 closeWait = None
+#             ConfRoomWall.ShowPage('Main')
+#         ```
+#         """
+#         self._currentTime = 0
         
-    def Change(self, Time: float) -> None:
-        """Set a new Time value for current and subsequent runs of this instance.
+#     def Change(self, Time: float) -> None:
+#         """Set a new Time value for current and subsequent runs of this instance.
 
-        Note - Change() will modify Time.
+#         Note - Change() will modify Time.
 
-        Parameters:	Time (float) – Time in seconds
+#         Parameters:	Time (float) – Time in seconds
 
-        ```
-        @event(buttonObject, 'Pressed')
-        def buttonObjectHandler(button, state):
-            DoSomething()
-            closeWait.Change(60)
-        ```
-        """
-        self.Time = Time
+#         ```
+#         @event(buttonObject, 'Pressed')
+#         def buttonObjectHandler(button, state):
+#             DoSomething()
+#             closeWait.Change(60)
+#         ```
+#         """
+#         self.Time = Time
         
-    def Restart(self) -> None:
-        """Restarts the Wait (i.e. executes the Function in Time seconds). If the Wait is active, Restart() cancels that Wait before starting a new one.
+#     def Restart(self) -> None:
+#         """Restarts the Wait (i.e. executes the Function in Time seconds). If the Wait is active, Restart() cancels that Wait before starting a new one.
 
-        ```
-        @event(buttonObject, 'Pressed')
-        def buttonObjectHandler(button, state):
-            DoSomething()
-            closeWait.Restart()
-        ```
-        """
-        self._currentTime = self.Time
+#         ```
+#         @event(buttonObject, 'Pressed')
+#         def buttonObjectHandler(button, state):
+#             DoSomething()
+#             closeWait.Restart()
+#         ```
+#         """
+#         self._currentTime = self.Time
+    
+import time, numbers, extronlib.services.WaitService as _ext3969ron__WaitService, threading as _ext3969ron__threading, logging as _ext3969ron__logging #, eup.services.Const as _ext3969ron__Const
+
+class Wait:
+
+    def __init__(self, Time, Function=None):
+        if Function is not None and not callable(Function):
+            raise TypeError('Function parameter is not a callable object')
+        if not isinstance(Time, numbers.Real) or Time < 0:
+            _ext3969ron__logging.error('Wrong Time Type')
+            raise TypeError('Invalid Time Type')
+        self.expireSeconds = Time
+        self.currentExpireTime = time.monotonic() + self.expireSeconds
+        self.expireCb = None
+        self.args = None
+        self.rlock = _ext3969ron__threading.RLock()
+        self.name = self.__class__.__name__
+        self.state = ''
+        if Function:
+            self.name += '.' + Function.__name__
+            self.expireCb = Function
+            self._Wait__add()
+
+    @classmethod
+    def mro(cls):
+        raise NotImplementedError()
+
+    def __call__(self, Function):
+        self.name += '.' + Function.__name__
+        self.expireCb = Function
+        self._Wait__add()
+        return Function
+
+    def __add(self):
+        with self.rlock:
+            _ext3969ron__WaitService.AddWaitFunction(self._Wait__callback, self.currentExpireTime, name=self.name)
+
+    def __callback(self):
+        with self.rlock:
+            try:
+                self.expireCb()
+            except:
+                _ext3969ron__logging.exception('Failed to run wait callback function: ' + self.name)
+
+    def Restart(self):
+        with self.rlock:
+            self.currentExpireTime = time.monotonic() + self.expireSeconds
+            if not _ext3969ron__WaitService.ChgIntervalFunction(self._Wait__callback, self.currentExpireTime):
+                self._Wait__add()
+
+    def Cancel(self):
+        with self.rlock:
+            _ext3969ron__WaitService.DeleteWaitFunction(self._Wait__callback)
+
+    def Add(self, Time):
+        if Time < 0:
+            return False
+        with self.rlock:
+            self.currentExpireTime += Time
+            return _ext3969ron__WaitService.ChgIntervalFunction(self._Wait__callback, self.currentExpireTime)
+
+    def Change(self, Time):
+        with self.rlock:
+            self.expireSeconds = Time
+            self.currentExpireTime = time.monotonic() + self.expireSeconds
+            return _ext3969ron__WaitService.ChgIntervalFunction(self._Wait__callback, self.currentExpireTime)
+
+    @property
+    def Time(self):
+        return self.expireSeconds
+
+    @property
+    def Function(self):
+        return self.expireCb
+
+    @Function.setter
+    def Function(self, Function):
+        if self.expireCb:
+            raise RuntimeError('{0} is set to this timer already'.format(self.expireCb))
+        else:
+            self.name += '.' + Function.__name__
+            self.expireCb = Function
     
 ## +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ##

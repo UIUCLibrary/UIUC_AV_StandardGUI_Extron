@@ -11,7 +11,7 @@ import uofi_gui.uiObjects as UI
 import settings
 import vars
 ## -----------------------------------------------------------------------------
-
+ 
 class SourceController_TestClass(unittest.TestCase): # rename for module to be tested
     def setUp(self) -> None:
         self.Host = extronlib.device.UIDevice('TP001')
