@@ -18,8 +18,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
-        # self.TestGUIController.ActCtl = ActivityController(self)
-        # self.TestUIController.InitializeUIControllers()
         self.TestScheduleController = self.TestUIController.SchedCtl
         return super().setUp()
     

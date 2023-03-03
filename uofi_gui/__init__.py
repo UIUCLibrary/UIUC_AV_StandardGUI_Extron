@@ -77,7 +77,9 @@ class GUIController:
                                                    CtlProcs, 
                                                    type(CtlProcs)))
 
-        if hasattr(Settings, 'primaryProcessor'):
+        if len(self.CtlProcs) == 0:
+            raise ValueError('No valid control processors provided.')
+        elif hasattr(Settings, 'primaryProcessor'):
             self.CtlProc_Main = [proc for proc in self.CtlProcs if proc.Id == Settings.primaryProcessor][0]
         else:
             self.CtlProc_Main = self.CtlProcs[0]
@@ -112,7 +114,10 @@ class GUIController:
         
         # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TPs[0].Btn_Grps['Activity-Select'].Objects])
         
-        if hasattr(Settings, 'primaryTouchPanel'):
+        if len(self.TPs) == 0:
+            Log('No touch panels designated')
+            self.TP_Main = None
+        elif hasattr(Settings, 'primaryTouchPanel'):
             Log('Set TP_Main by settings.primaryTouchPanel')
             self.TP_Main = [panel for panel in self.TPs if panel.Id == Settings.primaryTouchPanel][0]
         else:
@@ -195,8 +200,6 @@ class GUIController:
         for tp in self.TPs:
             tp.BlinkLights(Rate='Fast', StateList=['green', 'red'], Timeout=2.5)
             tp.Click(5, 0.2)
-            
-        return True
             
     @classmethod
     def GetErrorStr(cls, Error: str, *args, **kwargs):
