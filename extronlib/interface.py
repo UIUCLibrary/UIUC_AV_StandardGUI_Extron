@@ -342,7 +342,7 @@ class EthernetClientInterface:
     def SendAndWait(self, 
                     data: Union[bytes, str], 
                     timeout: float, 
-                    delimiter: Union[int, bytes, re]) -> bytes:
+                    **delimiter: Union[int, bytes, re]) -> bytes:
         """Send data to the controlled device and wait (blocking) for response. It returns after timeout seconds expires or immediately if the optional condition is satisfied.
 
         Note

@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.device import UIDevice
@@ -39,15 +39,14 @@ class AutoScheduleController:
             {
                 180: self.__PopoverInactivityHandler,
                 300: self.__TechPageInactivityHandler,
-                600: self.__SplashPageInactivityHandler,
+                # 600: self.__SplashPageInactivityHandler,
                 10800: self.__SystemInactivityHandler
             }
             
         self.UIHost.SetInactivityTime(list(self.__inactivityHandlers.keys()))
-        @event(self.UIHost, 'InactivityChanged')
-        def inactivityMethodHandler(tlp: Union['UIDevice', 'ExUIDevice'], time):
-            if time in self.__inactivityHandlers:
-                self.__inactivityHandlers[time]()
+        @event(self.UIHost, 'InactivityChanged') # pragma: no cover
+        def InactivityMethodHandler(tlp: Union['UIDevice', 'ExUIDevice'], time):
+            self.__InactivityMethodHandler(tlp, time)
         
         self.__default_pattern = \
             {
@@ -139,151 +138,189 @@ class AutoScheduleController:
         
         self.__LoadSchedule()
         
-        @event([self.__toggle_start, self.__toggle_shutdown], ['Released'])
-        def toggleHandler(button: 'Button', action: str):
-            if button.Value == 'start' and self.AutoStart is True:
-                self.AutoStart = False
-                button.SetState(0)
-            elif button.Value == 'start' and self.AutoStart is False:
-                self.AutoStart = True
-                button.SetState(1)
-            elif button.Value == 'shutdown' and self.AutoShutdown is True:
-                self.AutoShutdown = False
-                button.SetState(0)
-            elif button.Value == 'shutdown' and self.AutoShutdown is False:
-                self.AutoShutdown = True
-                button.SetState(1)
-            self.__SaveSchedule()
+        @event([self.__toggle_start, self.__toggle_shutdown], ['Released']) # pragma: no cover
+        def ToggleHandler(button: 'Button', action: str):
+            self.__ToggleHandler(button, action)
                 
-        @event([self.__pattern_start, self.__pattern_shutdown], ['Pressed', 'Released'])
-        def patternEditHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.__editor_pattern.Mode = button.Value
-                self.__editor_pattern.Pattern = button.Pattern
-                self.__UpdateEditor(button.Pattern)
-                self.UIHost.ShowPopup(self.__edit_modal)
-                button.SetState(0)
+        @event([self.__pattern_start, self.__pattern_shutdown], ['Pressed', 'Released']) # pragma: no cover
+        def PatternEditHandler(button: 'Button', action: str):
+            self.__PatternEditHandler(button, action)
                 
-        @event(self.__activity_start.Objects, ['Pressed'])
-        def activitySelectHandler(button: 'Button', action: str):
-            self.__activity_start.SetCurrent(button)
-            re_match = re.match(r'Schedule-Start-Act-(\w+)', button.Name)
-            self.__pattern_start.Activity = re_match.group(1)
-            self.__SaveSchedule()
+        @event(self.__activity_start.Objects, ['Pressed']) # pragma: no cover
+        def ActivitySelectHandler(button: 'Button', action: str):
+            self.__ActivitySelectHandler(button, action)
             
-        @event(list(self.__btns_days.values()), ['Pressed'])
+        @event(list(self.__btns_days.values()), ['Pressed']) # pragma: no cover
         def DayOfWeekSelectHandler(button: 'Button', action: str):
-            if button.State == 0:
-                button.SetState(1)
-                self.__editor_pattern.Pattern['Days'].append(button.Value)
-            elif button.State == 1:
-                button.SetState(0)
-                self.__editor_pattern.Pattern['Days'].remove(button.Value)
-            self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
-                
-        @event(self.__btn_sel_all, ['Pressed', 'Released'])
+            self.__DayOfWeekSelectHandler(button, action)
+        
+        @event(self.__btn_sel_all, ['Pressed', 'Released']) # pragma: no cover
         def SelectAllHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.__editor_pattern.Pattern['Days'] = list(self.__btns_days.keys())
-                for dayBtn in self.__btns_days.values():
-                    dayBtn.SetState(1)
-                self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
-                button.SetState(0)
+            self.__SelectAllHandler(button, action)
         
-        @event(self.__btn_sel_wkdys, ['Pressed', 'Released'])
+        @event(self.__btn_sel_wkdys, ['Pressed', 'Released']) # pragma: no cover
         def SelectWeekdaysHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.__editor_pattern.Pattern['Days'] = \
-                    [
-                        'Monday',
-                        'Tuesday',
-                        'Wednesday',
-                        'Thursday',
-                        'Friday'
-                    ]
-                for d in self.__btns_days:
-                    if d in self.__editor_pattern.Pattern['Days']:
-                        self.__btns_days[d].SetState(1)
-                    else: 
-                        self.__btns_days[d].SetState(0)
-                self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
-                button.SetState(0)
+            self.__SelectWeekdaysHandler(button, action)
         
-        @event(self.__btns_time, ['Pressed', 'Released'])
+        @event(self.__btns_time, ['Pressed', 'Released']) # pragma: no cover
         def TimeEditHandler(button: 'Button', action: str):
-            if action == 'Pressesd':
-                button.SetState(1)
-            elif action == 'Released':
-                if button.mode == 'hr':
-                    currentVal = self.__lbls_time['hr'].Value
-                    if button.fn == 'up':
-                        if currentVal >= 12:
-                            self.__lbls_time['hr'].Value = 1
-                        else:
-                            self.__lbls_time['hr'].Value = currentVal + 1
-                    elif button.fn == 'down':
-                        if currentVal <= 1:
-                            self.__lbls_time['hr'].Value = 12
-                        else:
-                            self.__lbls_time['hr'].Value = currentVal - 1
-                    strVal = '{:02d}'.format(self.__lbls_time['hr'].Value)
-                    self.__lbls_time['hr'].SetText(strVal)
-                    self.__editor_pattern.Pattern['Time']['hr'] = strVal
-                elif button.mode == 'min':
-                    currentVal = self.__lbls_time['min'].Value
-                    if button.fn == 'up':
-                        if currentVal >= 59:
-                            self.__lbls_time['min'].Value = 1
-                        else:
-                            self.__lbls_time['min'].Value = currentVal + 1
-                    elif button.fn == 'down':
-                        if currentVal <= 0:
-                            self.__lbls_time['min'].Value = 59
-                        else:
-                            self.__lbls_time['min'].Value = currentVal - 1
-                    strVal = '{:02d}'.format(self.__lbls_time['min'].Value)
-                    self.__lbls_time['min'].SetText(strVal)
-                    self.__editor_pattern.Pattern['Time']['min'] = strVal
-                self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
-                button.SetState(0)
+            self.__TimeEditHandler(button, action)
                 
-        @event(self.__btns_ampm.Objects, ['Pressed'])
+        @event(self.__btns_ampm.Objects, ['Pressed']) # pragma: no cover
         def AMPMEditHandler(button: 'Button', action: str):
-            self.__btns_ampm.SetCurrent(button)
-            self.__editor_pattern.Pattern['Time']['ampm'] = button.Value
-            self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
-            
-        @event(self.__btn_save, ['Pressed', 'Released'])
+            self.__AMPMEditHandler(button, action)
+        
+        @event(self.__btn_save, ['Pressed', 'Released']) # pragma: no cover
         def EditorSaveHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                pat = self.__editor_pattern.Pattern
-                pat['Days'].sort(key = self.__SortWeekdays)
-                if self.__editor_pattern.Mode == 'start':
-                    self.__pattern_start.Pattern = pat
-                    self.__UpdatePattern('start')
-                elif self.__editor_pattern.Mode == 'shutdown':
-                    self.__pattern_shutdown.Pattern = pat
-                    self.__UpdatePattern('shutdown')
-                self.__SaveSchedule()
-                self.UIHost.HidePopup(self.__edit_modal)
-                button.SetState(0)
+            self.__EditorSaveHandler(button, action)
                 
-        @event(self.__btn_cancel, ['Pressed', 'Released'])
+        @event(self.__btn_cancel, ['Pressed', 'Released']) # pragma: no cover
         def EditorCancelHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.UIHost.HidePopup(self.__edit_modal)
-                button.SetState(0)
+            self.__EditorCancelHandler(button, action)
+            
+    ## Event Handlers (Private) ------------------------------------------------
+    def __InactivityMethodHandler(self, tlp: Union['UIDevice', 'ExUIDevice'], time):
+        if time in self.__inactivityHandlers:
+            self.__inactivityHandlers[time]()
+    
+    def __ToggleHandler(self, button: 'Button', action: str):
+        if button.Value == 'start' and self.AutoStart is True:
+            self.AutoStart = False
+            button.SetState(0)
+        elif button.Value == 'start' and self.AutoStart is False:
+            self.AutoStart = True
+            button.SetState(1)
+        elif button.Value == 'shutdown' and self.AutoShutdown is True:
+            self.AutoShutdown = False
+            button.SetState(0)
+        elif button.Value == 'shutdown' and self.AutoShutdown is False:
+            self.AutoShutdown = True
+            button.SetState(1)
+        self.__SaveSchedule()
+    
+    def __PatternEditHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.__editor_pattern.Mode = button.Value
+            self.__editor_pattern.Pattern = button.Pattern
+            self.__UpdateEditor(button.Pattern)
+            self.UIHost.ShowPopup(self.__edit_modal)
+            button.SetState(0)
+    
+    def __ActivitySelectHandler(self, button: 'Button', action: str):
+        self.__activity_start.SetCurrent(button)
+        re_match = re.match(r'Schedule-Start-Act-(\w+)', button.Name)
+        self.__pattern_start.Activity = re_match.group(1)
+        self.__SaveSchedule()
+    
+    def __DayOfWeekSelectHandler(self, button: 'Button', action: str):
+        if button.State == 0:
+            button.SetState(1)
+            self.__editor_pattern.Pattern['Days'].append(button.Value)
+        elif button.State == 1:
+            button.SetState(0)
+            if button.Value in self.__editor_pattern.Pattern['Days']:
+                self.__editor_pattern.Pattern['Days'].remove(button.Value)
+        self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
+
+        
+    def __SelectAllHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.__editor_pattern.Pattern['Days'] = list(self.__btns_days.keys())
+            for dayBtn in self.__btns_days.values():
+                dayBtn.SetState(1)
+            self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
+            button.SetState(0)
+    
+    def __SelectWeekdaysHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.__editor_pattern.Pattern['Days'] = \
+                [
+                    'Monday',
+                    'Tuesday',
+                    'Wednesday',
+                    'Thursday',
+                    'Friday'
+                ]
+            for d in self.__btns_days:
+                if d in self.__editor_pattern.Pattern['Days']:
+                    self.__btns_days[d].SetState(1)
+                else: 
+                    self.__btns_days[d].SetState(0)
+            self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
+            button.SetState(0)
+    
+    def __TimeEditHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            if button.mode == 'hr':
+                currentVal = self.__lbls_time['hr'].Value
+                if button.fn == 'up':
+                    if currentVal >= 12:
+                        self.__lbls_time['hr'].Value = 1
+                    else:
+                        self.__lbls_time['hr'].Value = currentVal + 1
+                elif button.fn == 'down':
+                    if currentVal <= 1:
+                        self.__lbls_time['hr'].Value = 12
+                    else:
+                        self.__lbls_time['hr'].Value = currentVal - 1
+                strVal = '{:02d}'.format(self.__lbls_time['hr'].Value)
+                self.__lbls_time['hr'].SetText(strVal)
+                self.__editor_pattern.Pattern['Time']['hr'] = strVal
+            elif button.mode == 'min':
+                currentVal = self.__lbls_time['min'].Value
+                if button.fn == 'up':
+                    if currentVal >= 59:
+                        self.__lbls_time['min'].Value = 1
+                    else:
+                        self.__lbls_time['min'].Value = currentVal + 1
+                elif button.fn == 'down':
+                    if currentVal <= 0:
+                        self.__lbls_time['min'].Value = 59
+                    else:
+                        self.__lbls_time['min'].Value = currentVal - 1
+                strVal = '{:02d}'.format(self.__lbls_time['min'].Value)
+                self.__lbls_time['min'].SetText(strVal)
+                self.__editor_pattern.Pattern['Time']['min'] = strVal
+            self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
+            button.SetState(0)
                 
+    def __AMPMEditHandler(self, button: 'Button', action: str):
+        self.__btns_ampm.SetCurrent(button)
+        self.__editor_pattern.Pattern['Time']['ampm'] = button.Value
+        self.__editor_pattern.SetText(self.__PatternToText(self.__editor_pattern.Pattern))
+
+    def __EditorSaveHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            pat = self.__editor_pattern.Pattern
+            pat['Days'].sort(key = self.__SortWeekdays)
+            if self.__editor_pattern.Mode == 'start':
+                self.__pattern_start.Pattern = pat
+                self.__UpdatePattern('start')
+            elif self.__editor_pattern.Mode == 'shutdown':
+                self.__pattern_shutdown.Pattern = pat
+                self.__UpdatePattern('shutdown')
+            self.__SaveSchedule()
+            self.UIHost.HidePopup(self.__edit_modal)
+            button.SetState(0)
+        
+    def __EditorCancelHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.UIHost.HidePopup(self.__edit_modal)
+            button.SetState(0)
+    
+    ## Private Methods ---------------------------------------------------------
     def __UpdatePattern(self, Mode: str=None):
         if Mode == 'start' or Mode is None:
             if self.__pattern_start.Pattern is not None:
@@ -426,14 +463,16 @@ class AutoScheduleController:
             self.__toggle_shutdown.SetState(0)
             self.__AutoShutdownClock.Disable()
         
-        # DEBUG: There is an issue with the button instnace in self.UIHost.Btns doesn't match the button instance in self.__activity_start
-        try:
-            self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
-        except ValueError:
-            Log('Button Object Not Found in MESet. Finding by Name instead.', level='warning')
-            for obj in self.__activity_start.Objects:
-                if obj.Name == 'Schedule-Start-Act-{}'.format(self.__pattern_start.Activity):
-                    self.__activity_start.SetCurrent(obj)
+        self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
+        # I believe this is resolved and was a result of running BuildButtons twice when calling BuildAll
+        # # DEBUG: There is an issue with the button instnace in self.UIHost.Btns doesn't match the button instance in self.__activity_start
+        # try:
+        #     self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
+        # except ValueError:
+        #     Log('Button Object Not Found in MESet. Finding by Name instead.', level='warning')
+        #     for obj in self.__activity_start.Objects:
+        #         if obj.Name == 'Schedule-Start-Act-{}'.format(self.__pattern_start.Activity):
+        #             self.__activity_start.SetCurrent(obj)
         
         self.__AutoStartClock.SetDays(self.__pattern_start.Pattern['Days'])
         self.__AutoStartClock.SetTimes([self.__ClockTime(self.__pattern_start.Pattern['Time'])])
@@ -476,6 +515,8 @@ class AutoScheduleController:
             self.GUIHost.ActCtl.SystemStart(self.__pattern_start.Activity)
         elif self.GUIHost.ActCtl.CurrentActivity != self.__pattern_start.Activity:
             self.GUIHost.ActCtl.SystemSwitch(self.__pattern_start.Activity)
+        else:
+            pass # The system is already configured in the desired state
     
     def __SortWeekdays(self, Day):
         if Day == 'Monday':
@@ -515,10 +556,10 @@ class AutoScheduleController:
         if self.UIHost.TechCtl.TechMenuOpen:
             self.UIHost.TechCtl.CloseTechMenu()
     
-    def __SplashPageInactivityHandler(self):
-        if self.GUIHost.ActCtl.CurrentActivity == 'off':
-            self.UIHost.Click()
-            self.UIHost.ShowPage('Splash')
+    # def __SplashPageInactivityHandler(self):
+    #     if self.GUIHost.ActCtl.CurrentActivity == 'off':
+    #         self.UIHost.Click()
+    #         self.UIHost.ShowPage('Splash')
     
     def __SystemInactivityHandler(self):
         self.GUIHost.ActCtl.StartShutdownConfirmation(click=True)

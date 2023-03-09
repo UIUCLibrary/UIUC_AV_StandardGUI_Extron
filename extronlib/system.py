@@ -1,3 +1,6 @@
+import sys
+TESTING = ('unittest' in sys.modules.keys())
+
 from typing import Dict, Tuple, List, NamedTuple, Union, Callable, Any
 from datetime import datetime
 import re
@@ -60,10 +63,10 @@ class File:
     def __init__(self, Filename: str, mode: str='r', encoding: str=None, newline: str=None) -> None:
         self.FileName = Filename
         
-        re_str = r"[rwa]{1}\+?([bt]?)"
+        re_str = r'[rwax]{1}\+?([bt]?)'
         re_match = re.match(re_str, mode)
         if not re_match:
-            raise ValueError("Open mode is not a valid value")
+            raise ValueError("Open mode ({}) is not a valid value".format(mode))
 
         if re_match.group(1) == '':
             self._binary = False
@@ -81,10 +84,19 @@ class File:
             self._enc = 'ascii'
         self._new_line = newline
         
-        self._file_object = open('{path}{file}'.format(path=self._get_path(), file=self.FileName),
-                  mode= self._mode,
-                  encoding= self._enc,
-                  newline= self._new_line)
+        if self.FileName.startswith('/'):
+            self._file_object = open('{path}{file}'.format(path=self._pathroot, file=self.FileName),
+                                     mode= self._mode,
+                                     encoding= self._enc,
+                                     newline= self._new_line)
+        elif self.FileName.startswith('../'):
+            pass
+            # TODO: figure out going up a level when possible
+        elif self.FileName.startswith('./'):
+            self._file_object = open('{path}{file}'.format(path=self._get_path(), file=self.FileName[2:]),
+                                     mode= self._mode,
+                                     encoding= self._enc,
+                                     newline= self._new_line)
         
     
     @classmethod
@@ -335,7 +347,10 @@ class MESet:
                                     extronlib.interface.SWACReceptacleInterface,
                                     extronlib.interface.SWPowerInterface,
                                     extronlib.interface.TallyInterface]:
-        return self.Objects[self._activeIndex]
+        if self._activeIndex is None:
+            return None
+        else:
+            return self.Objects[self._activeIndex]
     
     def Remove(self, obj: Union[extronlib.ui.Button,
                                 extronlib.interface.DigitalIOInterface,
@@ -361,7 +376,9 @@ class MESet:
                                     extronlib.interface.SWACReceptacleInterface,
                                     extronlib.interface.SWPowerInterface,
                                     extronlib.interface.TallyInterface]) -> None:
-        if type(obj) == int:
+        if obj is None:
+            self._activeIndex = None
+        elif type(obj) is int:
             self._activeIndex = obj
         else:
             self._activeIndex = self.Objects.index(obj)
@@ -592,36 +609,52 @@ class Timer:
 #         self._currentTime = self.Time
     
 import time, numbers, extronlib.services.WaitService as _ext3969ron__WaitService, threading as _ext3969ron__threading, logging as _ext3969ron__logging #, eup.services.Const as _ext3969ron__Const
+import sys, functools
+TESTING = ('unittest' in sys.modules.keys())
 
 class Wait:
 
     def __init__(self, Time, Function=None):
-        if Function is not None and not callable(Function):
-            raise TypeError('Function parameter is not a callable object')
-        if not isinstance(Time, numbers.Real) or Time < 0:
-            _ext3969ron__logging.error('Wrong Time Type')
-            raise TypeError('Invalid Time Type')
-        self.expireSeconds = Time
-        self.currentExpireTime = time.monotonic() + self.expireSeconds
-        self.expireCb = None
-        self.args = None
-        self.rlock = _ext3969ron__threading.RLock()
-        self.name = self.__class__.__name__
-        self.state = ''
-        if Function:
-            self.name += '.' + Function.__name__
-            self.expireCb = Function
-            self._Wait__add()
+        if TESTING:
+            if Function is not None and not callable(Function):
+                raise TypeError('Function parameter is not a callable object')
+            if not isinstance(Time, numbers.Real) or Time < 0:
+                raise TypeError('Invalid Time Type')
+            # @functools.wraps(Function)
+            # def wrapper(*args, **kwargs):
+            #     Function(*args, **kwargs)
+                
+            # self.wrapper = wrapper
+        else:
+            if Function is not None and not callable(Function):
+                raise TypeError('Function parameter is not a callable object')
+            if not isinstance(Time, numbers.Real) or Time < 0:
+                _ext3969ron__logging.error('Wrong Time Type')
+                raise TypeError('Invalid Time Type')
+            self.expireSeconds = Time
+            self.currentExpireTime = time.monotonic() + self.expireSeconds
+            self.expireCb = None
+            self.args = None
+            self.rlock = _ext3969ron__threading.RLock()
+            self.name = self.__class__.__name__
+            self.state = ''
+            if Function:
+                self.name += '.' + Function.__name__
+                self.expireCb = Function
+                self._Wait__add()
 
     @classmethod
     def mro(cls):
         raise NotImplementedError()
 
     def __call__(self, Function):
-        self.name += '.' + Function.__name__
-        self.expireCb = Function
-        self._Wait__add()
-        return Function
+        if TESTING:
+            return Function
+        else:
+            self.name += '.' + Function.__name__
+            self.expireCb = Function
+            self._Wait__add()
+            return Function
 
     def __add(self):
         with self.rlock:
@@ -998,13 +1031,29 @@ def ProgramLog(Entry: str, Severity: str = 'error') -> None:
     
     dt = datetime.now()
     if Severity == 'error':
-        _ProgramLog += '[{t}] ERROR - {e}\n'.format(t = dt.isoformat(), e=Entry)
+        LogStatement = '[{t}] ERROR - {e}\n'.format(t = dt.isoformat(), e=Entry)
     elif Severity == 'warning':
-        _ProgramLog += '[{t}] WARNING - {e}\n'.format(t = dt.isoformat(), e=Entry)
+        LogStatement = '[{t}] WARNING - {e}\n'.format(t = dt.isoformat(), e=Entry)
     elif Severity == 'info':
-        _ProgramLog += '[{t}] INFO - {e}\n'.format(t = dt.isoformat(), e=Entry)
+        LogStatement = '[{t}] INFO - {e}\n'.format(t = dt.isoformat(), e=Entry)
     else:
         raise ValueError("Severity must be either 'error', 'warning', or 'info'")
+
+    _ProgramLog += LogStatement
+    if TESTING:
+        log =  open('.\TEST_LOG.log', 'at')
+        log.write(LogStatement)
+        log.close()
+    else:
+        print(LogStatement)
+    
+def _ReadProgramLog():
+    global _ProgramLog
+    return _ProgramLog
+
+def _ClearProgramLog():
+    global _ProgramLog
+    _ProgramLog = ''
 
 def SaveProgramLog(path: Union[File, str]=None) -> None:
     """Save the ProgramLog to the specified User file system location.
@@ -1017,6 +1066,7 @@ def SaveProgramLog(path: Union[File, str]=None) -> None:
 
     Parameters:	path (File or string) – The file path to save the log to.
     """
+    global _ProgramLog
     if path == None:
         dt = datetime.now()
         path = 'ProgramLog {year}-{month}-{day} {hr}{min}{sec}.txt'.format(

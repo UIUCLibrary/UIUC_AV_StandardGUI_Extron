@@ -20,7 +20,8 @@ class ExProcessorDevice(ProcessorDevice):
 class GUIController:
     errorMap = \
         {
-            'E1': '{} must be a string device alias or a list of string device alaises. {} ({}) provided'
+            'E1': '{} must be a string device alias or a list of string device alaises. {} ({}) provided',
+            'E2': 'No valid control processors provided.'
         }
     
     def __init__(self, 
@@ -29,6 +30,9 @@ class GUIController:
                  TouchPanels: Union[str, List]=None,
                  ButtonPanels: Union[str, List]=None) -> None:
         ## Begin Settings Properties -------------------------------------------
+        
+        Log('CtlProcs: {}'.format(CtlProcs))
+        Log('TouchPanels: {}'.format(TouchPanels))
         
         self.CtlJSON = Settings.ctlJSON
         self.RoomName = Settings.roomName
@@ -78,7 +82,7 @@ class GUIController:
                                                    type(CtlProcs)))
 
         if len(self.CtlProcs) == 0:
-            raise ValueError('No valid control processors provided.')
+            raise ValueError(type(self).GetErrorStr('E2'))
         elif hasattr(Settings, 'primaryProcessor'):
             self.CtlProc_Main = [proc for proc in self.CtlProcs if proc.Id == Settings.primaryProcessor][0]
         else:
@@ -143,9 +147,9 @@ class GUIController:
         pass
 
     def SwitchActions(self) -> None:
-        self.SrcCtl.ShowSelectedSource()
         for tp in self.TPs:
-            tp.SrcCtl.UpdateSourceMenu()
+            tp.SrcCtl.ShowSelectedSource()
+            # tp.SrcCtl.UpdateSourceMenu()
 
     def SwitchSyncedActions(self, count: int) -> None:
         pass

@@ -1,27 +1,100 @@
 import unittest
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import GUIController, ExProcessorDevice
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.systemHardware import SystemPollingController, SystemHardwareController
+import sys
 import settings
+del sys.modules['settings']
+import settings as settings_no_primary
 
 from extronlib.device import ProcessorDevice, UIDevice
 ## -----------------------------------------------------------------------------
+
+class ExProcessorDevice_TestClass(unittest.TestCase):
+    def test_ExProcessorDevice_Init(self):
+        try:
+            testProc = ExProcessorDevice('CTL001')
+        except Exception as inst:
+            self.fail("Creating ExProcessorDevice raised {} unexpectedly!".format(type(inst)))
+            
+        self.assertIsInstance(testProc, ExProcessorDevice)
+        self.assertIsInstance(testProc, ProcessorDevice)
+        
+    def test_ExProcessorDevice_Properties(self):
+        testProc = ExProcessorDevice('CTL001')
+        # Id
+        self.assertIsInstance(testProc.Id, str)
+        self.assertEqual(testProc.Id, 'CTL001')
 
 class GUIController_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         print('Setting Up')
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+
+        if hasattr(settings_no_primary, 'primaryProcessor'):
+            delattr(settings_no_primary, 'primaryProcessor')
+        if hasattr(settings_no_primary, 'primaryTouchPanel'):
+            delattr(settings_no_primary, 'primaryTouchPanel')
+        self.settingsList = [settings, settings_no_primary]
+        
         return super().setUp()
     
-    def test_GUIController_Type(self):
+    
+    def InitializeController(self):
+        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestController.Initialize()
+    
+    def test_GUIController_Init_Lists(self):        
+        for i in range(len(self.settingsList)):
+            with self.subTest(i=i):
+                try:
+                    TestController = GUIController(self.settingsList[i], self.TestCtls, self.TestTPs)
+                except Exception as inst:
+                    self.fail("Creating GUICOntroller raised {} unexpectedly!".format(type(inst)))
+        
+                self.assertIsInstance(TestController, GUIController)
+    
+    def test_GUIController_Init_Strings(self):        
+        for i in range(len(self.settingsList)):
+            with self.subTest(i=i):
+                try:
+                    TestController = GUIController(self.settingsList[i], self.TestCtls[0], self.TestTPs[0])
+                except Exception as inst:
+                    self.fail("Creating GUICOntroller raised {} unexpectedly!".format(type(inst)))
+        
+                self.assertIsInstance(TestController, GUIController)
+                
+    def test_GUIController_Init_NoTPs(self):
         try:
-            self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
+            TestController = GUIController(settings, self.TestCtls, [])
         except Exception as inst:
             self.fail("Creating GUICOntroller raised {} unexpectedly!".format(type(inst)))
+
+        self.assertIsInstance(TestController, GUIController)
     
+    def test_GUIController_Init_Failure_EmptyCtlList(self):
+        with self.assertRaises(ValueError):
+            GUIController(settings, [], self.TestTPs[0])
+            
+    def test_GUIController_Init_Failure_BadTypeCtl(self):
+        with self.assertRaises(TypeError):
+            GUIController(settings, 1, self.TestTPs[0])
+            
+    def test_GUIController_Init_Failure_BadTypeCtlList(self):
+        with self.assertRaises(TypeError):
+            GUIController(settings, [1], self.TestTPs[0])
+            
+    def test_GUIController_Init_Failure_BadTypeTP(self):
+        with self.assertRaises(TypeError):
+            GUIController(settings, self.TestCtls[0], 1)
+            
+    def test_GUIController_Init_Failure_BadTypeTPList(self):
+        with self.assertRaises(TypeError):
+            GUIController(settings, self.TestCtls[0], [1])
+            
     def test_GUIController_Properties(self):
         self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
         
@@ -107,6 +180,7 @@ class GUIController_TestClass(unittest.TestCase):
         self.assertIsInstance(self.TestController.CtlProcs, list)
         for ctl in self.TestController.CtlProcs:
             with self.subTest(i=ctl):
+                self.assertIsInstance(ctl, ExProcessorDevice)
                 self.assertIsInstance(ctl, ProcessorDevice)
         
         # CtlProc_Main
@@ -133,17 +207,9 @@ class GUIController_TestClass(unittest.TestCase):
         # TP_Main
         self.assertIsInstance(self.TestController.TP_Main, ExUIDevice)
         self.assertIsInstance(self.TestController.TP_Main, UIDevice)
-    
-    def test_GUIController_Initilize(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        try:
-            self.TestController.Initialize()
-        except Exception as inst:
-            self.fail("Initialize raised {} unexpectedly!".format(type(inst)))
         
     def test_GUIController_StartupActions(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        self.TestController.Initialize()
+        self.InitializeController()
         
         try:
             self.TestController.StartupActions()
@@ -151,8 +217,7 @@ class GUIController_TestClass(unittest.TestCase):
             self.fail("StartupActions raised {} unexpectedly!".format(type(inst)))
     
     def test_GUIController_StartupSyncedActions(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        self.TestController.Initialize()
+        self.InitializeController()
         
         counts = [1, 5, 15, 30]
         
@@ -164,8 +229,7 @@ class GUIController_TestClass(unittest.TestCase):
                     self.fail("StartupActions ({}) raised {} unexpectedly!".format(i, type(inst)))
                     
     def test_GUIController_SwitchActions(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        self.TestController.Initialize()
+        self.InitializeController()
         
         try:
             self.TestController.SwitchActions()
@@ -173,8 +237,7 @@ class GUIController_TestClass(unittest.TestCase):
             self.fail("SwitchActions raised {} unexpectedly!".format(type(inst)))
     
     def test_GUIController_SwitchSyncedActions(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        self.TestController.Initialize()
+        self.InitializeController()
         
         counts = [1, 5, 15, 30]
         
@@ -186,8 +249,7 @@ class GUIController_TestClass(unittest.TestCase):
                     self.fail("SwitchActions ({}) raised {} unexpectedly!".format(i, type(inst)))
                     
     def test_GUIController_ShutdownActions(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        self.TestController.Initialize()
+        self.InitializeController()
         
         try:
             self.TestController.ShutdownActions()
@@ -195,8 +257,7 @@ class GUIController_TestClass(unittest.TestCase):
             self.fail("ShutdownActions raised {} unexpectedly!".format(type(inst)))
     
     def test_GUIController_ShutdownSyncedActions(self):
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
-        self.TestController.Initialize()
+        self.InitializeController()
         
         counts = [1, 5, 15, 30]
         

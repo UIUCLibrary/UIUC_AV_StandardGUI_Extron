@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
 
 ## Begin ControlScript Import --------------------------------------------------
@@ -163,7 +163,7 @@ class ExUIDevice(UIDevice):
                 button information. Defaults to "".
 
         Raises:
-            ValueError: if specified fileat jsonPath does not exist
+            ValueError: if specified file at jsonPath does not exist
             ValueError: if neither jsonObj or jsonPath are specified
         """
         
@@ -182,36 +182,19 @@ class ExUIDevice(UIDevice):
         
         ## format button info into self.Btns
         for button in jsonObj['buttons']:
-            ## only sets holdTime or repeatTime for non null/None values
-            # if button['holdTime'] == None and button['repeatTime'] == None:
-            #     self.Btns[button['Name']] = Button(self, button['ID'])
-            # elif button['holdTime'] != None and button['repeatTime'] == None:
-            #     self.Btns[button['Name']] = Button(self, button['ID'],
-            #                                         holdTime = button['holdTime'])
-            #     self.Btns[button['Name']].holdTime = button['holdTime']
-            # elif button['holdTime'] == None and button['repeatTime'] != None:
-            #     self.Btns[button['Name']] = Button(self, button['ID'], 
-            #                                         repeatTime = button['repeatTime'])
-            #     self.Btns[button['Name']].repeatTime = button['repeatTime']
-            # elif button['holdTime'] != None and button['repeatTime'] != None:
-            #     self.Btns[button['Name']] = Button(self, button['ID'],
-            #                                         holdTime = button['holdTime'],
-            #                                         repeatTime = button['repeatTime'])
-            #     self.Btns[button['Name']].holdTime = button['holdTime']
-            #     self.Btns[button['Name']].repeatTime = button['repeatTime']
             btnName = button['Name']
             button.pop('Name')
             self.Btns[btnName] = Button(self, **button)
             self.Btns[btnName].holdTime = button['holdTime']
             self.Btns[btnName].repeatTime = button['repeatTime']
                 
-            if TESTING is True:
+            if TESTING is True: # TODO: figure out how to make this work in the button class
                 self.Btns[btnName].Name = btnName
                 
             self.Btns[btnName].SetState(0)
             
             @event(self.Btns[btnName], 'Pressed')
-            def TempBtnHandler(button: 'Button', event: str):
+            def TempBtnHandler(button: 'Button', event: str): # pragma: no cover
                 Log('Unconfigured Press Action: {} ({}, {})'.format(button.Name, button.ID, button))
 
     def BuildButtonGroups(self,
@@ -266,7 +249,7 @@ class ExUIDevice(UIDevice):
                 knob information. Defaults to "".
 
         Raises:
-            ValueError: if specified fileat jsonPath does not exist
+            ValueError: if specified file at jsonPath does not exist
             ValueError: if neither jsonObj or jsonPath are specified
         """    
         
@@ -301,11 +284,8 @@ class ExUIDevice(UIDevice):
                 level information. Defaults to "".
 
         Raises:
-            ValueError: if specified fileat jsonPath does not exist
+            ValueError: if specified file at jsonPath does not exist
             ValueError: if neither jsonObj or jsonPath are specified
-
-        Returns:
-            Dict: Returns a dictionary containing Extron Level objects
         """    
         
         ## do not expect both jsonObj and jsonPath
@@ -340,11 +320,8 @@ class ExUIDevice(UIDevice):
                 slider information. Defaults to "".
 
         Raises:
-            ValueError: if specified fileat jsonPath does not exist
+            ValueError: if specified file at jsonPath does not exist
             ValueError: if neither jsonObj or jsonPath are specified
-
-        Returns:
-            Dict: Returns a dictionary containing Extron Slider objects
         """    
         
         ## do not expect both jsonObj and jsonPath
@@ -379,11 +356,8 @@ class ExUIDevice(UIDevice):
                 label information. Defaults to "".
 
         Raises:
-            ValueError: if specified fileat jsonPath does not exist
+            ValueError: if specified file at jsonPath does not exist
             ValueError: if neither jsonObj or jsonPath are specified
-
-        Returns:
-            Dict: Returns a dictionary of Extron Label objects
         """    
         
         ## do not expect both jsonObj and jsonPath

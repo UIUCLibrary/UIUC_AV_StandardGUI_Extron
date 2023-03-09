@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.systemHardware import SystemHardwareController

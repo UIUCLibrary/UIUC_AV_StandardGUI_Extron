@@ -2148,7 +2148,12 @@
         ]
       }
   ],
-  "knobs":[],
+  "knobs":[
+    {
+      "Name": "Volume",
+      "ID": 61001
+    }
+  ],
   "labels":[
     {
       "Name": "PIN-Label",

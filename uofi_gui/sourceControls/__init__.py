@@ -1,21 +1,12 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
 
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
-
-print(Version()) ## Sanity check ControlScript Import
+from extronlib import event
+from extronlib.ui import Button
+from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
@@ -44,22 +35,6 @@ MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
 class SourceController:
     def __init__(self, UIHost: 'ExUIDevice') -> None:
-        """Initializes Source Switching module
-
-        Args:
-            UIHost (extronlib.device): UIHost to which the buttons are assigned
-            sourceBtns (extronlib.system.MESet): MESet of source buttons
-            sourceInds (extronlib.system.MESet): MESet of source indicators
-            arrowBtns (List[extronlib.ui.Button]): List of arrow button objects, 0
-                must be previous/left button and 1 must be next/right button
-            advDest (Dict[str, Dict[str, Unions[extronlib.ui.Label, extronlib.ui.Button]]]):
-                Dictionary of dictionaries containing advanced switching labels and
-                buttons
-            sources (List): list of source information
-            destinations (List): list of destination information
-        """
-        
-        # TODO: Figure out communicating source switch feedback across UIHost.SrcCtls
         
         # Public Properties
         # Log('Set Public Properties')
@@ -109,21 +84,21 @@ class SourceController:
         
         # Private Properties
         # Log('Set Private Properties')
-        self._sourceBtns = self.UIHost.Btn_Grps['Source-Select']
-        self._sourceInds = self.UIHost.Btn_Grps['Source-Indicator']
-        self._arrowBtns = \
+        self.__SourceBtns = self.UIHost.Btn_Grps['Source-Select']
+        self.__SourceInds = self.UIHost.Btn_Grps['Source-Indicator']
+        self.__ArrowBtns = \
             [
                 self.UIHost.Btns['SourceMenu-Prev'],
                 self.UIHost.Btns['SourceMenu-Next']
             ]
-        self._privacyBtn = self.UIHost.Btns['Privacy-Display-Mute']
-        self._sndToAllBtn = self.UIHost.Btns['Send-To-All']
-        self._rtnToGrpBtn = self.UIHost.Btns['Return-To-Group']
-        self._offset = 0
-        self._advLayout = self.GetAdvShareLayout()
-        self._none_source = Source(self, 'none', 'None', 0, 0, None, None)
+        self.__PrivacyBtn = self.UIHost.Btns['Privacy-Display-Mute']
+        self.__SendToAllBtn = self.UIHost.Btns['Send-To-All']
+        self.__ReturnToGroupBtn = self.UIHost.Btns['Return-To-Group']
+        self.__Offset = 0
+        self.__AdvLayout = self.GetAdvShareLayout()
+        self.BlankSource = Source(self, 'none', 'None', 0, 0, None, None)
         #self._DisplaySrcList = self.UpdateDisplaySourceList()
-        self._Matrix = MatrixController(self,
+        self.__Matrix = MatrixController(self,
                                         DictValueSearchByKey(self.UIHost.Btns, r'Tech-Matrix-\d+,\d+', regex=True),
                                         self.UIHost.Btn_Grps['Tech-Matrix-Mode'],
                                         self.UIHost.Btns['Tech-Matrix-DeleteTies'],
@@ -131,147 +106,146 @@ class SourceController:
                                         DictValueSearchByKey(self.UIHost.Lbls, r'MatrixLabel-Out-\d+', regex=True))
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
-            dest.AssignAdvUI(self._GetUIForAdvDest(dest))
+            dest.AssignAdvUI(self.__GetUIForAdvDest(dest))
             
         self.MatrixSwitch(0, 'All', 'untie')
         
         # Configure Source Selection Buttons
         # Log('Create Class Events')
-        @event(self._sourceBtns.Objects, 'Pressed')
-        def sourceBtnHandler(button: 'Button', action: str):
-            self.UIHost.Lbls['SourceAlertLabel'].SetText('')
-            
-            # capture last character of button.Name and convert to index
-            btnIndex = int(button.Name[-1:]) - 1
-            
-            # Update button state
-            self._sourceBtns.SetCurrent(button)
-            
-            # Update source indicator
-            self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
+        @event(self.__SourceBtns.Objects, 'Pressed') # pragma: no cover
+        def SourceBtnHandler(button: 'Button', action: str):
+            self.__SourceBtnHandler(button, action)
 
-            # Get Source Index, Update Selected Source Object
-            srcIndex = btnIndex + self._offset
-            self.SelectSource(self._DisplaySrcList[srcIndex])
+        @event(self.__ArrowBtns, 'Pressed') # pragma: no cover
+        def SourcePageHandler(button: 'Button', action: str):
+            self.__SourcePageHandler(button, action)
 
-            # advanced share doesn't switch until destination has been selected
-            # all other activities switch immediately
-            if self.GUIHost.ActCtl.CurrentActivity != "adv_share":
-                if self.GUIHost.ActCtl.CurrentActivity == 'share':
-                    self.SwitchSources(self.SelectedSource)
-                elif self.GUIHost.ActCtl.CurrentActivity == 'group_work':
-                    self.SwitchSources(self.SelectedSource, [self.PrimaryDestination])
-                    
-                page = self.SelectedSource.SourceControlPage 
-                if page == 'PC':
-                    page = '{p}_{c}'.format(p=page, c=len(self.GUIHost.Cameras))
-                elif page == 'WPD':
-                    PodFeedbackHelper(self.UIHost, self.SelectedSource.Id, blank_on_fail=True)
-                
-                self.UIHost.ShowPopup("Source-Control-{}".format(page))
-
-        @event(self._arrowBtns, 'Pressed')
-        def sourcePageHandler(button: 'Button', action: str):
-            # capture last 4 characters of button.Name
-            btnAction = button.Name[-4:]
-            # determine if we are adding or removing offset
-            if btnAction == "Prev":
-                if self._offset > 0:
-                    self._offset -= 1
-            elif btnAction == "Next":
-                if (self._offset + 5) < len(self._DisplaySrcList):
-                    self._offset += 1
-            # update the displayed source menu
-            self.UpdateSourceMenu()
-
-        @event(self.UIHost.Btns['Modal-Close'], 'Pressed')
-        def modalCloseHandler(button: 'Button', action: str):
-            self.UIHost.HidePopup('Modal-SrcCtl-WPD')
-            self.UIHost.HidePopup('Modal-SrcCtl-Camera')
-            self.UIHost.HidePopup('Modal-SrcErr')
-            self.UIHost.HidePopup('Modal-ScnCtl')
-            self.OpenControlPopup = None
+        @event(self.UIHost.Btns['Modal-Close'], 'Pressed') # pragma: no cover
+        def ModalCloseHandler(button: 'Button', action: str):
+            self.__ModalCloseHandler(button, action)
             
-        @event(self._privacyBtn, 'Pressed')
+        @event(self.__PrivacyBtn, 'Pressed') # pragma: no cover
         def PrivacyHandler(button: 'Button', action: str):
             self.TogglePrivacy()
     
-        @event(self._sndToAllBtn, ['Pressed', 'Released'])
+        @event(self.__SendToAllBtn, ['Pressed', 'Released']) # pragma: no cover
         def SendToAllHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.SwitchSources(self.SelectedSource)
-                @Wait(3)
-                def SendToAllBtnFeedbackWait():
-                    button.SetState(0)
+            self.__SendToAllHandler(button, action)
                     
-        @event(self._rtnToGrpBtn, ['Pressed', 'Released'])
+        @event(self.__ReturnToGroupBtn, ['Pressed', 'Released']) # pragma: no cover
         def ReturnToGroupHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.SelectSource(self.PrimaryDestination.GroupWorkSource)
-                for dest in self.Destinations:
-                    self.SwitchSources(dest.GroupWorkSource, [dest])
-                
-                @Wait(3)
-                def SendToAllBtnFeedbackWait():
-                    button.SetState(0)
+            self.__ReturnToGroupHandler(button, action)
                     
-        @event(self.UIHost.Btns['WPD-ClearPosts'], ['Pressed', 'Released'])
+        @event(self.UIHost.Btns['WPD-ClearPosts'], ['Pressed', 'Released']) # pragma: no cover
         def WPDClearPostsHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
-                    curHW = self.GUIHost.Hardware[self.SelectedSource.Id]
-                else:
-                    curHW = self.GUIHost.Hardware[self.OpenControlPopup['source'].Id]
+            self.__WPDClearPostsHandler(button, action)
                 
-                curHW.interface.Set('ClearPosts', value=None, qualifier={'hw': curHW})
-                
-        @event(self.UIHost.Btns['WPD-ClearAll'], ['Pressed', 'Released'])
+        @event(self.UIHost.Btns['WPD-ClearAll'], ['Pressed', 'Released']) # pragma: no cover
         def WPDClearAllHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
-                    curHW = self.GUIHost.Hardware[self.SelectedSource.Id]
-                else:
-                    curHW = self.GUIHost.Hardware[self.OpenControlPopup['source'].Id]
-                
-                curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
-                
-    def SourceAlertHandler(self) -> None:
-        # Log('Checking Alerts for Src ({})'.format(self.SelectedSource.Name))
-        # Does currently selected source have an alert flag
-        if self.SelectedSource.AlertFlag:
-            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
-            txt = self.SelectedSource.AlertText
-            # Log('Text to set: {} ({})'.format(txt, type(txt)))
-            self.UIHost.Lbls['SourceAlertLabel'].SetText(txt)
-        else:
-            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
-            self.UIHost.Lbls['SourceAlertLabel'].SetText('')
+            self.__WPDClearAllHandler(button, action)
     
-    def _GetUIForAdvDest(self, dest: Destination) -> Dict[str, Button]:
-        """Get Advanced Display button objects for a given destination ID
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __SourceBtnHandler(self, button: 'Button', action: str):
+        self.UIHost.Lbls['SourceAlertLabel'].SetText('')
+        
+        # capture last character of button.Name and convert to index
+        btnIndex = int(button.Name[-1:]) - 1
+        
+        # Update button state
+        self.__SourceBtns.SetCurrent(button)
+        
+        # Update source indicator
+        self.__SourceInds.SetCurrent(self.__SourceInds.Objects[btnIndex])
 
-        Args:
-            dest (Destination): Destination object to lookup
+        # Get Source Index, Update Selected Source Object
+        srcIndex = btnIndex + self.__Offset
+        self.SelectSource(self._DisplaySrcList[srcIndex])
 
-        Raises:
-            LookupError: raised when destination is not found in destinations
-            KeyError: raised if the buttons could not be found in the dict of
-                available buttons
-
-        Returns:
-            Dict[str, extronlib.ui.Button]: Dictionary containing the button objects for
-                the specified destination
-        """     
+        # advanced share doesn't switch until destination has been selected
+        # all other activities switch immediately
+        if self.GUIHost.ActCtl.CurrentActivity != "adv_share":
+            if self.GUIHost.ActCtl.CurrentActivity == 'share':
+                self.SwitchSources(self.SelectedSource)
+            elif self.GUIHost.ActCtl.CurrentActivity == 'group_work':
+                self.SwitchSources(self.SelectedSource, [self.PrimaryDestination])
+                
+            page = self.SelectedSource.SourceControlPage 
+            if page == 'PC':
+                page = '{p}_{c}'.format(p=page, c=len(self.GUIHost.Cameras))
+            elif page == 'WPD':
+                PodFeedbackHelper(self.UIHost, self.SelectedSource.Id, blank_on_fail=True)
+            
+            self.UIHost.ShowPopup("Source-Control-{}".format(page))
+    
+    def __SourcePageHandler(self, button: 'Button', action: str):
+        # capture last 4 characters of button.Name
+        btnAction = button.Name[-4:]
+        # determine if we are adding or removing offset
+        if btnAction == "Prev":
+            if self.__Offset > 0:
+                self.__Offset -= 1
+        elif btnAction == "Next":
+            if (self.__Offset + 5) < len(self._DisplaySrcList):
+                self.__Offset += 1
+        # update the displayed source menu
+        self.UpdateSourceMenu()
+            
+    def __ModalCloseHandler(self, button: 'Button', action: str):
+        self.UIHost.HidePopup('Modal-SrcCtl-WPD')
+        self.UIHost.HidePopup('Modal-SrcCtl-Camera')
+        self.UIHost.HidePopup('Modal-SrcErr')
+        self.UIHost.HidePopup('Modal-ScnCtl')
+        self.OpenControlPopup = None
+            
+    def __SendToAllHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.SwitchSources(self.SelectedSource)
+            @Wait(3)
+            def SendToAllBtnFeedbackWait():
+                button.SetState(0)
+        
+    def __ReturnToGroupHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.SelectSource(self.PrimaryDestination.GroupWorkSource)
+            for dest in self.Destinations:
+                self.SwitchSources(dest.GroupWorkSource, [dest])
+            
+            @Wait(3)
+            def SendToAllBtnFeedbackWait():
+                button.SetState(0)
+    
+    def __WPDClearPostsHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
+                curHW = self.GUIHost.Hardware[self.SelectedSource.Id]
+            else:
+                curHW = self.GUIHost.Hardware[self.OpenControlPopup['source'].Id]
+            
+            curHW.interface.Set('ClearPosts', value=None, qualifier={'hw': curHW})
+    
+    def __WPDClearAllHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
+                curHW = self.GUIHost.Hardware[self.SelectedSource.Id]
+            else:
+                curHW = self.GUIHost.Hardware[self.OpenControlPopup['source'].Id]
+            
+            curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
+                
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __GetUIForAdvDest(self, dest: Destination) -> Dict[str, Button]:
         
         destDict = {}
         
@@ -293,10 +267,24 @@ class SourceController:
         except:
             raise KeyError("At least one destination button not found.")
     
-    def _GetPositionByBtnName(self, btnName: str) -> LayoutTuple:
+    def __GetPositionByBtnName(self, btnName: str) -> LayoutTuple:
         btnLoc = btnName[-3:]
         btnPR = btnLoc.split(',')
         return LayoutTuple(Row = btnPR[1], Pos = btnPR[0])
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def SourceAlertHandler(self) -> None:
+        # Log('Checking Alerts for Src ({})'.format(self.SelectedSource.Name))
+        # Does currently selected source have an alert flag
+        if self.SelectedSource is not None and self.SelectedSource.AlertFlag:
+            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
+            txt = self.SelectedSource.AlertText
+            # Log('Text to set: {} ({})'.format(txt, type(txt)))
+            self.UIHost.Lbls['SourceAlertLabel'].SetText(txt)
+        else:
+            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
+            self.UIHost.Lbls['SourceAlertLabel'].SetText('')
     
     def TogglePrivacy(self) -> None:
         # Log('Toggle Privacy', stack=True)
@@ -308,7 +296,7 @@ class SourceController:
     def SetPrivacyOn(self) -> None:
         # Log('Privacy On', stack=True)
         self.Privacy = True
-        self._privacyBtn.SetBlinking('medium', [1,2])
+        self.__PrivacyBtn.SetBlinking('Medium', [1,2])
         for d in self.Destinations:
             if d._type != 'conf':
                 d.MuteDestination()
@@ -316,7 +304,7 @@ class SourceController:
     def SetPrivacyOff(self) -> None:
         # Log('Privacy Off', stack=True)
         self.Privacy = False
-        self._privacyBtn.SetState(0)
+        self.__PrivacyBtn.SetState(0)
         for d in self.Destinations:
             if d._type != 'conf':
                 d.UnmuteDestination()
@@ -392,7 +380,7 @@ class SourceController:
         for src in self.Sources:
             if src.Input == inputNum:
                 return src
-        return self._none_source
+        return self.BlankSource
     
     def GetSourceIndexByID(self, id: str) -> int:
         """Get Source Index from ID.
@@ -439,7 +427,7 @@ class SourceController:
         srcList = []
         
         if self.GUIHost.ActCtl.CurrentActivity == 'adv_share':
-            srcList.append(self._none_source)
+            srcList.append(self.BlankSource)
         srcList.extend(self.Sources)
         
         self._DisplaySrcList = srcList
@@ -452,62 +440,66 @@ class SourceController:
         
         self.UpdateDisplaySourceList()
         
-        offsetIter = self._offset
+        offsetIter = self.__Offset
         # Log('Source Control Offset - {}'.format(self._offset))
-        for btn in self._sourceBtns.Objects:
+        for btn in self.__SourceBtns.Objects:
             btn_to_config = self._DisplaySrcList[offsetIter]
             offState = int('{}0'.format(btn_to_config.Icon))
             onState = int('{}1'.format(btn_to_config.Icon))
-            self._sourceBtns.SetStates(btn, offState, onState)
+            self.__SourceBtns.SetStates(btn, offState, onState)
             btn.SetText(str(btn_to_config.Name))
             offsetIter += 1
-        self._sourceBtns.SetCurrent(None)
-        self._sourceInds.SetCurrent(None)
+        self.__SourceBtns.SetCurrent(None)
+        self.__SourceInds.SetCurrent(None)
         
         if len(self._DisplaySrcList) <= 5:
             self.UIHost.ShowPopup('Menu-Source-{}'.format(len(self._DisplaySrcList)))
         else:
             # enable/disable previous arrow
-            if self._offset == 0:
-                self._arrowBtns[0].SetEnable(False)
-                self._arrowBtns[0].SetState(2)
+            if self.__Offset == 0:
+                self.__ArrowBtns[0].SetEnable(False)
+                self.__ArrowBtns[0].SetState(2)
             else:
-                self._arrowBtns[0].SetEnable(True)
-                self._arrowBtns[0].SetState(0)
+                self.__ArrowBtns[0].SetEnable(True)
+                self.__ArrowBtns[0].SetState(0)
             # enable/disable next arrow
-            if (self._offset + 5) >= len(self._DisplaySrcList):
-                self._arrowBtns[1].SetEnable(False)
-                self._arrowBtns[1].SetState(2)
+            if (self.__Offset + 5) >= len(self._DisplaySrcList):
+                self.__ArrowBtns[1].SetEnable(False)
+                self.__ArrowBtns[1].SetState(2)
             else:
-                self._arrowBtns[1].SetEnable(True)
-                self._arrowBtns[1].SetState(0)
+                self.__ArrowBtns[1].SetEnable(True)
+                self.__ArrowBtns[1].SetState(0)
             
             self.UIHost.ShowPopup('Menu-Source-5+')
 
         # reset currently selected source
-        currentSourceIndex = self.GetSourceIndexByID(self.SelectedSource.Id)
+        if self.SelectedSource is not None:
+            currentSourceIndex = self.GetSourceIndexByID(self.SelectedSource.Id)
+        else:
+            currentSourceIndex = 0
         # Log('Current Source Index - {}'.format(currentSourceIndex))
         
-        btnIndex = currentSourceIndex - self._offset
+        btnIndex = currentSourceIndex - self.__Offset
         # Log('Button Index - {}'.format(btnIndex))
         # if btnIndex > 4:
         #     raise KeyError("Button Index Out of Range")
         
         if btnIndex >= 0 and btnIndex <= 4:
-            self._sourceBtns.SetCurrent(self._sourceBtns.Objects[btnIndex])
-            self._sourceInds.SetCurrent(self._sourceInds.Objects[btnIndex])
+            self.__SourceBtns.SetCurrent(self.__SourceBtns.Objects[btnIndex])
+            self.__SourceInds.SetCurrent(self.__SourceInds.Objects[btnIndex])
         
     def ShowSelectedSource(self) -> None:
         # Log('Show Selected Source', stack=True)
-        if len(self._DisplaySrcList) > 5:
+        if len(self._DisplaySrcList) > 5 and self.SelectedSource is not None:
             curSourceIndex = self._DisplaySrcList.index(self.SelectedSource)
             
-            if curSourceIndex < self._offset:
-                self._offset -= (self._offset - curSourceIndex)
-            elif curSourceIndex >= (self._offset + 5):
-                self._offset = curSourceIndex - 4
+            print('Current Source Index: {}'.format(curSourceIndex))
+            if curSourceIndex < self.__Offset:
+                self.__Offset -= (self.__Offset - curSourceIndex)
+            elif curSourceIndex >= (self.__Offset + 5):
+                self.__Offset = curSourceIndex - 4
             
-            self.UpdateSourceMenu()
+        self.UpdateSourceMenu()
     
     @RunAsync
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
@@ -529,7 +521,7 @@ class SourceController:
             for d in self.Destinations:
                 d.AssignSource(srcObj)
                 d._MatrixRow.MakeTie(srcObj.Input, 'AV')
-                self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None,
                                                     qualifier={'Input': srcObj.Input, 
                                                             'Output': d.Output,
@@ -542,7 +534,7 @@ class SourceController:
                     # Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
                     d.AssignSource(srcObj)
                     d._MatrixRow.MakeTie(srcObj.Input, 'AV')
-                    self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                    self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                         value=None,
                                                         qualifier={'Input': srcObj.Input, 
                                                                    'Output': d.Output,
@@ -554,7 +546,7 @@ class SourceController:
                     # Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
                     dObj.AssignSource(srcObj)
                     dObj._MatrixRow.MakeTie(srcObj.Input, 'AV')
-                    self._Matrix.Hardware.interface.Set('MatrixTieCommand',  
+                    self.__Matrix.Hardware.interface.Set('MatrixTieCommand',  
                                                         value=None,
                                                         qualifier={'Input': srcObj.Input, 
                                                                    'Output': dObj.Output,
@@ -567,6 +559,7 @@ class SourceController:
         if self.GUIHost.ActCtl.CurrentActivity in ['share', 'group_work']:
             self.SourceAlertHandler()
 
+    @RunAsync
     def MatrixSwitch(self, src: Union[Source, str, int], dest: Union[str, List[Union[Destination, str, int]]]='All', mode: str='AV') -> None:
         if type(dest) == str and dest != 'All':
             raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
@@ -602,10 +595,9 @@ class SourceController:
         
         if type(dest) is str and dest == 'All':
             for d in self.Destinations:
-                #d.AssignSource(self._none_source)
                 d.AssignMatrix(srcNum, mode)
                 d._MatrixRow.MakeTie(srcNum, mode)
-                self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None, 
                                                     qualifier={'Input': cmdInput, 
                                                                'Output': d.Output,
@@ -613,13 +605,11 @@ class SourceController:
         elif type(dest) is list:
             for d in dest:
                 if type(d) == Destination:
-                    #d.AssignSource(self._none_source)
                     d.AssignMatrix(srcNum, mode)
                     d._MatrixRow.MakeTie(srcNum, mode)
                     destNum = d.Output
                 elif type(d) == str:
                     destObj = self.GetDestination(id = d, name = d)
-                    #destObj.AssignSource(self._none_source)
                     destObj.AssignMatrix(srcNum, mode)
                     destObj._MatrixRow.MakeTie(srcNum, mode)
                     destNum = destObj.Output
@@ -630,7 +620,7 @@ class SourceController:
                         destObj.AssignMatrix(srcNum, mode)
                         destObj._MatrixRow.MakeTie(srcNum, mode)
                     destNum = d
-                self._Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None, 
                                                     qualifier={'Input': cmdInput, 
                                                                'Output': destNum,

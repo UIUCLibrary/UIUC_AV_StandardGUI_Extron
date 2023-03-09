@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import SourceController, Source, LayoutTuple, RelayTuple, MatrixTuple
@@ -68,7 +68,7 @@ class Destination:
         if tieType == 'AV' or tieType == 'Vid':
             self.AssignedSource = self.SourceController.GetSourceByInput(input)
         else:
-            self.AssignedSource = self.SourceController._none_source
+            self.AssignedSource = self.SourceController.BlankSource
             
         if tieType == 'Vid' or tieType == 'AV':
             self._AssignedVidInput = input

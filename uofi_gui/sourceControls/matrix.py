@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import SourceController, Source, Destination, LayoutTuple, RelayTuple, MatrixTuple
@@ -77,7 +77,7 @@ class MatrixController:
                 for row in self._rows.values():
                     for btn in row.Objects:
                         btn.SetState(0)
-                self.SourceController.MatrixSwitch(self.SourceController._none_source, 'All', 'untie')
+                self.SourceController.MatrixSwitch(self.SourceController.BlankSource, 'All', 'untie')
             
         for inLbl in self._inputLbls:
             inLbl.SetText('Not Connected')

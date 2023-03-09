@@ -146,7 +146,8 @@ class ExUIDevice_TestClass(unittest.TestCase):
                 'Slow',
                 'Medium',
                 'Fast',
-                'Medium'
+                'Medium',
+                'Slow'
             ]
         
         test_state_list = \
@@ -154,7 +155,8 @@ class ExUIDevice_TestClass(unittest.TestCase):
                 ['red','green'],
                 ['red', 'off'],
                 ['green', 'off'],
-                ['green', 'red', 'off']
+                ['green', 'red', 'off'],
+                None
             ]
             
         test_timeout = \
@@ -162,7 +164,8 @@ class ExUIDevice_TestClass(unittest.TestCase):
                 0,
                 2,
                 30,
-                120
+                120,
+                360
             ]
         
         for i in range(len(test_rate)):
@@ -171,7 +174,13 @@ class ExUIDevice_TestClass(unittest.TestCase):
                     self.TestUIController.BlinkLights(test_rate[i], test_state_list[i], test_timeout[i])
                 except Exception as inst:
                     self.fail("BlinkLights ({}) raised {} unexpectedly!".format(i, type(inst)))
-            
+    
+    def test_ExUIDevice_BlinkLights_BadRate(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BlinkLights('Blinky', ['red', 'off'])
+        
     def test_ExUIDevice_LightsOff(self):
         self.init_TP()
         try:
@@ -225,6 +234,18 @@ class ExUIDevice_TestClass(unittest.TestCase):
             with self.subTest(i=btnName):
                 self.assertIsInstance(self.TestUIController.Btns[btnName], Button)
     
+    def test_ExUIDevice_BuildButtons_Neither(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildButtons()
+            
+    def test_ExUIDevice_BuildButtons_BadPath(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildButtons(jsonPath='./bad/path/to/nonexistent.file')
+    
     def test_ExUIDevice_BuildButtonGroups_Path(self):
         self.init_TP()
 
@@ -273,6 +294,18 @@ class ExUIDevice_TestClass(unittest.TestCase):
             with self.subTest(i=btnGrpName):
                 self.assertIsInstance(self.TestUIController.Btn_Grps[btnGrpName], MESet)
     
+    def test_ExUIDevice_BuildButtonGroups_Neither(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildButtonGroups()
+            
+    def test_ExUIDevice_BuildButtonGroups_BadPath(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildButtonGroups(jsonPath='./bad/path/to/nonexistent.file')
+    
     def test_ExUIDevice_BuildKnobs_Path(self):
         self.init_TP()
 
@@ -318,6 +351,18 @@ class ExUIDevice_TestClass(unittest.TestCase):
         for knobName in self.TestUIController.Knobs:
             with self.subTest(i=knobName):
                 self.assertIsInstance(self.TestUIController.Knobs[knobName], Knob)
+    
+    def test_ExUIDevice_BuildKnobs_Neither(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildKnobs()
+            
+    def test_ExUIDevice_BuildKnobs_BadPath(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildKnobs(jsonPath='./bad/path/to/nonexistent.file')
     
     def test_ExUIDevice_BuildLevels_Path(self):
         self.init_TP()
@@ -365,6 +410,18 @@ class ExUIDevice_TestClass(unittest.TestCase):
             with self.subTest(i=lvlName):
                 self.assertIsInstance(self.TestUIController.Lvls[lvlName], Level)
     
+    def test_ExUIDevice_BuildLevels_Neither(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildLevels()
+            
+    def test_ExUIDevice_BuildLevels_BadPath(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildLevels(jsonPath='./bad/path/to/nonexistent.file')
+    
     def test_ExUIDevice_BuildSliders_Path(self):
         self.init_TP()
 
@@ -411,6 +468,18 @@ class ExUIDevice_TestClass(unittest.TestCase):
             with self.subTest(i=sldName):
                 self.assertIsInstance(self.TestUIController.Slds[sldName], Slider)
     
+    def test_ExUIDevice_BuildSliders_Neither(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildSliders()
+            
+    def test_ExUIDevice_BuildSliders_BadPath(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildSliders(jsonPath='./bad/path/to/nonexistent.file')
+    
     def test_ExUIDevice_BuildLabels_Path(self):
         self.init_TP()
 
@@ -456,6 +525,18 @@ class ExUIDevice_TestClass(unittest.TestCase):
         for lblName in self.TestUIController.Lbls:
             with self.subTest(i=lblName):
                 self.assertIsInstance(self.TestUIController.Lbls[lblName], Label)
+    
+    def test_ExUIDevice_BuildLabels_Neither(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildLabels()
+            
+    def test_ExUIDevice_BuildLabels_BadPath(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.BuildLabels(jsonPath='./bad/path/to/nonexistent.file')
     
     def test_ExUIDevice_BuildAll_Path(self):
         self.init_TP()

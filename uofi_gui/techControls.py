@@ -1,21 +1,12 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
 
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+from extronlib import event
+from extronlib.system import MESet
 
-print(Version()) ## Sanity check ControlScript Import
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
