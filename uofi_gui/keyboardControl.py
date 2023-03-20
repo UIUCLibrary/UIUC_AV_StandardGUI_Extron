@@ -2,18 +2,15 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
+    from extronlib.ui import Button
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
 from extronlib.system import Timer
-    
 
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
-import json
-from typing import Dict, Tuple, List, Callable
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -31,7 +28,12 @@ class KeyboardController:
     def __init__(self, UIHost: 'ExUIDevice') -> None:
         self.UIHost = UIHost
         
-        self.__kbDict = \
+        self.CapsLock = False
+        self.Shift = False
+        self.Text = ''
+        self.Callback = None
+        
+        self.__KBDict = \
             {
                 'tilda': ('`', '~'),
                 '1': ('1', '!'),
@@ -82,130 +84,157 @@ class KeyboardController:
                 'slash': ('/', '?'),
                 'space': (' ', ' ')
             }
-        self.__charBtns = []
-        for key in self.__kbDict:
+            
+        self.__CharBtns = []
+        for key in self.__KBDict:
             btn = self.UIHost.Btns['KB-{}'.format(key)]
-            btn.char = self.__kbDict[key]
+            btn.char = self.__KBDict[key]
             btn.SetText(btn.char[0])
-            self.__charBtns.append(btn)
+            self.__CharBtns.append(btn)
         
-        self.__saveBtn = self.UIHost.Btns['KB-save']
-        self.__cancelBtn = self.UIHost.Btns['KB-cancel']
-        self.__leftBtn = self.UIHost.Btns['KB-left']
-        self.__leftBtn.shift = -1
-        self.__rightBtn = self.UIHost.Btns['KB-right']
-        self.__rightBtn.shift = 1
-        self.__shiftBtn = self.UIHost.Btns['KB-shift']
-        self.__capsBtn = self.UIHost.Btns['KB-caps']
-        self.__bsBtn = self.UIHost.Btns['KB-bs']
-        self.__delBtn = self.UIHost.Btns['KB-del']
+        self.__SaveBtn = self.UIHost.Btns['KB-save']
+        self.__CancelBtn = self.UIHost.Btns['KB-cancel']
+        self.__LeftBtn = self.UIHost.Btns['KB-left']
+        self.__LeftBtn.shift = -1
+        self.__RightBtn = self.UIHost.Btns['KB-right']
+        self.__RightBtn.shift = 1
+        self.__ShiftBtn = self.UIHost.Btns['KB-shift']
+        self.__CapsBtn = self.UIHost.Btns['KB-caps']
+        self.__BSBtn = self.UIHost.Btns['KB-bs']
+        self.__DelBtn = self.UIHost.Btns['KB-del']
         
-        self.__textLbl = self.UIHost.Lbls['KB-Editor']
+        self.__TextLbl = self.UIHost.Lbls['KB-Editor']
         
-        self.__cursor = ('\u2502','\u2588')
-        self.__pos = 0
-        self.__cursorTimer = Timer(0.5, self.__cursorTimerHandler)
-        self.__cursorTimer.Stop()
+        self.__Cursor = ('\u2502','\u2588')
+        self.__Pos = 0
+        self.__CursorTimer = Timer(0.5, self.__CursorTimerHandler)
+        self.__CursorTimer.Stop()
         
-        self.CapsLock = False
-        self.Shift = False
-        self.Text = ''
-        self.Callback = None
+        @event(self.__CharBtns, ['Pressed', 'Released']) # pragma: no cover
+        def charBtnHandler(button: 'Button', action: str):
+            self.__CharBtnHandler(button, action)
         
-        @event(self.__charBtns, ['Pressed', 'Released'])
-        def charBtnHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-
-                self.__insertChar(button.char[self.__charIndex()])
-                self.__textLbl.SetText(self.__cursorString())
-                
-                # unshift after character entry
-                if self.Shift:
-                    self.Shift = False
-                    self.__shiftBtn.SetState(0)
-                    self.__updateKeyboardState()
+        @event(self.__ShiftBtn, ['Pressed', 'Released']) # pragma: no cover
+        def shiftBtnHandler(button: 'Button', action: str):
+            self.__ShiftBtnHandler(button, action)
         
-        @event(self.__shiftBtn, ['Pressed', 'Released'])
-        def shiftBtnHandler(button, action):
-            if action == 'Pressed':
-                if self.Shift:
-                    button.SetState(0)
-                else:
-                    button.SetState(1)
-            elif action == 'Released':
-                self.Shift = not self.Shift
-                self.__updateKeyboardState()
-                if self.Shift:
-                    button.SetState(1)
-                else:
-                    button.SetState(0)
-        
-        @event(self.__capsBtn, ['Pressed', 'Released'])
-        def capsLockBtnHandler(button, action):
-            if action == 'Pressed':
-                if self.CapsLock:
-                    button.SetState(0)
-                else:
-                    button.SetState(1)
-            elif action == 'Released':
-                self.CapsLock = not self.CapsLock
-                self.__updateKeyboardState()
-                if self.CapsLock:
-                    button.SetState(1)
-                else:
-                    button.SetState(0)
+        @event(self.__CapsBtn, ['Pressed', 'Released']) # pragma: no cover
+        def capsLockBtnHandler(button: 'Button', action: str):
+            self.__CapsLockBtnHandler(button, action)
                     
-        @event([self.__leftBtn, self.__rightBtn], ['Pressed', 'Released'])
-        def arrowBtnHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                self.__pos += button.shift
-                if self.__pos < 0:
-                    self.__pos = 0
-                elif self.__pos > (len(self.Text) + 1):
-                    self.__pos = (len(self.Text) + 1)
-                self.__textLbl.SetText(self.__cursorString())
+        @event([self.__LeftBtn, self.__RightBtn], ['Pressed', 'Released']) # pragma: no cover
+        def arrowBtnHandler(button: 'Button', action: str):
+            self.__ArrowBtnHandler(button, action)
                 
-        @event(self.__bsBtn, ['Pressed', 'Released'])
-        def backspaceBtnHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                self.__removeChar(-1)
-                self.__textLbl.SetText(self.__cursorString())
+        @event(self.__BSBtn, ['Pressed', 'Released']) # pragma: no cover
+        def backspaceBtnHandler(button: 'Button', action: str):
+            self.__BackspaceBtnHandler(button, action)
                 
-        @event(self.__delBtn, ['Pressed', 'Released'])
-        def deleteBtnHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                self.__removeChar(1)
-                self.__textLbl.SetText(self.__cursorString())
+        @event(self.__DelBtn, ['Pressed', 'Released']) # pragma: no cover
+        def deleteBtnHandler(button: 'Button', action: str):
+            self.__DeleteBtnHandler(button, action)
                 
-        @event(self.__saveBtn, ['Pressed', 'Released'])
-        def saveBtnHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                self.Save()
+        @event(self.__SaveBtn, ['Pressed', 'Released']) # pragma: no cover
+        def saveBtnHandler(button: 'Button', action: str):
+            self.__SaveBtnHandler(button, action)
         
-        @event(self.__cancelBtn, ['Pressed', 'Released'])
-        def cancelBtnHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                self.Close()
+        @event(self.__CancelBtn, ['Pressed', 'Released']) # pragma: no cover
+        def cancelBtnHandler(button: 'Button', action: str):
+            self.__CancelBtnHandler(button, action)
 
-    def __charIndex(self):
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __CharBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+
+            self.__InsertChar(button.char[self.__CharIndex()])
+            self.__TextLbl.SetText(self.__CursorString())
+            
+            # unshift after character entry
+            if self.Shift:
+                self.Shift = False
+                self.__ShiftBtn.SetState(0)
+                self.__UpdateKeyboardState()
+    
+    def __ShiftBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            if self.Shift:
+                button.SetState(0)
+            else:
+                button.SetState(1)
+        elif action == 'Released':
+            self.Shift = not self.Shift
+            self.__UpdateKeyboardState()
+            if self.Shift:
+                button.SetState(1)
+            else:
+                button.SetState(0)
+    
+    def __CapsLockBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            if self.CapsLock:
+                button.SetState(0)
+            else:
+                button.SetState(1)
+        elif action == 'Released':
+            self.CapsLock = not self.CapsLock
+            self.__UpdateKeyboardState()
+            if self.CapsLock:
+                button.SetState(1)
+            else:
+                button.SetState(0)
+    
+    def __ArrowBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.__Pos += button.shift
+            if self.__Pos < 0:
+                self.__Pos = 0
+            elif self.__Pos > (len(self.Text) + 1):
+                self.__Pos = (len(self.Text) + 1)
+            self.__TextLbl.SetText(self.__CursorString())
+    
+    def __BackspaceBtnHandler(self, button: 'Button',  action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.__RemoveChar(-1)
+            self.__TextLbl.SetText(self.__CursorString())
+    
+    def __DeleteBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.__RemoveChar(1)
+            self.__TextLbl.SetText(self.__CursorString())
+    
+    def __SaveBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.Save()
+    
+    def __CancelBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.Close()
+    
+    def __CursorTimerHandler(self, timer: 'Timer', count: int):
+        self.__TextLbl.SetText(self.__CursorString(count % 2))
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __CharIndex(self):
         index = False
         if self.CapsLock:
             index = not index
@@ -214,47 +243,47 @@ class KeyboardController:
         
         return int(index == True)
     
-    def __cursorTimerHandler(self, timer, count):
-        self.__textLbl.SetText(self.__cursorString(count % 2))
+    def __CursorString(self, cursorInd = 0):
+        return self.Text[:self.__Pos] + self.__Cursor[cursorInd] + self.Text[self.__Pos:]
     
-    def __cursorString(self, cursorInd = 0):
-        return self.Text[:self.__pos] + self.__cursor[cursorInd] + self.Text[self.__pos:]
-    
-    def __insertChar(self, char: str):
-        self.Text = self.Text[:self.__pos] + char + self.Text[self.__pos:]
-        self.__pos += len(char)
+    def __InsertChar(self, char: str):
+        self.Text = self.Text[:self.__Pos] + char + self.Text[self.__Pos:]
+        self.__Pos += len(char)
         
-    def __removeChar(self, count: int):
+    def __RemoveChar(self, count: int):
         if count > 0:
-            self.Text = self.Text[:self.__pos] + self.Text[(self.__pos + count):]
-            if self.__pos > (len(self.Text) + 1):
-                self.__pos = (len(self.Text) + 1)
+            self.Text = self.Text[:self.__Pos] + self.Text[(self.__Pos + count):]
+            if self.__Pos > (len(self.Text) + 1):
+                self.__Pos = (len(self.Text) + 1)
         elif count < 0:
-            self.Text = self.Text[:(self.__pos + count)] + self.Text[self.__pos:]
-            self.__pos += count
-            if self.__pos < 0:
-                self.__pos = 0
+            if (self.__Pos + count) >= 0:
+                self.Text = self.Text[:(self.__Pos + count)] + self.Text[self.__Pos:]
+            self.__Pos += count
+            if self.__Pos < 0:
+                self.__Pos = 0
         
-    def __updateKeyboardState(self):
-        index = self.__charIndex()
-        for charBtn in self.__charBtns:
+    def __UpdateKeyboardState(self):
+        index = self.__CharIndex()
+        for charBtn in self.__CharBtns:
             charBtn.SetText(charBtn.char[index])
-            
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
     def Open(self, Text: str='', Callback: Callable=None):
         self.Callback = Callback
-        self.__shiftBtn.SetState(0)
-        self.__capsBtn.SetState(0)
+        self.__ShiftBtn.SetState(0)
+        self.__CapsBtn.SetState(0)
         self.Shift = False
         self.CapsLock = False
         
-        self.__cursorTimer.Restart()
+        self.__CursorTimer.Restart()
         
-        self.__updateKeyboardState()
+        self.__UpdateKeyboardState()
         
-        self.__pos = len(Text)
+        self.__Pos = len(Text)
         self.Text = Text
         
-        self.__textLbl.SetText(self.__cursorString())
+        self.__TextLbl.SetText(self.__CursorString())
         
         self.UIHost.ShowPopup('Keyboard')
         
@@ -264,7 +293,7 @@ class KeyboardController:
         
     def Close(self):
         self.Callback = None
-        self.__cursorTimer.Stop()
+        self.__CursorTimer.Stop()
         self.UIHost.HidePopup('Keyboard')
     
 ## End Class Definitions -------------------------------------------------------
