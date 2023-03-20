@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
+    from uofi_gui.sourceControls import MatrixTuple, Destination
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
@@ -16,7 +17,6 @@ from extronlib.system import Timer
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-# import utilityFunctions
 from utilityFunctions import Log, RunAsync, TimeIntToStr, debug
 #### Extron Global Scripter Modules
 
@@ -294,8 +294,8 @@ class ActivityController:
             touchPanel.HidePopupGroup(8) # Activity-Controls Group
             touchPanel.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
             
-            # get input assigned to the primaryDestination
-            curSrc = self.GUIHost.SrcCtl.PrimaryDestination.AssignedSource
+            # get video source assigned to the primaryDestination
+            curSrc = self.GUIHost.SrcCtl.PrimaryDestination.AssignedSource.Vid
             # Log("Pre-Activity Change Source - Name: {}, Id: {}".format(curSrc.Name, curSrc.Id))
             
             if curSrc.Name == 'None':
@@ -304,7 +304,7 @@ class ActivityController:
                 # Log('New Current Source - Name: {}, ID: {}'.format(curSrc.Name, curSrc.Id))
                 touchPanel.SrcCtl.SelectSource(curSrc)
                 # Log('Selected Source - Name: {}, Id: {}'.format(self.UIHost.SrcCtl.SelectedSource.Name, self.UIHost.SrcCtl.SelectedSource.Id))
-                touchPanel.SrcCtl.SetPrivacyOn()
+                touchPanel.SrcCtl.Privacy = 'on'
             
             # update source selection to match primaryDestination
             touchPanel.SrcCtl.SwitchSources(curSrc, 'All')
@@ -325,10 +325,11 @@ class ActivityController:
         
             if self.GUIHost.SrcCtl.Privacy:
                 # Log('Handling Privacy reconfigure for Adv Share')
-                touchPanel.SrcCtl.SetPrivacyOff()
+                touchPanel.SrcCtl.Privacy = 'off'
                 destList = []
                 for dest in touchPanel.SrcCtl.Destinations:
-                    if dest._type != 'conf':
+                    dest = cast('Destination', dest)
+                    if dest.Type != 'conf':
                         # Log('Non-Confidence destination found - {}'.format(dest.Name))
                         destList.append(dest)
                 # Log('Count of non-Confidence destinations: {}'.format(len(destList)))
@@ -343,8 +344,9 @@ class ActivityController:
             
             touchPanel.SrcCtl.SelectSource(touchPanel.SrcCtl.PrimaryDestination.GroupWorkSource)
             for dest in touchPanel.SrcCtl.Destinations:
+                dest = cast('Destination', dest)
                 touchPanel.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
-            touchPanel.SrcCtl.SetPrivacyOff()
+            touchPanel.SrcCtl.Privacy = 'off'
             
             # show activity splash screen, will be updated config.activitySplash
             # seconds after the activity switch timer stops

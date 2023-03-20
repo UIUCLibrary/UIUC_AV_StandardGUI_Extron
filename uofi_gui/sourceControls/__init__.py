@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
@@ -16,8 +16,8 @@ from collections import namedtuple
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from uofi_gui.sourceControls.destinations import Destination
-from uofi_gui.sourceControls.sources import Source
+from uofi_gui.sourceControls.destinations import Destination, Source, MatrixTuple
+# from uofi_gui.sourceControls.sources import Source
 from uofi_gui.sourceControls.matrix import MatrixController, MatrixRow
 
 from hardware.mersive_solstice_pod import PodFeedbackHelper
@@ -31,7 +31,6 @@ from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey
 ## Begin Class Definitions -----------------------------------------------------
 RelayTuple = namedtuple('RelayTuple', ['Up', 'Down'])
 LayoutTuple = namedtuple('LayoutTuple', ['Row', 'Pos'])
-MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
 class SourceController:
     def __init__(self, UIHost: 'ExUIDevice') -> None:
@@ -56,7 +55,8 @@ class SourceController:
             if src.get('srcObj') is None:
                 src['srcObj'] = {}
             src['srcObj'][self.UIHost.Id] = srcObj
-            
+        
+        self.BlankSource = Source(self, 'none', 'None', 0, 0, None, None)
             
         self.Destinations = []
         for dest in self.GUIHost.Destinations:
@@ -71,7 +71,7 @@ class SourceController:
                                   dest['type'],
                                   dest_relay,
                                   dest['group-work-src'],
-                                  LayoutTuple(Row=dest['adv-layout']['row'], Pos=dest['adv-layout']['pos']))#dest['adv-layout'])
+                                  LayoutTuple(Row=dest['adv-layout']['row'], Pos=dest['adv-layout']['pos']))
             self.Destinations.append(destObj)
             if dest.get('destObj') is None:
                 dest['destObj'] = {}
@@ -79,7 +79,6 @@ class SourceController:
         
         self.PrimaryDestination = self.GetDestination(id = self.GUIHost.PrimaryDestinationId)
         self.SelectedSource = None
-        self.Privacy = False
         self.OpenControlPopup = None
         
         # Private Properties
@@ -94,10 +93,13 @@ class SourceController:
         self.__PrivacyBtn = self.UIHost.Btns['Privacy-Display-Mute']
         self.__SendToAllBtn = self.UIHost.Btns['Send-To-All']
         self.__ReturnToGroupBtn = self.UIHost.Btns['Return-To-Group']
+        self.__ModalCloseBtn = self.UIHost.Btns['Modal-Close']
+        self.__WPDClearPostsBtn = self.UIHost.Btns['WPD-ClearPosts']
+        self.__WPDClearAllBtn = self.UIHost.Btns['WPD-ClearAll']
         self.__Offset = 0
         self.__AdvLayout = self.GetAdvShareLayout()
-        self.BlankSource = Source(self, 'none', 'None', 0, 0, None, None)
-        #self._DisplaySrcList = self.UpdateDisplaySourceList()
+        self.__DisplaySrcList = []
+        self.__Privacy = False
         self.__Matrix = MatrixController(self,
                                         DictValueSearchByKey(self.UIHost.Btns, r'Tech-Matrix-\d+,\d+', regex=True),
                                         self.UIHost.Btn_Grps['Tech-Matrix-Mode'],
@@ -120,7 +122,7 @@ class SourceController:
         def SourcePageHandler(button: 'Button', action: str):
             self.__SourcePageHandler(button, action)
 
-        @event(self.UIHost.Btns['Modal-Close'], 'Pressed') # pragma: no cover
+        @event(self.__ModalCloseBtn, 'Pressed') # pragma: no cover
         def ModalCloseHandler(button: 'Button', action: str):
             self.__ModalCloseHandler(button, action)
             
@@ -136,13 +138,38 @@ class SourceController:
         def ReturnToGroupHandler(button: 'Button', action: str):
             self.__ReturnToGroupHandler(button, action)
                     
-        @event(self.UIHost.Btns['WPD-ClearPosts'], ['Pressed', 'Released']) # pragma: no cover
+        @event(self.__WPDClearPostsBtn, ['Pressed', 'Released']) # pragma: no cover
         def WPDClearPostsHandler(button: 'Button', action: str):
             self.__WPDClearPostsHandler(button, action)
                 
-        @event(self.UIHost.Btns['WPD-ClearAll'], ['Pressed', 'Released']) # pragma: no cover
+        @event(self.__WPDClearAllBtn, ['Pressed', 'Released']) # pragma: no cover
         def WPDClearAllHandler(button: 'Button', action: str):
             self.__WPDClearAllHandler(button, action)
+    
+    @property
+    def Privacy(self) -> bool:
+        return self.__Privacy
+    
+    @Privacy.setter
+    def Privacy(self, state):
+        setState = (state in ['on', 'On', 'ON', 1, True, 'Mute', 'mute', 'MUTE'])
+        self.__Privacy = setState
+        
+        privBtn = self.__PrivacyBtn
+        privBtn = cast('Button', privBtn)
+        
+        if self.__Privacy:
+            privBtn.SetBlinking('Medium', [1,2])
+            for d in self.Destinations:
+                d = cast('Destination', d)
+                if d.Type != 'conf':
+                    d.Mute = 'On'
+        else:
+            privBtn.SetState(0)
+            for d in self.Destinations:
+                d = cast('Destination', d)
+                if d.Type != 'conf':
+                    d.Mute = 'Off'
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -160,7 +187,7 @@ class SourceController:
 
         # Get Source Index, Update Selected Source Object
         srcIndex = btnIndex + self.__Offset
-        self.SelectSource(self._DisplaySrcList[srcIndex])
+        self.SelectSource(self.__DisplaySrcList[srcIndex])
 
         # advanced share doesn't switch until destination has been selected
         # all other activities switch immediately
@@ -186,7 +213,7 @@ class SourceController:
             if self.__Offset > 0:
                 self.__Offset -= 1
         elif btnAction == "Next":
-            if (self.__Offset + 5) < len(self._DisplaySrcList):
+            if (self.__Offset + 5) < len(self.__DisplaySrcList):
                 self.__Offset += 1
         # update the displayed source menu
         self.UpdateSourceMenu()
@@ -203,7 +230,7 @@ class SourceController:
             button.SetState(1)
         elif action == 'Released':
             self.SwitchSources(self.SelectedSource)
-            @Wait(3)
+            @Wait(3) # pragma: no cover
             def SendToAllBtnFeedbackWait():
                 button.SetState(0)
         
@@ -215,7 +242,7 @@ class SourceController:
             for dest in self.Destinations:
                 self.SwitchSources(dest.GroupWorkSource, [dest])
             
-            @Wait(3)
+            @Wait(3) # pragma: no cover
             def SendToAllBtnFeedbackWait():
                 button.SetState(0)
     
@@ -225,11 +252,16 @@ class SourceController:
         elif action == 'Released':
             button.SetState(0)
             if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
-                curHW = self.GUIHost.Hardware[self.SelectedSource.Id]
+                srcId = self.SelectedSource.Id
             else:
-                curHW = self.GUIHost.Hardware[self.OpenControlPopup['source'].Id]
+                srcId = self.OpenControlPopup['source'].Id
+                
+            curHW = self.GUIHost.Hardware.get(srcId, None)
             
-            curHW.interface.Set('ClearPosts', value=None, qualifier={'hw': curHW})
+            if curHW is not None:
+                curHW.interface.Set('ClearPosts', value=None, qualifier={'hw': curHW})
+            else:
+                raise KeyError("Hardware not found for Source - {}".format(srcId))
     
     def __WPDClearAllHandler(self, button: 'Button', action: str):
         if action == 'Pressed':
@@ -237,11 +269,16 @@ class SourceController:
         elif action == 'Released':
             button.SetState(0)
             if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
-                curHW = self.GUIHost.Hardware[self.SelectedSource.Id]
+                srcId = self.SelectedSource.Id
             else:
-                curHW = self.GUIHost.Hardware[self.OpenControlPopup['source'].Id]
+                srcId = self.OpenControlPopup['source'].Id
+                
+            curHW = self.GUIHost.Hardware.get(srcId, None)
             
-            curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
+            if curHW is not None:
+                curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
+            else:
+                raise KeyError("Hardware not found for Source - {}".format(srcId))
                 
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -249,10 +286,9 @@ class SourceController:
         
         destDict = {}
         
-        index = self.Destinations.index(dest)
-        location = self.Destinations[index].AdvLayoutPosition
+        location = dest.AdvLayoutPosition
         
-        if not (type(location) == LayoutTuple): 
+        if type(location) is not LayoutTuple: 
             raise LookupError("Provided Destination Object ({}) not found in Destinations."
                             .format(dest.Name))
         
@@ -267,10 +303,10 @@ class SourceController:
         except:
             raise KeyError("At least one destination button not found.")
     
-    def __GetPositionByBtnName(self, btnName: str) -> LayoutTuple:
-        btnLoc = btnName[-3:]
-        btnPR = btnLoc.split(',')
-        return LayoutTuple(Row = btnPR[1], Pos = btnPR[0])
+    # def __GetPositionByBtnName(self, btnName: str) -> LayoutTuple:
+    #     btnLoc = btnName[-3:]
+    #     btnPR = btnLoc.split(',')
+    #     return LayoutTuple(Row = btnPR[1], Pos = btnPR[0])
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -287,27 +323,7 @@ class SourceController:
             self.UIHost.Lbls['SourceAlertLabel'].SetText('')
     
     def TogglePrivacy(self) -> None:
-        # Log('Toggle Privacy', stack=True)
-        if self.Privacy:
-            self.SetPrivacyOff()
-        else:
-            self.SetPrivacyOn()
-    
-    def SetPrivacyOn(self) -> None:
-        # Log('Privacy On', stack=True)
-        self.Privacy = True
-        self.__PrivacyBtn.SetBlinking('Medium', [1,2])
-        for d in self.Destinations:
-            if d._type != 'conf':
-                d.MuteDestination()
-    
-    def SetPrivacyOff(self) -> None:
-        # Log('Privacy Off', stack=True)
-        self.Privacy = False
-        self.__PrivacyBtn.SetState(0)
-        for d in self.Destinations:
-            if d._type != 'conf':
-                d.UnmuteDestination()
+        self.__Privacy = not self.__Privacy
     
     def GetAdvShareLayout(self) -> str:
         layout = {}
@@ -338,11 +354,13 @@ class SourceController:
             for dest in self.Destinations:
                 if dest.Name == name:
                     return dest
+        raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
                 
     def GetDestinationByOutput(self, outputNum: int) -> Destination:
         for dest in self.Destinations:
             if dest.Output == outputNum:
                 return dest
+        raise LookupError("Provided Output ({}) is not configured to a destination".format(outputNum))
     
     def GetDestinationIndexByID(self, id: str) -> int:
         """Get Destination Index from ID.
@@ -356,11 +374,9 @@ class SourceController:
         Returns:
             int: Returns destination dict index
         """    
-        i = 0
         for dest in self.Destinations:
             if id == dest.Id:
-                return i
-            i += 1
+                return self.Destinations.index(dest)
         ## if we get here then there was no valid index for the id
         raise LookupError("Provided ID ({}) not found".format(id))
                 
@@ -375,12 +391,13 @@ class SourceController:
             for src in self.Sources:
                 if src.Name == name:
                     return src
+        raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
                 
     def GetSourceByInput(self, inputNum: int) -> Source:
         for src in self.Sources:
             if src.Input == inputNum:
                 return src
-        return self.BlankSource
+        raise LookupError("Provided Input ({}) is not configured to a source".format(inputNum))
     
     def GetSourceIndexByID(self, id: str) -> int:
         """Get Source Index from ID.
@@ -395,7 +412,7 @@ class SourceController:
             int: Returns source list index
         """    
         i = 0
-        for src in self._DisplaySrcList:
+        for src in self.__DisplaySrcList:
             if id == src.Id:
                 return i
             i += 1
@@ -410,13 +427,15 @@ class SourceController:
         self.PrimaryDestination = dest
         
     def SelectSource(self, src: Union[Source, str]) -> None:
-        if type(src) == Source:
+        if type(src) is Source:
             # Log('Select Source - {}'.format(src.Name), stack=True)
             self.SelectedSource = src
-        elif type(src) == str:
+        elif type(src) is str:
             srcObj = self.GetSource(id = src, name = src)
             # Log('Select Source - {}'.format(srcObj.Name), stack=True)
             self.SelectedSource = srcObj
+        else:
+            raise TypeError('Source must either be a Source object or string Source Id')
     
     def UpdateDisplaySourceList(self) -> None:
         """Get the current source list
@@ -430,7 +449,7 @@ class SourceController:
             srcList.append(self.BlankSource)
         srcList.extend(self.Sources)
         
-        self._DisplaySrcList = srcList
+        self.__DisplaySrcList = srcList
         
     def UpdateSourceMenu(self) -> None:
         """Updates the formatting of the source menu. Use when the number of sources
@@ -443,7 +462,9 @@ class SourceController:
         offsetIter = self.__Offset
         # Log('Source Control Offset - {}'.format(self._offset))
         for btn in self.__SourceBtns.Objects:
-            btn_to_config = self._DisplaySrcList[offsetIter]
+            if offsetIter >= len(self.__DisplaySrcList):
+                break # we have reached the end of the Display-able source list and need to break out of the loop
+            btn_to_config = self.__DisplaySrcList[offsetIter]
             offState = int('{}0'.format(btn_to_config.Icon))
             onState = int('{}1'.format(btn_to_config.Icon))
             self.__SourceBtns.SetStates(btn, offState, onState)
@@ -452,8 +473,8 @@ class SourceController:
         self.__SourceBtns.SetCurrent(None)
         self.__SourceInds.SetCurrent(None)
         
-        if len(self._DisplaySrcList) <= 5:
-            self.UIHost.ShowPopup('Menu-Source-{}'.format(len(self._DisplaySrcList)))
+        if len(self.__DisplaySrcList) <= 5:
+            self.UIHost.ShowPopup('Menu-Source-{}'.format(len(self.__DisplaySrcList)))
         else:
             # enable/disable previous arrow
             if self.__Offset == 0:
@@ -463,7 +484,7 @@ class SourceController:
                 self.__ArrowBtns[0].SetEnable(True)
                 self.__ArrowBtns[0].SetState(0)
             # enable/disable next arrow
-            if (self.__Offset + 5) >= len(self._DisplaySrcList):
+            if (self.__Offset + 5) >= len(self.__DisplaySrcList):
                 self.__ArrowBtns[1].SetEnable(False)
                 self.__ArrowBtns[1].SetState(2)
             else:
@@ -490,8 +511,8 @@ class SourceController:
         
     def ShowSelectedSource(self) -> None:
         # Log('Show Selected Source', stack=True)
-        if len(self._DisplaySrcList) > 5 and self.SelectedSource is not None:
-            curSourceIndex = self._DisplaySrcList.index(self.SelectedSource)
+        if len(self.__DisplaySrcList) > 5 and self.SelectedSource is not None:
+            curSourceIndex = self.__DisplaySrcList.index(self.SelectedSource)
             
             print('Current Source Index: {}'.format(curSourceIndex))
             if curSourceIndex < self.__Offset:
@@ -501,8 +522,9 @@ class SourceController:
             
         self.UpdateSourceMenu()
     
-    @RunAsync
+    @RunAsync # pragma: no cover
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
+        # Not checking this for code coverage as I can't get it to check asyc functions
         # TODO: Figure out why this function has turned into a complete mess
         if type(dest) == str and dest != 'All':
             raise TypeError("Destination string must be 'All' or a list of Destination objects, names, and/or IDs")
@@ -519,8 +541,8 @@ class SourceController:
         if type(dest) is str and dest == 'All':
             # Log('Source Switch - Destination: All, Source: {}'.format(srcObj.Name))
             for d in self.Destinations:
+                d = cast('Destination', d)
                 d.AssignSource(srcObj)
-                d._MatrixRow.MakeTie(srcObj.Input, 'AV')
                 self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None,
                                                     qualifier={'Input': srcObj.Input, 
@@ -533,7 +555,6 @@ class SourceController:
                 if type(d) == Destination:
                     # Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
                     d.AssignSource(srcObj)
-                    d._MatrixRow.MakeTie(srcObj.Input, 'AV')
                     self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                         value=None,
                                                         qualifier={'Input': srcObj.Input, 
@@ -545,7 +566,6 @@ class SourceController:
                     dObj = self.GetDestination(id = d, name = d)
                     # Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
                     dObj.AssignSource(srcObj)
-                    dObj._MatrixRow.MakeTie(srcObj.Input, 'AV')
                     self.__Matrix.Hardware.interface.Set('MatrixTieCommand',  
                                                         value=None,
                                                         qualifier={'Input': srcObj.Input, 
@@ -559,8 +579,9 @@ class SourceController:
         if self.GUIHost.ActCtl.CurrentActivity in ['share', 'group_work']:
             self.SourceAlertHandler()
 
-    @RunAsync
+    @RunAsync # pragma: no cover
     def MatrixSwitch(self, src: Union[Source, str, int], dest: Union[str, List[Union[Destination, str, int]]]='All', mode: str='AV') -> None:
+        # Not checking this for code coverage as I can't get it to check asyc functions
         if type(dest) == str and dest != 'All':
             raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
         
@@ -595,30 +616,27 @@ class SourceController:
         
         if type(dest) is str and dest == 'All':
             for d in self.Destinations:
-                d.AssignMatrix(srcNum, mode)
-                d._MatrixRow.MakeTie(srcNum, mode)
+                d = cast('Destination', d)
+                d.AssignMatrixBySource(srcObj, mode)
                 self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None, 
                                                     qualifier={'Input': cmdInput, 
-                                                               'Output': d.Output,
-                                                               'Tie Type': cmdTieType})
+                                                            'Output': d.Output,
+                                                            'Tie Type': cmdTieType})
         elif type(dest) is list:
             for d in dest:
                 if type(d) == Destination:
-                    d.AssignMatrix(srcNum, mode)
-                    d._MatrixRow.MakeTie(srcNum, mode)
+                    d.AssignMatrixBySource(srcObj, mode)
                     destNum = d.Output
                 elif type(d) == str:
                     destObj = self.GetDestination(id = d, name = d)
-                    destObj.AssignMatrix(srcNum, mode)
-                    destObj._MatrixRow.MakeTie(srcNum, mode)
+                    destObj.AssignMatrixBySource(srcObj, mode)
                     destNum = destObj.Output
                 elif type(d) == int:
                     destObj = self.GetDestinationByOutput(d)
                     if destObj is not None:
                         #destObj.AssignSource(srcObj)
-                        destObj.AssignMatrix(srcNum, mode)
-                        destObj._MatrixRow.MakeTie(srcNum, mode)
+                        destObj.AssignMatrixBySource(srcObj, mode)
                     destNum = d
                 self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                     value=None, 

@@ -136,7 +136,7 @@ class GUIController:
 
     def StartupActions(self) -> None:
         self.PollCtl.SetPollingMode('active')
-        self.SrcCtl.SetPrivacyOff()
+        self.SrcCtl.Privacy = 'off'
         self.TP_Main.CamCtl.SendCameraHome()
         self.TP_Main.AudioCtl.AudioStartUp()
         for tp in self.TPs:

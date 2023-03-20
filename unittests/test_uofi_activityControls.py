@@ -227,7 +227,6 @@ class ActivityController_TestClass(unittest.TestCase): # rename for module to be
                 with self.subTest(src=src, btn=btn.Name):
                     try: 
                         self.TestActivityController.GUIHost.TPs[btn.TPIndex].SrcCtl.SelectSource(src)
-                        print()
                         self.TestActivityController._ActivityController__CloseTipHandler(self.TestActivityController._ActivityController__ActivitySplashTimerList[btn.TPIndex])
                     except Exception as inst:
                         self.fail('__CloseTipHandler raised {} unexpectedly!'.format(type(inst)))
@@ -318,7 +317,7 @@ class ActivityController_TestClass(unittest.TestCase): # rename for module to be
                         try: 
                             if con == 'adv_share|privacy':
                                 con = 'adv_share'
-                                tp.SrcCtl.SetPrivacyOn()
+                                tp.SrcCtl.Privacy = 'on'
                             for tp in self.TestGUIController.TPs:
                                 tp.SrcCtl.PrimaryDestination.AssignSource(src)
                             self.TestActivityController._ActivityController__ActivitySwitchTPConfiguration(con, tp)

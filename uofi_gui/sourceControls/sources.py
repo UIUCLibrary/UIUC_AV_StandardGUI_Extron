@@ -14,7 +14,7 @@ class Source:
                  name: str,
                  icon: int,
                  input: int,
-                 alert: int,
+                 alert: str,
                  srcCtl: str=None,
                  advSrcCtl: str=None) -> None:
         
@@ -38,9 +38,11 @@ class Source:
     @property
     def AlertText(self):
         if not self.__OverrideState:
-            txt =  list(self.__AlertText.keys())[self.__AlertIndex]
-            # Log('AlertText: {}'.format(txt))
-            self.CycleAlert()
+            if len(self.__AlertText) > 1:
+                txt =  list(self.__AlertText.keys())[self.__AlertIndex]
+                self.CycleAlert()
+            else:
+                txt = ''
         else:
             txt = self.__OverrideAlert
         return txt
@@ -69,6 +71,22 @@ class Source:
         else:
             return False
     
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __AlertTimerHandler(self, timer: 'Timer', count: int):
+        iterList = list(self.__AlertText.keys())
+        for msg in iterList:
+            if self.__AlertText[msg] > 0:
+                self.__AlertText[msg] -= 1
+            elif self.__AlertText[msg] == 0:
+                self.__AlertText.pop(msg)
+        if len(self.__AlertText) == 0:
+            timer.Stop()
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
     def CycleAlert(self):
         self.__AlertIndex += 1
         if self.__AlertIndex >= len(self.__AlertText):
@@ -90,11 +108,12 @@ class Source:
         self.__OverrideAlert = msg
         self.__OverrideState = True
         if timeout > 0:
-            @Wait(timeout)
+            @Wait(timeout) # pragma: no cover
             def OverrideTimeoutHandler():
                 self.__OverrideState = False
     
     def ClearOverride(self):
+        self.__OverrideAlert = None
         self.__OverrideState = False
     
     def ClearAlert(self, msg: str=None):
@@ -110,12 +129,3 @@ class Source:
         self.__AlertText = {}
         self.__AlertTimer.Stop()
         
-    def __AlertTimerHandler(self, timer: 'Timer', count: int):
-        for msg in self.__AlertText.keys():
-            if self.__AlertText[msg] > 0:
-                self.__AlertText[msg] -= 1
-                if self.__AlertText[msg] == 0:
-                    self.__AlertText.pop(msg)
-        if len(self.__AlertText) == 0:
-            timer.Stop()
-                

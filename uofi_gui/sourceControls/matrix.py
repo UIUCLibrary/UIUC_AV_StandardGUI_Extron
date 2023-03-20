@@ -1,13 +1,14 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import SourceController, Source, Destination, LayoutTuple, RelayTuple, MatrixTuple
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from extronlib.ui import Knob, Label, Level, Slider
     from extronlib.system import MESet
 
 from extronlib import event
 from extronlib.system import Wait
+from extronlib.ui import Button
 
 import re
 
@@ -35,64 +36,74 @@ class MatrixController:
             else:
                 matrixRows[row].append(btn)
 
-        self._rows = {}
+        self.__Rows = {}
         for r in matrixRows:
-            self._rows[r] = MatrixRow(self, matrixRows[r], r)
+            self.__Rows[r] = MatrixRow(self, matrixRows[r], r)
         
         for dest in self.SourceController.Destinations:
-            dest._MatrixRow = self._rows[dest.Output]
+            dest = cast('Destination', dest)
+            dest.AssignMatrixRow(self.__Rows[dest.Output])
             
-        self._ctls = matrixCtls
-        self._del = matrixDelAll
-        self._inputLbls = inputLabels
-        self._outputLbls = outputLabels
-        self._stateDict = {
+        self.__CtlsSet = matrixCtls
+        self.__DelBtn = matrixDelAll
+        self.__InputLbls = inputLabels
+        self.__OutputLbls = outputLabels
+        self.StateDict = {
             'AV': 3,
             'Aud': 2,
             'Vid': 1,
             'untie': 0
         }
         
-        self._ctls.SetCurrent(0)
+        self.__CtlsSet.SetCurrent(0)
         
-        # Log('Create Class Events')
-        @event(self._ctls.Objects, 'Pressed')
-        def matrixModeHandler(button: 'Button', action: str):
-            self._ctls.SetCurrent(button)
-            if button.Name.endswith('AV'):
-                self.Mode = 'AV'
-            elif button.Name.endswith('Audio'):
-                self.Mode = 'Aud'
-            elif button.Name.endswith('Vid'):
-                self.Mode = 'Vid'
-            elif button.Name.endswith('Untie'):
-                self.Mode = 'untie'
-        
-        @event(self._del, ['Pressed','Released'])
-        def matrixDelAllTiesHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                for row in self._rows.values():
-                    for btn in row.Objects:
-                        btn.SetState(0)
-                self.SourceController.MatrixSwitch(self.SourceController.BlankSource, 'All', 'untie')
-            
-        for inLbl in self._inputLbls:
+        for inLbl in self.__InputLbls:
             inLbl.SetText('Not Connected')
         for src in self.SourceController.Sources:
-            for inLbl in self._inputLbls:
+            src = cast('Source', src)
+            for inLbl in self.__InputLbls:
                 if inLbl.Name.endswith(str(src.Input)):
                     inLbl.SetText(src.Name)
             
-        for outLbl in self._outputLbls:
+        for outLbl in self.__OutputLbls:
             outLbl.SetText('Not Connected')
         for dest in self.SourceController.Destinations:
-            for outLbl in self._outputLbls:
+            dest = cast('Destination', dest)
+            for outLbl in self.__OutputLbls:
                 if outLbl.Name.endswith(str(dest.Output)):
                     outLbl.SetText(dest.Name)
         
+        @event(self.__CtlsSet.Objects, 'Pressed') # pragma: no cover
+        def MatrixModeHandler(button: 'Button', action: str):
+            self.__ModeHandler(button, action)
+        
+        @event(self.__DelBtn, ['Pressed','Released']) # pragma: no cover
+        def MatrixDelAllTiesHandler(button: 'Button', action: str):
+            self.__DeleteAllTiesHandler(button, action)
+        
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __DeleteAllTiesHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            for row in self.__Rows.values():
+                for btn in row.Objects:
+                    btn.SetState(0)
+            self.SourceController.MatrixSwitch(self.SourceController.BlankSource, 'All', 'untie')
+
+    def __ModeHandler(self, button: 'Button', action: str):
+        self.__CtlsSet.SetCurrent(button)
+        if button.Name.endswith('AV'):
+            self.Mode = 'AV'
+        elif button.Name.endswith('Aud'):
+            self.Mode = 'Aud'
+        elif button.Name.endswith('Vid'):
+            self.Mode = 'Vid'
+        elif button.Name.endswith('Untie'):
+            self.Mode = 'untie'
+
 class MatrixRow:
     def __init__(self,
                  Matrix: 'MatrixController',
@@ -112,19 +123,26 @@ class MatrixRow:
             # 0 is full match, 1 is input, 2 is output
             btn.Input = int(re_match.group(1))
         
-        @event(self.Objects, 'Pressed')
+        @event(self.Objects, 'Pressed') # pragma: no cover
         def matrixSelectHandler(button: 'Button', action: str):
-            # send switch commands
-            if self.Matrix.Mode == "untie":
-                self.Matrix.SourceController.MatrixSwitch(0, [self.MatrixOutput], self.Matrix.Mode)
-            else:
-                # Log("Selected button input - {}".format(button.Input))
-                self.Matrix.SourceController.MatrixSwitch(button.Input, [self.MatrixOutput], self.Matrix.Mode)
-            
-            # set pressed button's feedback
-            self.MakeTie(button, self.Matrix.Mode)
+            self.__MatrixSelectHandler(button, action)
+    
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __MatrixSelectHandler(self, button: 'Button', action: str):
+        # send switch commands
+        if self.Matrix.Mode == "untie":
+            self.Matrix.SourceController.MatrixSwitch(0, [self.MatrixOutput], self.Matrix.Mode)
+        else:
+            # Log("Selected button input - {}".format(button.Input))
+            self.Matrix.SourceController.MatrixSwitch(button.Input, [self.MatrixOutput], self.Matrix.Mode)
         
-    def _UpdateRowBtns(self, modBtn: 'Button', tieType: str="AV") -> None:
+        # set pressed button's feedback
+        self.MakeTie(button, self.Matrix.Mode)
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __UpdateRowBtns(self, modBtn: 'Button', tieType: str="AV") -> None:
         for btn in self.Objects:
             if btn != modBtn:
                 if tieType == 'AV':
@@ -145,6 +163,8 @@ class MatrixRow:
                         btn.SetState(2)
                         btn.SetText('Aud')
     
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
     def MakeTie(self, input: Union[int, 'Button'], tieType: str="AV") -> None:
         if not (tieType == 'AV' or tieType == 'Aud' or tieType == 'Vid' or tieType == 'untie'):
             raise ValueError("TieType must be one of 'AV', 'Aud', 'Vid', or 'untie")
@@ -154,18 +174,20 @@ class MatrixRow:
                 btn.SetState(0)
                 btn.SetText('')
         else:
-            if type(input) == int:
+            if type(input) is int:
                 for btn in self.Objects:
                     if btn.Input == input:
                         modBtn = btn
-            elif type(input) == Button:
+            elif type(input) is Button:
                 modBtn = input
+            else:
+                raise TypeError('Input must be either an int or Button object')
                 
-            modBtn.SetState(self.Matrix._stateDict[tieType])
+            modBtn.SetState(self.Matrix.StateDict[tieType])
             modBtn.SetText(tieType)
             if tieType == 'untie':
-                @Wait(5)
+                @Wait(5) # pragma: no cover
                 def untiedTextHandler():
                     modBtn.SetText('')
             
-            self._UpdateRowBtns(modBtn, tieType)
+            self.__UpdateRowBtns(modBtn, tieType)
