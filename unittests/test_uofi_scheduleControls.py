@@ -420,44 +420,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
                 except Exception as inst:
                     self.fail("__ScheduleStartHandler() raised {} unexpectedly!".format(type(inst)))
     
-    def test_ScheduleController_PRIV_SortWeekdays(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__SortWeekdays))
-        
-        # setup for test
-        unsortedList = \
-            [
-                'Friday',
-                'Sunday',
-                'Wednesday',
-                'Monday',
-                'Thursday',
-                'Saturday',
-                'Tuesday'
-            ]
-            
-        sortedList = \
-            [
-                'Monday', 
-                'Tuesday', 
-                'Wednesday', 
-                'Thursday', 
-                'Friday', 
-                'Saturday', 
-                'Sunday'
-            ]
-            
-        self.assertNotEqual(unsortedList, sortedList)
-        
-        # exec method
-        try:
-            unsortedList.sort(key = self.TestScheduleController._AutoScheduleController__SortWeekdays)
-        except Exception as inst:
-            self.fail("List sorting raised {} unexpectedly!".format(type(inst)))
-        
-        # test outcomes 
-        self.assertEqual(unsortedList, sortedList)
-    
     def test_ScheduleController_PRIV_ClockTime(self):
         # verify callable
         self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__ClockTime))

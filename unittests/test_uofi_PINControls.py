@@ -9,7 +9,6 @@ import settings
 
 from extronlib.device import UIDevice
 from extronlib.ui import Button, Label
-from extronlib.system import Timer
 
 ## -----------------------------------------------------------------------------
 

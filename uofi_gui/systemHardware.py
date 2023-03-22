@@ -31,7 +31,7 @@ import functools
 #### Custom Code Modules
 
 from ConnectionHandler import GetConnectionHandler
-from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey
+from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey, SortKeys
 
 #### Extron Global Scripter Modules
 
@@ -79,18 +79,18 @@ class SystemHardwareController:
         #     }
         # }
         
-        self.__module = importlib.import_module(Interface['module'])
-        self.__constructor = getattr(self.__module,
+        self.__Module = importlib.import_module(Interface['module'])
+        self.__Constructor = getattr(self.__Module,
                                      Interface['interface_class'])
         
         Interface['interface_configuration']['GUIHost'] = self.GUIHost
         if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
-            self.interface = GetConnectionHandler(self.__constructor(**Interface['interface_configuration']),
+            self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),
                                                   **Interface['ConnectionHandler'])
             
             connInfo = self.interface.Connect()
         else:
-            self.interface = self.__constructor(**Interface['interface_configuration'])
+            self.interface = self.__Constructor(**Interface['interface_configuration'])
         
         self.interface.SubscribeStatus('ConnectionStatus', None, self.__ConnectionStatus)
 
@@ -147,6 +147,18 @@ class SystemHardwareController:
                 # be created on the interface
                 if 'callback' in poll:
                     self.AddSubscription(poll, qp)
+                    
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __ConnectionStatus(self, command, value, qualifier):
+        Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
+        if value != self.ConnectionStatus:
+            self.ConnectionStatus = value
+            self.LastStatusChange = datetime.now()
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def GetQualifierList(self, subscription):
         qualList = [None]
@@ -179,85 +191,85 @@ class SystemHardwareController:
         self.interface.SubscribeStatus(subscription['command'],
                                        qualifier,
                                        callbackFn)
-            
-            
-    def __ConnectionStatus(self, command, value, qualifier):
-        Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
-        if value != self.ConnectionStatus:
-            self.ConnectionStatus = value
-            self.LastStatusChange = datetime.now()
-            
     
 class SystemPollingController:
     def __init__(self, active_duration: int=5, inactive_duration: int=300) -> None:
-        self.polling = []
+        self.Polling = []
         
-        self.__polling_state = 'stopped'
+        self.__PollingState = 'stopped'
         
-        self.__default_active_dur = active_duration
-        self.__default_inactive_dur = inactive_duration
+        self.__DefaultActiveDur = active_duration
+        self.__DefaultInactiveDur = inactive_duration
         
-        self.__inactive_polling = Timer(1, self.__InactivePollingHandler)
-        self.__inactive_polling.Stop()
-        self.__active_polling = Timer(1, self.__ActivePollingHandler)
-        self.__active_polling.Stop()
-        
-    def __ActivePollingHandler(self, timer, count):
-        for poll in self.polling:
+        self.__InactivePolling = Timer(1, self.__InactivePollingHandler)
+        self.__InactivePolling.Stop()
+        self.__ActivePolling = Timer(1, self.__ActivePollingHandler)
+        self.__ActivePolling.Stop()
+    
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __ActivePollingHandler(self, timer: 'Timer', count: int):
+        for poll in self.Polling:
             if (count % poll['active_duration']) == 0:
                 self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
     
-    def __InactivePollingHandler(self, timer, count):
-        for poll in self.polling:
+    def __InactivePollingHandler(self, timer: 'Timer', count: int):
+        for poll in self.Polling:
             if (count % poll['inactive_duration']) == 0:
                 self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
-                    
-    def PollEverything(self):
-        for poll in self.polling:
-            self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
-            
-    def __PollInterface(self, interface, command, qualifier=None):
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __PollInterface(self, interface, command, qualifier=None): # pragma: no cover
         try:
             interface.Update(command, qualifier=qualifier)
         except Exception as inst:
             Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), 'error')
     
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def PollEverything(self):
+        for poll in self.Polling:
+            self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
+            
     def StartPolling(self, mode: str='inactive'):
         if mode == 'inactive': 
-            self.__inactive_polling.Restart()
-            self.__active_polling.Stop()
-            self.__polling_state = 'inactive'
+            self.__InactivePolling.Restart()
+            self.__ActivePolling.Stop()
+            self.__PollingState = 'inactive'
         elif mode == 'active':
-            self.__active_polling.Restart()
-            self.__inactive_polling.Stop()
-            self.__polling_state = 'active'
+            self.__ActivePolling.Restart()
+            self.__InactivePolling.Stop()
+            self.__PollingState = 'active'
+        else:
+            raise ValueError("Mode must be 'inactive' or 'active'")
             
     def StopPolling(self):
-        self.__inactive_polling.Stop()
-        self.__active_polling.Stop()
-        self.__polling_state = 'stopped'
+        self.__InactivePolling.Stop()
+        self.__ActivePolling.Stop()
+        self.__PollingState = 'stopped'
         
     def TogglePollingMode(self):
-        if self.__polling_state == 'inactive':
-            self.__inactive_polling.Stop()
-            self.__active_polling.Restart()
-            self.__polling_state = 'active'
-        elif self.__polling_state == 'active':
-            self.__active_polling.Stop()
-            self.__inactive_polling.Restart()
-            self.__polling_state = 'inactive'
+        if self.__PollingState == 'inactive':
+            self.__InactivePolling.Stop()
+            self.__ActivePolling.Restart()
+            self.__PollingState = 'active'
+        elif self.__PollingState == 'active':
+            self.__ActivePolling.Stop()
+            self.__InactivePolling.Restart()
+            self.__PollingState = 'inactive'
             
     def SetPollingMode(self, mode: str):
         if mode == 'inactive':
-            if self.__active_polling.State == 'Running':
-                self.__inactive_polling.Restart()
-            self.__active_polling.Stop()
-            self.__polling_state = 'inactive'
+            if self.__ActivePolling.State == 'Running':
+                self.__InactivePolling.Restart()
+            self.__ActivePolling.Stop()
+            self.__PollingState = 'inactive'
         elif mode == 'active':
-            if self.__inactive_polling.State == 'Running':
-                self.__active_polling.Restart()
-            self.__inactive_polling.Stop()
-            self.__polling_state = 'active'
+            if self.__InactivePolling.State == 'Running':
+                self.__ActivePolling.Restart()
+            self.__InactivePolling.Stop()
+            self.__PollingState = 'active'
         else:
             raise ValueError("Mode must be 'inactive' or 'active'")
     
@@ -265,14 +277,14 @@ class SystemPollingController:
         if active_duration is not None:
             act_dur = active_duration
         else:
-            act_dur = self.__default_active_dur
+            act_dur = self.__DefaultActiveDur
             
         if inactive_duration is not None:
             inact_dur = inactive_duration
         else:
-            inact_dur = self.__default_inactive_dur
+            inact_dur = self.__DefaultInactiveDur
             
-        self.polling.append({
+        self.Polling.append({
             'interface': interface,
             'command': command,
             'qualifier': qualifier,
@@ -281,18 +293,23 @@ class SystemPollingController:
         })
         
     def RemovePolling(self, interface, command):
-        for i in range(len(self.polling)):
-            if interface is self.polling[i]['interface'] and command == self.polling[i]['command']:
-                self.polling.pop(i)
+        for i in range(len(self.Polling)):
+            if interface is self.Polling[i]['interface'] and command == self.Polling[i]['command']:
+                self.Polling.pop(i)
                 break
             
-    def UpdatePolling(self, interface, command, active_duration: int=None, inactive_duration: int=None):
-        for i in range(len(self.polling)):
-            if interface is self.polling[i]['interface'] and command == self.polling[i]['command']:
-                if active_duration is not None:
-                    self.polling[i]['active_duration'] = active_duration
-                if inactive_duration is not None:
-                    self.polling[i]['inactive_duration'] = inactive_duration
+    def UpdatePolling(self, interface, command, qualifier={}, active_duration: int=None, inactive_duration: int=None):
+        for i in range(len(self.Polling)):
+            if interface is self.Polling[i]['interface'] and command == self.Polling[i]['command']:
+                if active_duration is not None and self.Polling[i]['active_duration'] != active_duration:
+                    self.Polling[i]['active_duration'] = active_duration
+                    
+                if inactive_duration is not None and self.Polling[i]['inactive_duration'] != inactive_duration:
+                    self.Polling[i]['inactive_duration'] = inactive_duration
+                
+                if self.Polling[i]['qualifier'] != qualifier and qualifier != {}:
+                    self.Polling[i]['qualifier'] =  qualifier
+                
                 break
     
 class SystemStatusController:
@@ -301,109 +318,108 @@ class SystemStatusController:
         self.UIHost = UIHost
         self.GUIHost = self.UIHost.GUIHost
         self.Hardware = list(self.GUIHost.Hardware.values())
-        self.Hardware.sort(key=self.__hardware_sort)
+        self.Hardware.sort(key=SortKeys.HardwareSort)
         
-        self.__status_icons = DictValueSearchByKey(self.UIHost.Btns, r'DeviceStatusIcon-\d+', regex=True)
-        self.__status_icons.sort(key=self.__status_sort)
-        self.__status_labels = DictValueSearchByKey(self.UIHost.Lbls, r'DeviceStatusLabel-\d+', regex=True)
-        self.__status_labels.sort(key=self.__status_sort)
-        self.__arrows = \
+        self.__StatusIcons = DictValueSearchByKey(self.UIHost.Btns, r'DeviceStatusIcon-\d+', regex=True)
+        self.__StatusIcons.sort(key=SortKeys.StatusSort)
+        self.__StatusLabels = DictValueSearchByKey(self.UIHost.Lbls, r'DeviceStatusLabel-\d+', regex=True)
+        self.__StatusLabels.sort(key=SortKeys.StatusSort)
+        self.__Arrows = \
             {
                 'prev': self.UIHost.Btns['DeviceStatus-PageDown'],
                 'next': self.UIHost.Btns['DeviceStatus-PageUp']
             }
-        self.__page_lables = \
+        self.__PageLabels = \
             {
                 'current': self.UIHost.Lbls['DeviceStatusPage-Current'],
                 'total': self.UIHost.Lbls['DeviceStatusPage-Total'],
                 'div': self.UIHost.Lbls['PaginationSlash']
             }
         
-        self.__hardware_count = len(self.Hardware)
-        self.__display_pages = math.ceil(self.__hardware_count / 15)
-        self.__current_page_index = 0
+        self.__CurrentPageIndex = 0
         
-        self.UpdateTimer = Timer(15, self.__update_handler)
+        self.UpdateTimer = Timer(15, self.__UpdateHandler)
         self.UpdateTimer.Stop()
         
-        self.__clear_status_icos()
+        self.__ClearStatusIcons()
             
-        self.__update_pagination()
+        self.__UpdatePagination()
         
-        @event(list(self.__arrows.values()), ['Pressed','Released'])
+        @event(list(self.__Arrows.values()), ['Pressed','Released']) # pragma: no cover
         def paginationHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                if button.Name.endswith('Up'):
-                    # do page up
-                    self.__current_page_index += 1
-                elif button.Name.endswith('Down'):
-                    # do page down
-                    self.__current_page_index -= 1
-                    
-                self.__update_pagination()
-                self.__show_status_icos()
+            self.__PaginationHandler(button, action)
+    
+    @property
+    def __HardwareCount(self) -> int:
+        return len(self.Hardware)
+    
+    @property
+    def __DisplayPages(self) -> int:
+        return math.ceil(self.__HardwareCount / 15)
+    
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __PaginationHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            if button.Name.endswith('Up'):
+                # do page up
+                self.__CurrentPageIndex += 1
+                if self.__CurrentPageIndex >= self.__DisplayPages:
+                    self.__CurrentPageIndex = self.__DisplayPages
+            elif button.Name.endswith('Down'):
+                # do page down
+                self.__CurrentPageIndex -= 1
+                if self.__CurrentPageIndex < 0:
+                    self.__CurrentPageIndex = 0
                 
-    def resetPages(self):
-        self.__current_page_index = 0
-        self.__update_pagination()
-        self.__show_status_icos()
-        
-    def update_status_icos(self):
-        for ico in self.__status_icons:
-            if ico.HW is not None:
-                ico.SetState(self.__get_status_state(ico.HW))
+            self.__UpdatePagination()
+            self.__ShowStatusIcons()
+            
+    def __UpdateHandler(self, timer: 'Timer', count: int):
+        self.UpdateStatusIcons()
 
-    def __status_sort(self, e):
-        res = re.match(r'DeviceStatus(?:Icon|Label)-(\d+)', e.Name)
-        sortInt = int(res.group(1))
-        return sortInt
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    def __hardware_sort(self, e):
-        return e.Id
-    
-    def __update_handler(self, timer, count):
-        self.update_status_icos()
-        
-    def __clear_status_icos(self):
-        for ico in self.__status_icons:
+    def __ClearStatusIcons(self):
+        for ico in self.__StatusIcons:
             ico.SetEnable(False)
             ico.SetVisible(False)
             ico.HW = None
             
-        for lbl in self.__status_labels:
+        for lbl in self.__StatusLabels:
             lbl.SetText('')
     
-    def __show_status_icos(self):
-        self.__clear_status_icos()
+    def __ShowStatusIcons(self):
+        self.__ClearStatusIcons()
         
-        indexStart = self.__current_page_index * 15
-        indexEnd = ((self.__current_page_index + 1) * 15)
+        indexStart = self.__CurrentPageIndex * 15
+        indexEnd = ((self.__CurrentPageIndex + 1) * 15)
 
         displayList = []
         for i in range(indexStart, indexEnd):
-            if i == len(self.Hardware):
+            if i >= len(self.Hardware):
                 break
             displayList.append(self.Hardware[i])
         
-        if len(displayList) < len(self.__status_icons):
+        if len(displayList) < len(self.__StatusIcons):
             loadRange = len(displayList)
         else:
             loadRange = 15
         
         for j in range(loadRange):
-            ico = self.__status_icons[j]
-            lbl = self.__status_labels[j]
+            ico = self.__StatusIcons[j]
+            lbl = self.__StatusLabels[j]
             hw = displayList[j]
             
-            ico.SetState(self.__get_status_state(hw))
+            ico.SetState(self.__GetStatusState(hw))
             ico.SetVisible(True)
             ico.HW = hw
             lbl.SetText(hw.Name)
     
-    def __get_status_state(self, hw) -> int:
+    def __GetStatusState(self, hw) -> int:
         if hw.ConnectionStatus == 'Connected':
             return 2
         else:
@@ -419,67 +435,79 @@ class SystemStatusController:
                 elif secs >= 300:
                     return 0
                     
-    def __update_pagination(self):
-        if self.__display_pages == 1:
+    def __UpdatePagination(self):
+        if self.__DisplayPages == 1:
             # No page flips. Show no pagination
-            self.__arrows['prev'].SetEnable(False)
-            self.__arrows['prev'].SetVisible(False)
-            self.__arrows['next'].SetEnable(False)
-            self.__arrows['next'].SetVisible(False)
+            self.__Arrows['prev'].SetEnable(False)
+            self.__Arrows['prev'].SetVisible(False)
+            self.__Arrows['next'].SetEnable(False)
+            self.__Arrows['next'].SetVisible(False)
             
-            self.__page_lables['current'].SetVisible(False)
-            self.__page_lables['total'].SetVisible(False)
-            self.__page_lables['div'].SetVisible(False)
+            self.__PageLabels['current'].SetVisible(False)
+            self.__PageLabels['total'].SetVisible(False)
+            self.__PageLabels['div'].SetVisible(False)
             
-        elif self.__current_page_index == 0:
+        elif self.__DisplayPages > 1 and self.__CurrentPageIndex == 0:
             # Show page flips, disable prev button
-            self.__arrows['prev'].SetEnable(False)
-            self.__arrows['prev'].SetVisible(True)
-            self.__arrows['next'].SetEnable(True)
-            self.__arrows['next'].SetVisible(True)
+            self.__Arrows['prev'].SetEnable(False)
+            self.__Arrows['prev'].SetVisible(True)
+            self.__Arrows['next'].SetEnable(True)
+            self.__Arrows['next'].SetVisible(True)
             
-            self.__arrows['prev'].SetState(2)
-            self.__arrows['next'].SetState(0)
+            self.__Arrows['prev'].SetState(2)
+            self.__Arrows['next'].SetState(0)
 
-            self.__page_lables['current'].SetVisible(True)
-            self.__page_lables['current'].SetText(str(self.__current_page_index + 1))
-            self.__page_lables['total'].SetVisible(True)
-            self.__page_lables['total'].SetText(str(self.__display_pages))
-            self.__page_lables['div'].SetVisible(True)
+            self.__PageLabels['current'].SetVisible(True)
+            self.__PageLabels['current'].SetText(str(self.__CurrentPageIndex + 1))
+            self.__PageLabels['total'].SetVisible(True)
+            self.__PageLabels['total'].SetText(str(self.__DisplayPages))
+            self.__PageLabels['div'].SetVisible(True)
             
-        elif (self.__current_page_index + 1) == self.__display_pages:
+        elif self.__DisplayPages > 1 and (self.__CurrentPageIndex + 1) == self.__DisplayPages:
             # Show page flips, disable next button
-            self.__arrows['prev'].SetEnable(True)
-            self.__arrows['prev'].SetVisible(True)
-            self.__arrows['next'].SetEnable(False)
-            self.__arrows['next'].SetVisible(True)
+            self.__Arrows['prev'].SetEnable(True)
+            self.__Arrows['prev'].SetVisible(True)
+            self.__Arrows['next'].SetEnable(False)
+            self.__Arrows['next'].SetVisible(True)
             
-            self.__arrows['prev'].SetState(0)
-            self.__arrows['next'].SetState(2)
+            self.__Arrows['prev'].SetState(0)
+            self.__Arrows['next'].SetState(2)
         
-            self.__page_lables['current'].SetVisible(True)
-            self.__page_lables['current'].SetText(str(self.__current_page_index + 1))
-            self.__page_lables['total'].SetVisible(True)
-            self.__page_lables['total'].SetText(str(self.__display_pages))
-            self.__page_lables['div'].SetVisible(True)
+            self.__PageLabels['current'].SetVisible(True)
+            self.__PageLabels['current'].SetText(str(self.__CurrentPageIndex + 1))
+            self.__PageLabels['total'].SetVisible(True)
+            self.__PageLabels['total'].SetText(str(self.__DisplayPages))
+            self.__PageLabels['div'].SetVisible(True)
         
-        else:
+        elif self.__DisplayPages > 1:
             # Show page flips, both arrows enabled
-            self.__arrows['prev'].SetEnable(True)
-            self.__arrows['prev'].SetVisible(True)
-            self.__arrows['next'].SetEnable(True)
-            self.__arrows['next'].SetVisible(True)
+            self.__Arrows['prev'].SetEnable(True)
+            self.__Arrows['prev'].SetVisible(True)
+            self.__Arrows['next'].SetEnable(True)
+            self.__Arrows['next'].SetVisible(True)
             
-            self.__arrows['prev'].SetState(0)
-            self.__arrows['next'].SetState(0)
+            self.__Arrows['prev'].SetState(0)
+            self.__Arrows['next'].SetState(0)
             
-            self.__page_lables['current'].SetVisible(True)
-            self.__page_lables['current'].SetText(str(self.__current_page_index + 1))
-            self.__page_lables['total'].SetVisible(True)
-            self.__page_lables['total'].SetText(str(self.__display_pages))
-            self.__page_lables['div'].SetVisible(True)
-            
-        # utilityFunctions.Log('Tech Status Pagination Updated')
+            self.__PageLabels['current'].SetVisible(True)
+            self.__PageLabels['current'].SetText(str(self.__CurrentPageIndex + 1))
+            self.__PageLabels['total'].SetVisible(True)
+            self.__PageLabels['total'].SetText(str(self.__DisplayPages))
+            self.__PageLabels['div'].SetVisible(True)
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def ResetPages(self):
+        self.__CurrentPageIndex = 0
+        self.__UpdatePagination()
+        self.__ShowStatusIcons()
+        
+    def UpdateStatusIcons(self):
+        for ico in self.__StatusIcons:
+            if ico.HW is not None:
+                ico.SetState(self.__GetStatusState(ico.HW))
+
+    
 
 ## End Class Definitions -------------------------------------------------------
 ##

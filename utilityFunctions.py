@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Union
 if TYPE_CHECKING: # pragma: no cover
-    pass
+    from extronlib.ui import Button, Label
+    from uofi_gui.systemHardware import SystemHardwareController
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib.system import ProgramLog
@@ -23,6 +24,41 @@ import traceback
 ## End User Import -------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
+
+class SortKeys:
+    
+    @classmethod
+    def StatusSort(cls, sortItem: Union['Button', 'Label']) -> int:
+        if not hasattr(sortItem, 'Name'):
+            raise IndexError('Sort item has no attribute Name')
+        res = re.match(r'DeviceStatus(?:Icon|Label)-(\d+)', sortItem.Name)
+        if res is None:
+            raise ValueError('Sort item does not match regex')
+        sortInt = int(res.group(1))
+        return sortInt
+    
+    @classmethod
+    def HardwareSort(cls, sortItem: 'SystemHardwareController') -> str:
+        if not hasattr(sortItem, 'Id'):
+            raise IndexError('Sort item has no attribute Id')
+        return sortItem.Id
+    
+    @classmethod
+    def SortDaysOfWeek(cls, sortItem: str) -> int:
+        if sortItem == 'Monday':
+            return 0
+        elif sortItem == 'Tuesday':
+            return 1
+        elif sortItem == 'Wednesday':
+            return 2
+        elif sortItem == 'Thursday':
+            return 3
+        elif sortItem == 'Friday':
+            return 4
+        elif sortItem == 'Saturday':
+            return 5
+        elif sortItem == 'Sunday':
+            return 6
 
 ## End Class Definitions -------------------------------------------------------
 ##

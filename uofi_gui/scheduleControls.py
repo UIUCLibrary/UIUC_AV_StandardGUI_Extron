@@ -19,7 +19,7 @@ import re
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
+from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug, SortKeys
 
 #### Extron Global Scripter Modules
 
@@ -302,7 +302,7 @@ class AutoScheduleController:
             button.SetState(1)
         elif action == 'Released':
             pat = self.__editor_pattern.Pattern
-            pat['Days'].sort(key = self.__SortWeekdays)
+            pat['Days'].sort(key = SortKeys.SortDaysOfWeek)
             if self.__editor_pattern.Mode == 'start':
                 self.__pattern_start.Pattern = pat
                 self.__UpdatePattern('start')
@@ -337,7 +337,7 @@ class AutoScheduleController:
                 
     def __PatternToText(self, Pattern: Dict):
         DoW = ''
-        Pattern['Days'].sort(key = self.__SortWeekdays)
+        Pattern['Days'].sort(key = SortKeys.SortDaysOfWeek)
         if len(Pattern['Days']) == 0:
             return 'None'
         for d in Pattern['Days']:
@@ -517,22 +517,6 @@ class AutoScheduleController:
             self.GUIHost.ActCtl.SystemSwitch(self.__pattern_start.Activity)
         else:
             pass # The system is already configured in the desired state
-    
-    def __SortWeekdays(self, Day):
-        if Day == 'Monday':
-            return 0
-        elif Day == 'Tuesday':
-            return 1
-        elif Day == 'Wednesday':
-            return 2
-        elif Day == 'Thursday':
-            return 3
-        elif Day == 'Friday':
-            return 4
-        elif Day == 'Saturday':
-            return 5
-        elif Day == 'Sunday':
-            return 6
         
     def __ClockTime(self, Time: Dict):
         if Time['ampm'] == 'PM':

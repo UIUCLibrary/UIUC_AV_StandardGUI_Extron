@@ -1,7 +1,7 @@
 import unittest
 
 ## test imports ================================================================
-from utilityFunctions import TimeIntToStr, Log, DictValueSearchByKey, RunAsync
+from utilityFunctions import TimeIntToStr, Log, DictValueSearchByKey, RunAsync, SortKeys
 from extronlib.system import _ReadProgramLog, _ClearProgramLog
 from datetime import datetime
 ## =============================================================================
@@ -173,6 +173,171 @@ class UtilityFunctions_DictValueSearchByKey(unittest.TestCase):
                 self.assertIsInstance(output, expected_type[i])
                 self.assertEqual(len(output), expected_length[i])
 
+class UtilityFunctions_SortKeys_TestClass(unittest.TestCase):
+    
+    def test_UtilityFunctions_SortKeys_SortDaysOfWeek(self):
+        # verify callable
+        self.assertTrue(callable(SortKeys.SortDaysOfWeek))
+        
+        # setup for test
+        unsortedList = \
+            [
+                'Friday',
+                'Sunday',
+                'Wednesday',
+                'Monday',
+                'Thursday',
+                'Saturday',
+                'Tuesday'
+            ]
+            
+        sortedList = \
+            [
+                'Monday', 
+                'Tuesday', 
+                'Wednesday', 
+                'Thursday', 
+                'Friday', 
+                'Saturday', 
+                'Sunday'
+            ]
+            
+        self.assertNotEqual(unsortedList, sortedList)
+        
+        # exec method
+        try:
+            unsortedList.sort(key = SortKeys.SortDaysOfWeek)
+        except Exception as inst:
+            self.fail("List sorting raised {} unexpectedly!".format(type(inst)))
+        
+        # test outcomes 
+        self.assertEqual(unsortedList, sortedList)
+
+    def test_UtilityFunctions_SortKeys_HardwareSort(self):
+        class testhardware:
+            def __init__(self, Id) -> None:
+                self.Id = Id
+        
+        tp = testhardware('TP001')
+        prj1 = testhardware('PRJ001')
+        prj2 = testhardware('PRJ002')
+        ctl = testhardware('CTL001')
+        unsortedList = \
+            [
+                tp,
+                prj2,
+                ctl,
+                prj1
+            ]
+        sortedList = \
+            [
+                ctl,
+                prj1,
+                prj2,
+                tp
+            ]
+        
+        self.assertNotEqual(unsortedList, sortedList)
+        
+        try:
+            unsortedList.sort(key = SortKeys.HardwareSort)
+        except Exception as inst:
+            self.fail("List sorting raised {} unexpectedly!".format(type(inst)))
+            
+        self.assertEqual(unsortedList, sortedList)
+    
+    def test_UtilityFunctions_SortKeys_HardwareSort_BadId(self):
+        class testhardware:
+            def __init__(self, Name) -> None:
+                self.Name = Name
+        
+        tp = testhardware('TP001')
+        prj1 = testhardware('PRJ001')
+        prj2 = testhardware('PRJ002')
+        ctl = testhardware('CTL001')
+        unsortedList = \
+            [
+                tp,
+                prj2,
+                ctl,
+                prj1
+            ]
+            
+        with self.assertRaises(IndexError):
+            unsortedList.sort(key = SortKeys.HardwareSort)
+    
+    def test_UtilityFunctions_SortKeys_StatusSort(self):
+        class testbtn:
+            def __init__(self, Name) -> None:
+                self.Name = Name
+        
+        ds1 = testbtn('DeviceStatusIcon-1')
+        ds2 = testbtn('DeviceStatusIcon-2')
+        ds3 = testbtn('DeviceStatusIcon-3')
+        ds4 = testbtn('DeviceStatusIcon-4')
+        unsortedList = \
+            [
+                ds4,
+                ds2,
+                ds1,
+                ds3
+            ]
+        sortedList = \
+            [
+                ds1,
+                ds2,
+                ds3,
+                ds4
+            ]
+        
+        self.assertNotEqual(unsortedList, sortedList)
+        
+        try:
+            unsortedList.sort(key = SortKeys.StatusSort)
+        except Exception as inst:
+            self.fail("List sorting raised {} unexpectedly!".format(type(inst)))
+            
+        self.assertEqual(unsortedList, sortedList)
+        
+    def test_UtilityFunctions_SortKeys_StatusSort_BadName(self):
+        class testbtn:
+            def __init__(self, Id) -> None:
+                self.Id = Id
+        
+        ds1 = testbtn('DeviceStatusIcon-1')
+        ds2 = testbtn('DeviceStatusIcon-2')
+        ds3 = testbtn('DeviceStatusIcon-3')
+        ds4 = testbtn('DeviceStatusIcon-4')
+        unsortedList = \
+            [
+                ds4,
+                ds2,
+                ds1,
+                ds3
+            ]
+            
+        with self.assertRaises(IndexError):
+            unsortedList.sort(key = SortKeys.StatusSort)
+
+    def test_UtilityFunctions_SortKeys_StatusSort_BadMatch(self):
+        class testbtn:
+            def __init__(self, Name) -> None:
+                self.Name = Name
+        
+        ds1 = testbtn('OtherStatusIcon-1')
+        ds2 = testbtn('OtherStatusIcon-2')
+        ds3 = testbtn('OtherStatusIcon-3')
+        ds4 = testbtn('OtherStatusIcon-4')
+        unsortedList = \
+            [
+                ds4,
+                ds2,
+                ds1,
+                ds3
+            ]
+            
+        with self.assertRaises(ValueError):
+            unsortedList.sort(key = SortKeys.StatusSort)
 
 if __name__ == '__main__':
     unittest.main()
