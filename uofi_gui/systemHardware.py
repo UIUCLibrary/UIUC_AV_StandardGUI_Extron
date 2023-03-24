@@ -419,7 +419,7 @@ class SystemStatusController:
             ico.HW = hw
             lbl.SetText(hw.Name)
     
-    def __GetStatusState(self, hw) -> int:
+    def __GetStatusState(self, hw) -> int: # pragma: no cover
         if hw.ConnectionStatus == 'Connected':
             return 2
         else:

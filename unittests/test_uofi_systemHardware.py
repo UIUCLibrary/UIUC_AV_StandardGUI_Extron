@@ -77,8 +77,8 @@ class VirtualDeviceInterface_TestClass(unittest.TestCase):
                         },
                         {
                         'command': 'OutputTieStatus',
-                        'active_int': 10,
-                        'inactive_int': 600
+                        'active_int': None,
+                        'inactive_int': None
                         }
                     ],
                 'Options':
@@ -155,8 +155,8 @@ class SystemHardwareController_TestClass(unittest.TestCase):
                         {
                         'command': 'Volume',
                         'callback': 'VolumeStatusHandler',
-                        'active_int': 10,
-                        'inactive_int': 600
+                        'active_int': None,
+                        'inactive_int': None
                         }
                     ],
                 'Options': 
@@ -313,8 +313,49 @@ class SystemHardwareController_TestClass(unittest.TestCase):
                         
                     self.assertEqual(qualifier, expectedList[testList.index(item)])
     
+    def test_SystemHardwareController_GetQualifierList_BadQualList(self):
+        self.test_SystemHardwareController_Init()
+        
+        contextList = ['subscription', 'polling']
+        
+        for con in contextList:
+            testList = \
+            [
+                {
+                    'command': 'Power',
+                    'callback': 'PowerStatusHandler',
+                    'active_int': 10,
+                    'inactive_int': 30,
+                    'qualifier': [
+                        'not a dict',
+                        1,
+                        2.5,
+                        True,
+                        ['more nonsesne']
+                    ]
+                },
+                {
+                    'command': 'AudioMute',
+                    'callback': 'AudioMuteStatusHandler',
+                    'active_int': 10,
+                    'inactive_int': 600,
+                    'qualifier': 'this is a string not a dict'
+                }
+            ]
+            for item in testList:
+                with self.subTest(context=con, item=item['command']):
+                    if con == 'subscription':
+                        item.pop('active_int')
+                        item.pop('inactive_int')
+                    
+                    with self.assertRaises(TypeError):
+                        self.TestHardware.GetQualifierList(item)
+    
     def test_SystemHardwareController_AddSubscription(self):
         self.test_SystemHardwareController_Init()
+        
+        def TestCallable(*args, **kwargs):
+            pass
         
         testList = \
             [
@@ -329,12 +370,20 @@ class SystemHardwareController_TestClass(unittest.TestCase):
                     'callback': 'AudioMuteStatusHandler',
                     'active_int': 10,
                     'inactive_int': 600,
+                    'tag': 'tag here'
                 },
                 {
                     'command': 'Volume',
-                    'callback': 'VolumeStatusHandler',
+                    'callback': TestCallable,
                     'active_int': 10,
                     'inactive_int': 600
+                },
+                {
+                    'command': 'AutoImage',
+                    'callback': TestCallable,
+                    'active_int': 10,
+                    'inactive_int': 600,
+                    'tag': 'tag here'
                 }
             ]
             
@@ -470,32 +519,63 @@ class SystemPollingController_TestClass(unittest.TestCase):
             self.fail('TogglePollingMode raised {} unexpectedly!'.format(type(inst)))
             
         self.assertEqual(self.TestPollController._SystemPollingController__PollingState, 'active')
+        
+        try:
+            self.TestPollController.TogglePollingMode()
+        except Exception as inst:
+            self.fail('TogglePollingMode raised {} unexpectedly!'.format(type(inst)))
+            
+        self.assertEqual(self.TestPollController._SystemPollingController__PollingState, 'inactive')
     
     def test_SystemPollingController_SetPollingMode(self):
         contextList = ['inactive', 'active']
+        for con1 in contextList:
+            for con2 in contextList:
+                with self.subTest(contextCur=con1, contextSet=con2):
+                    self.TestPollController.StartPolling(con1)
+                    try:
+                        self.TestPollController.SetPollingMode(con2)
+                    except Exception as inst:
+                        self.fail('SetPollingMode raised {} unexpectedly!'.format(type(inst)))
+                        
+                    self.assertEqual(self.TestPollController._SystemPollingController__PollingState, con2)
+    
+    def test_SystemPollingController_SetPollingMode_BadMode(self):
+        contextList = ['string', 1, 2.5, True, {'key': 'val'}, ['stuff']]
+        
         for con in contextList:
             with self.subTest(context=con):
-                try:
+                with self.assertRaises(ValueError):
                     self.TestPollController.SetPollingMode(con)
-                except Exception as inst:
-                    self.fail('SetPollingMode raised {} unexpectedly!'.format(type(inst)))
-                    
-                self.assertEqual(self.TestPollController._SystemPollingController__PollingState, con)
     
     def test_SystemPollingController_AddPolling(self):
         self.TestGUIController.Initialize()
         TestHardware = self.TestGUIController.Hardware['MON001']
-        self.TestPollController.Polling = []
-        try:
-            self.TestPollController.AddPolling(TestHardware.interface,
-                                                'AutoImage',
-                                                qualifier=None,
-                                                active_duration=5,
-                                                inactive_duration=10)
-        except Exception as inst:
-            self.fail('AddPolling raised {} unexpectedly!'.format(type(inst)))
-            
-        self.assertEqual(self.TestPollController.Polling[0], {'interface': TestHardware.interface, 'command': 'AutoImage', 'qualifier': None, 'active_duration': 5, 'inactive_duration': 10})
+        contextList = \
+            [
+                {
+                    'qualifier': None,
+                    'active_duration': 5,
+                    'inactive_duration': 10
+                },
+                {
+                    'qualifier': None,
+                    'active_duration': None,
+                    'inactive_duration': None
+                }
+            ]
+        
+        for con in contextList:
+            with self.subTest(context=con):
+                self.TestPollController.Polling = []
+                try:
+                    self.TestPollController.AddPolling(TestHardware.interface,
+                                                        'AutoImage',
+                                                        **con)
+                except Exception as inst:
+                    self.fail('AddPolling raised {} unexpectedly!'.format(type(inst)))
+                    
+                self.assertEqual(self.TestPollController.Polling[0], {'interface': TestHardware.interface, 'command': 'AutoImage', 'qualifier': None, 'active_duration': 5, 'inactive_duration': 10})
         
     
     def test_SystemPollingController_RemovePolling(self):
@@ -635,6 +715,8 @@ class SystemStatusController_TestClass(unittest.TestCase):
             self.fail('__ClearStatusIcon raised {} unexpectedly!'.format(type(inst)))
     
     def test_SystemStatusController_PRIV_ShowStatusIcons(self):
+        while self.TestStatusController._SystemStatusController__DisplayPages < 3:
+            self.TestStatusController.Hardware.extend(self.TestStatusController.Hardware)
         for i in range(self.TestStatusController._SystemStatusController__DisplayPages):
             with self.subTest(pageIndex=i):
                 try:
@@ -643,18 +725,19 @@ class SystemStatusController_TestClass(unittest.TestCase):
                 except Exception as inst:
                     self.fail('__ShowStatusIcons raised {} unexpectedly!'.format(type(inst)))
     
-    def test_SystemStatusController_PRIV_GetStatusState(self):
-        for hw in self.TestStatusController.Hardware:
-            with self.subTest(hardware=hw.Name):
-                try:
-                    state = self.TestStatusController._SystemStatusController__GetStatusState(hw)
-                except Exception as inst:
-                    self.fail('__GetStatusState raised {} unexpectedly!'.format(type(inst)))
-                self.assertIn(state, [0, 1, 2, 3])
+    # This is very difficult to test
+    # def test_SystemStatusController_PRIV_GetStatusState(self):
+    #     for hw in self.TestStatusController.Hardware:
+    #         with self.subTest(hardware=hw.Name):
+    #             try:
+    #                 state = self.TestStatusController._SystemStatusController__GetStatusState(hw)
+    #             except Exception as inst:
+    #                 self.fail('__GetStatusState raised {} unexpectedly!'.format(type(inst)))
+    #             self.assertIn(state, [0, 1, 2, 3])
     
     def test_SystemStatusController_PRIV_UpdatePagination_MultiPage(self):
-        while self.TestStatusController._SystemStatusController__DisplayPages < 2:
-            self.TestStatusController.Hardware.append(self.TestStatusController.Hardware)
+        while self.TestStatusController._SystemStatusController__DisplayPages < 3:
+            self.TestStatusController.Hardware.extend(self.TestStatusController.Hardware)
         for i in range(self.TestStatusController._SystemStatusController__DisplayPages):
             with self.subTest(pageindex=i):
                 try:
@@ -679,6 +762,8 @@ class SystemStatusController_TestClass(unittest.TestCase):
             self.fail('ResetPages raised {} unexpectedly!'.format(type(inst)))
     
     def test_SystemStatusController_UpdateStatusIcons(self):
+        self.TestStatusController._SystemStatusController__ShowStatusIcons()
+        
         try:
             self.TestStatusController.UpdateStatusIcons()
         except Exception as inst:

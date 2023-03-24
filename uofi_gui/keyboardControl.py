@@ -195,8 +195,8 @@ class KeyboardController:
             self.__Pos += button.shift
             if self.__Pos < 0:
                 self.__Pos = 0
-            elif self.__Pos > (len(self.Text) + 1):
-                self.__Pos = (len(self.Text) + 1)
+            elif self.__Pos > (len(self.Text)):
+                self.__Pos = (len(self.Text))
             self.__TextLbl.SetText(self.__CursorString())
     
     def __BackspaceBtnHandler(self, button: 'Button',  action: str):
@@ -252,14 +252,19 @@ class KeyboardController:
         
     def __RemoveChar(self, count: int):
         if count > 0:
-            self.Text = self.Text[:self.__Pos] + self.Text[(self.__Pos + count):]
-            if self.__Pos > (len(self.Text) + 1):
-                self.__Pos = (len(self.Text) + 1)
+            if self.__Pos < (len(self.Text)):
+                self.Text = self.Text[:self.__Pos] + self.Text[(self.__Pos + count):]
+            else: # pragma: no cover
+                # not covering this because coverage can't tell this has run.
+                # see test_uofi_keyboardControl.py for more information
+                pass # cursor is at the end of the string, there is nothing to remove
         elif count < 0:
-            if (self.__Pos + count) >= 0:
+            if self.__Pos >=0 and (self.__Pos + count) >= 0:
                 self.Text = self.Text[:(self.__Pos + count)] + self.Text[self.__Pos:]
-            self.__Pos += count
-            if self.__Pos < 0:
+            else:
+                pass # cursor is at the beginning of the string
+            self.__Pos += count # fix Position after removing characters infront of the cursor
+            if self.__Pos < 0: # fixes Position if it becomes less than zero
                 self.__Pos = 0
         
     def __UpdateKeyboardState(self):

@@ -61,7 +61,7 @@ class KeyboardController_TestClass(unittest.TestCase): # rename for module to be
         # __CharBtns
         with self.subTest(param='__CharBtns'):
             self.assertIsInstance(self.TestKeyboardController._KeyboardController__CharBtns, list)
-            for item in self.TestKeyboardController._KeyboardController:
+            for item in self.TestKeyboardController._KeyboardController__CharBtns:
                 with self.subTest(item=item.Name):
                     self.assertIsInstance(item, Button)
         
@@ -104,8 +104,8 @@ class KeyboardController_TestClass(unittest.TestCase): # rename for module to be
         # __Cursor
         with self.subTest(param='__Cursor'):
             self.assertIsInstance(self.TestKeyboardController._KeyboardController__Cursor, tuple)
-            self.assertIsInstance(self.TestKeyboardController._KeyboardController__Curson[0], str)
-            self.assertIsInstance(self.TestKeyboardController._KeyboardController__Curson[1], str)
+            self.assertIsInstance(self.TestKeyboardController._KeyboardController__Cursor[0], str)
+            self.assertIsInstance(self.TestKeyboardController._KeyboardController__Cursor[1], str)
         
         # __Pos
         with self.subTest(param='__Pos'):
@@ -116,7 +116,7 @@ class KeyboardController_TestClass(unittest.TestCase): # rename for module to be
             self.assertIsInstance(self.TestKeyboardController._KeyboardController__CursorTimer, Timer)
     
     def test_KeyboardController_EventHandler_CharBtnHandler(self):
-        btnList = [self.TestKeyboardController._KeyboardController__CharBtns]
+        btnList = self.TestKeyboardController._KeyboardController__CharBtns
         actList = ['Pressed', 'Released']
         contextList = [True, False]
         for btn in btnList:
@@ -166,11 +166,11 @@ class KeyboardController_TestClass(unittest.TestCase): # rename for module to be
         
         for text in textList:
             self.TestKeyboardController.Text = text
-            for i in range(len(text)):
-                self.TestKeyboardController._KeyboardController_Pos = i
+            for i in range(len(text)+1):
                 for btn in btnList:
                     for act in actList:
                         with self.subTest(button=btn, action=act, text=text, pos=i):
+                            self.TestKeyboardController._KeyboardController__Pos = i
                             try:
                                 self.TestKeyboardController._KeyboardController__ArrowBtnHandler(btn, act)
                             except Exception as inst:
@@ -205,6 +205,12 @@ class KeyboardController_TestClass(unittest.TestCase): # rename for module to be
                         self.fail('__DeleteBtnHandler raised {} unexpectedly!'.format(type(inst)))
     
     def test_KeyboardController_EventHandler_SaveBtnHandler(self):
+        def testCallable(value):
+            self.assertTrue(True)
+            self.assertIsNotNone(value)
+        
+        self.TestKeyboardController.Open('Text String', testCallable)
+        
         btnList = [self.TestKeyboardController._KeyboardController__SaveBtn]
         actList = ['Pressed', 'Released']
         
@@ -300,6 +306,9 @@ class KeyboardController_TestClass(unittest.TestCase): # rename for module to be
                 self.assertEqual(self.TestKeyboardController.Text, expectedList[i])
     
     def test_KeyboardController_PRIV_RemoveChar(self):
+        # For some reason this is not covering the else statement when (self.__Pos < (len(self.Text))) is false
+        # every test I run manually shows (direction=1, pos=11) as returning false for the conditional above,
+        # yet still does not execute the pass statement in the else block
         text = 'Text String'
         expectedLists = \
             {
