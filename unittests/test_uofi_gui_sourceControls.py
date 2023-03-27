@@ -531,17 +531,22 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
                     self.TestSourceController.SelectSource(src)
                         
     def test_SourceController_UpdateDisplaySourceList(self):
-        self.TestSourceController._SourceController__DisplaySrcList = []
-        len1 = len(self.TestSourceController._SourceController__DisplaySrcList)
+        contextList = ['off', 'share', 'adv_share', 'group_work']
         
-        try:
-            self.TestSourceController.UpdateDisplaySourceList()
-        except Exception as inst:
-            self.fail('UpdateDisplaySourceList raised {} unexpectedly!'.format(type(inst)))
-            
-        len2 = len(self.TestSourceController._SourceController__DisplaySrcList)
-        
-        self.assertGreater(len2, len1)
+        for con in contextList:
+            with self.subTest(context=con):
+                self.TestGUIController.ActCtl.CurrentActivity = con
+                self.TestSourceController._SourceController__DisplaySrcList = []
+                len1 = len(self.TestSourceController._SourceController__DisplaySrcList)
+                
+                try:
+                    self.TestSourceController.UpdateDisplaySourceList()
+                except Exception as inst:
+                    self.fail('UpdateDisplaySourceList raised {} unexpectedly!'.format(type(inst)))
+                    
+                len2 = len(self.TestSourceController._SourceController__DisplaySrcList)
+                
+                self.assertGreater(len2, len1)
                         
     def test_SourceController_UpdateSourceMenu(self):
         srcLen = len(self.TestSourceController._SourceController__DisplaySrcList)

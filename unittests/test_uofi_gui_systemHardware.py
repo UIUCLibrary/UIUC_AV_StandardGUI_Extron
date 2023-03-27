@@ -76,9 +76,7 @@ class VirtualDeviceInterface_TestClass(unittest.TestCase):
                         'inactive_int': 600
                         },
                         {
-                        'command': 'OutputTieStatus',
-                        'active_int': None,
-                        'inactive_int': None
+                        'command': 'OutputTieStatus'
                         }
                     ],
                 'Options':

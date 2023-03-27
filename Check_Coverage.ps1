@@ -2,7 +2,8 @@
     [string]$module='',
     [switch]$append=$false,
     [switch]$blank=$false,
-    [string]$path="."
+    [string]$path=".",
+    [string]$testPath="unittests"
 )
 
 Set-Location $path
@@ -24,16 +25,16 @@ Discovering and running unit tests
 "@
 if ($module -eq '') {
     if ($append) {
-        coverage run --source=uofi_gui,utilityFunctions --append -m unittest discover -v -b -s .\unittests\ -p test_*.py
+        coverage run --source=uofi_gui,utilityFunctions --append -m unittest discover -v -b -s .\$testPath\ -p test_*.py
 } else {
-        coverage run --source=uofi_gui,utilityFunctions -m unittest discover -v -b -s .\unittests\ -p test_*.py
+        coverage run --source=uofi_gui,utilityFunctions -m unittest discover -v -b -s .\$testPath\ -p test_*.py
     }
 } else {
     $testModule = $module.Replace('.', '_')
     if ($append) {
-        coverage run --source=$module --append --context=$module -m unittest discover -v -b -s .\unittests\ -p test_$testModule.py
+        coverage run --source=$module --append --context=$module -m unittest discover -v -b -s .\$testPath\ -p test_$testModule.py
     } else {
-        coverage run --source=$module --context=$module -m unittest discover -v -b -s .\unittests\ -p test_$testModule.py
+        coverage run --source=$module --context=$module -m unittest discover -v -b -s .\$testPath\ -p test_$testModule.py
     }
 }
 Write-Output @"
