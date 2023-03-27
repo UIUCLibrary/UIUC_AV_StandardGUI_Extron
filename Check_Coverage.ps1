@@ -25,20 +25,15 @@ Discovering and running unit tests
 if ($module -eq '') {
     if ($append) {
         coverage run --source=uofi_gui,utilityFunctions --append -m unittest discover -v -b -s .\unittests\ -p test_*.py
-    } else {
+} else {
         coverage run --source=uofi_gui,utilityFunctions -m unittest discover -v -b -s .\unittests\ -p test_*.py
     }
-} elseif ($module -eq 'utilityFunctions') {
-    if ($append) {
-        coverage run --source=utilityFunctions --append -m unittest discover -v -b -s .\unittests\ -p test_utilityFunctions*.py
-    } else {
-        coverage run --source=utilityFunctions -m unittest discover -v -b -s .\unittests\ -p test_utilityFunctions*.py
-    }
 } else {
+    $testModule = $module.Replace('.', '_')
     if ($append) {
-        coverage run --source=uofi_gui.$module --append --context=$module -m unittest discover -v -b -s .\unittests\ -p test_uofi_$module*.py
+        coverage run --source=$module --append --context=$module -m unittest discover -v -b -s .\unittests\ -p test_$testModule.py
     } else {
-        coverage run --source=uofi_gui.$module --context=$module -m unittest discover -v -b -s .\unittests\ -p test_uofi_$module*.py
+        coverage run --source=$module --context=$module -m unittest discover -v -b -s .\unittests\ -p test_$testModule.py
     }
 }
 Write-Output @"
