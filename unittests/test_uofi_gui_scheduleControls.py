@@ -176,9 +176,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
             self.assertIsInstance(self.TestScheduleController._AutoScheduleController__AutoShutdownClock, Clock)
         
     def test_ScheduleController_PRIV_UpdatePattern(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__UpdatePattern))
-        
         self.TestScheduleController._AutoScheduleController__pattern_start.Pattern = self.TestScheduleController._AutoScheduleController__default_pattern
         self.TestScheduleController._AutoScheduleController__pattern_shutdown.Pattern = self.TestScheduleController._AutoScheduleController__default_pattern
 
@@ -219,8 +216,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
             self.assertRaises(ValueError, self.TestScheduleController._AutoScheduleController__UpdatePattern, {'Mode', 'garbage input'})
     
     def test_ScheduleController_PRIV_PatternToText(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__PatternToText))
         
         # setup for test
         testPatternList = \
@@ -290,9 +285,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
     def test_ScheduleController_PRIV_SaveSchedule(self):
         import shutil
         
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__SaveSchedule))
-        
         with self.subTest(con='Save - No Existing Schedule'):
             if File.Exists(self.TestScheduleController._AutoScheduleController__scheduleFilePath):
                 File.DeleteFile(self.TestScheduleController._AutoScheduleController__scheduleFilePath)
@@ -311,9 +303,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
             os.remove('./emulatedFileSystem/SFTP/user/states/test_room_schedule_write.json')
     
     def test_ScheduleController_PRIV_LoadSchedule_NoFile(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__LoadSchedule))
-
         try:
             self.TestScheduleController._AutoScheduleController__LoadSchedule()
         except Exception as inst:
@@ -342,9 +331,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
         
         self.TestScheduleController._AutoScheduleController__scheduleFilePath = '/user/states/test_states/test_room_schedule.json'
         
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__LoadSchedule))
-        
         for con in context:
             with self.subTest(i=con):
                 self.TestScheduleController.AutoStart = con['AutoStart']
@@ -353,9 +339,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
         
      
     def test_ScheduleController_PRIV_UpdateEditor(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__UpdateEditor))
-        
         # setup for test
         testPattern = \
             {
@@ -391,9 +374,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
     def test_ScheduleController_PRIV_ScheduleShutdownHandler(self):
         context = ['off', 'share', 'adv_share', 'group_work']
         
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__ScheduleShutdownHandler))
-        
         # exec method
         for con in context:
             with self.subTest(i=con):
@@ -405,9 +385,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
     
     def test_ScheduleController_PRIV_ScheduleStartHandler(self):
         context = ['off', 'share', 'adv_share', 'group_work']
-        
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__ScheduleStartHandler))
         
         # exec method
         for con in context:
@@ -421,9 +398,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
                     self.fail("__ScheduleStartHandler() raised {} unexpectedly!".format(type(inst)))
     
     def test_ScheduleController_PRIV_ClockTime(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__ClockTime))
-        
         # setup for test
         testTimes = \
             [
@@ -472,9 +446,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
                 self.assertEqual(clockTime, expectedValues[i])
     
     def test_ScheduleController_PRIV_PopoverInactivityHandler(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__PopoverInactivityHandler))
-        
         # exec method
         try:
             self.TestScheduleController._AutoScheduleController__PopoverInactivityHandler()
@@ -483,9 +454,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
     
     def test_ScheduleController_PRIV_TechPageInactivityHandler(self):
         context = [True, False]
-        
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__TechPageInactivityHandler))
         
         # exec method
         for con in context:
@@ -497,9 +465,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
                     self.fail("__TechPageInactivityHandler raised {} unexpectedly!".format(type(inst)))
     
     # def test_ScheduleController_PRIV_SplashPageInactivityHandler(self):
-    #     # verify callable
-    #     self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__SplashPageInactivityHandler))
-        
     #     # exec method
     #     try:
     #         self.TestScheduleController._AutoScheduleController__SplashPageInactivityHandler()
@@ -507,9 +472,6 @@ class ScheduleController_TestClass(unittest.TestCase): # rename for module to be
     #         self.fail("__SplashPageInactivityHandler raised {} unexpectedly!".format(type(inst)))
     
     def test_ScheduleController_PRIV_SystemInactivityHandler(self):
-        # verify callable
-        self.assertTrue(callable(self.TestScheduleController._AutoScheduleController__SystemInactivityHandler))
-        
         # exec method
         try:
             self.TestScheduleController._AutoScheduleController__SystemInactivityHandler()

@@ -225,7 +225,7 @@ hardware = [
             'module': 'hardware.mersive_solstice_pod',
             'interface_class': 'RESTClass',
             'interface_configuration': {
-               'host': 'libwpdsys01.library.illinois.edu',
+               'host': 'wpd001',
                'devicePassword': secrets_hardware.mersive_password
             }
          },
@@ -305,7 +305,7 @@ hardware = [
                'pollFrequency': 20
             },
             'interface_configuration': {
-               'Hostname': 'libavstest10.library.illinois.edu',
+               'Hostname': 'dsp001',
                'IPPort': 22,
                'Credentials': ('admin', secrets_hardware.biamp_password)
             }
@@ -542,87 +542,87 @@ hardware = [
          'MatrixOutput': 2
       }
    },
-   # {
-   #    'Id': 'DEC003',
-   #    'Name': 'North Monitor Decoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-DEC-N2322',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 5,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'dec003',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-DEC-N2322'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixOutput': 3
-   #    }
-   # },
-   # {
-   #    'Id': 'DEC004',
-   #    'Name': 'South Monitor Decoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-DEC-N2322',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 5,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'dec004',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-DEC-N2322'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixOutput': 4
-   #    }
-   # },
-   # {
-   #    'Id': 'DEC005',
-   #    'Name': 'Confidence Monitor Decoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-DEC-N2322',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 5,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'dec005',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-DEC-N2322'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixOutput': 1
-   #    }
-   # },
+   {
+      'Id': 'DEC003',
+      'Name': 'North Monitor Decoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-DEC-N2322',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'dec003',
+               'IPPort': 50002,
+               'Model': 'NMX-DEC-N2322'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixOutput': 3
+      }
+   },
+   {
+      'Id': 'DEC004',
+      'Name': 'South Monitor Decoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-DEC-N2322',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'dec004',
+               'IPPort': 50002,
+               'Model': 'NMX-DEC-N2322'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixOutput': 4
+      }
+   },
+   {
+      'Id': 'DEC005',
+      'Name': 'Confidence Monitor Decoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-DEC-N2322',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'dec005',
+               'IPPort': 50002,
+               'Model': 'NMX-DEC-N2322'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixOutput': 1
+      }
+   },
    {
       'Id': 'ENC001',
       'Name': 'HDMI 1 Encoder',
@@ -650,141 +650,141 @@ hardware = [
          'MatrixInput': 1
       }
    },
-   # {
-   #    'Id': 'ENC002',
-   #    'Name': 'HDMI 2 Encoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-ENC-N2312',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 15,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'enc002',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-ENC-N2312'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixInput': 2
-   #    }
-   # },
-   # {
-   #    'Id': 'ENC003',
-   #    'Name': 'Room PC Encoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-ENC-N2312',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 15,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'enc003',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-ENC-N2312'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixInput': 3
-   #    }
-   # },
-   # {
-   #    'Id': 'ENC004',
-   #    'Name': 'Inst. Pod Encoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-ENC-N2312',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 15,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'enc004',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-ENC-N2312'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixInput': 4
-   #    }
-   # },
-   # {
-   #    'Id': 'ENC005',
-   #    'Name': 'North Pod Encoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-ENC-N2312',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 15,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'enc005',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-ENC-N2312'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixInput': 5
-   #    }
-   # },
-   # {
-   #    'Id': 'ENC006',
-   #    'Name': 'South Pod Encoder',
-   #    'Manufacturer': 'AMX',
-   #    'Model': 'NMX-ENC-N2312',
-   #    'Interface':
-   #       {
-   #          'module': 'hardware.amx_avoip_n2300_series',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'DeviceStatus',
-   #             'DisconnectLimit': 15,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'enc006',
-   #             'IPPort': 50002,
-   #             'Model': 'NMX-ENC-N2312'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': [],
-   #    'Options': {
-   #       'MatrixAssignment': 'VMX001',
-   #       'MatrixInput': 6
-   #    }
-   # },
+   {
+      'Id': 'ENC002',
+      'Name': 'HDMI 2 Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'enc002',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2312'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 2
+      }
+   },
+   {
+      'Id': 'ENC003',
+      'Name': 'Room PC Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'enc003',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2312'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 3
+      }
+   },
+   {
+      'Id': 'ENC004',
+      'Name': 'Inst. Pod Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'enc004',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2312'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 4
+      }
+   },
+   {
+      'Id': 'ENC005',
+      'Name': 'North Pod Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'enc005',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2312'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 5
+      }
+   },
+   {
+      'Id': 'ENC006',
+      'Name': 'South Pod Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'enc006',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2312'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 6
+      }
+   },
    {
       'Id': 'VMX001',
       'Name': 'SVSi Matrix',
@@ -914,70 +914,134 @@ hardware = [
             'VolumeRange': (0, 100)
          }
    },
-   # {
-   #    'Id': 'MON002',
-   #    'Name': 'South Monitor',
-   #    'Manufacturer': 'SharpNEC',
-   #    'Model': 'V625',
-   #    'Interface': 
-   #       {
-   #          'module': 'hardware.nec_display_P_V_X_Series_v1_4_1_0',
-   #          'interface_class': 'EthernetClass',
-   #          'ConnectionHandler': {
-   #             'keepAliveQuery': 'AmbientCurrentIlluminance',
-   #             'DisconnectLimit': 5,
-   #             'pollFrequency': 60
-   #          },
-   #          'interface_configuration': {
-   #             'Hostname': 'mon002',
-   #             'IPPort': 7142,
-   #             'Model': 'V625'
-   #          }
-   #       },
-   #    'Subscriptions': [],
-   #    'Polling': 
-   #       [
-   #          {
-   #             'command': 'Power',
-   #             'callback': 'PowerStatusHandler',
-   #             'active_int': 10,
-   #             'inactive_int': 30
-   #          },
-   #          {
-   #             'command': 'AudioMute',
-   #             'callback': 'AudioMuteStatusHandler',
-   #             'active_int': 10,
-   #             'inactive_int': 600
-   #          },
-   #          {
-   #             'command': 'Volume',
-   #             'callback': 'VolumeStatusHandler',
-   #             'active_int': 10,
-   #             'inactive_int': 600
-   #          }
-   #       ],
-   #    'Options': 
-   #       {
-   #          'PowerCommand': 
-   #             {
-   #                'command': 'Power',
-   #             },
-   #          'SourceCommand':
-   #             {
-   #                'command': 'Input',
-   #                'value': 'HDMI'
-   #             },
-   #          'MuteCommand':
-   #             {
-   #                'command': 'AudioMute',
-   #             },
-   #          'VolumeCommand':
-   #             {
-   #                'command': 'Volume'
-   #             },
-   #          'VolumeRange': (0, 100)
-   #       }
-   # },
+   {
+      'Id': 'MON002',
+      'Name': 'South Monitor',
+      'Manufacturer': 'SharpNEC',
+      'Model': 'V625',
+      'Interface': 
+         {
+            'module': 'hardware.nec_display_P_V_X_Series_v1_4_1_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'AmbientCurrentIlluminance',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'mon002',
+               'IPPort': 7142,
+               'Model': 'V625'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': 
+         [
+            {
+               'command': 'Power',
+               'callback': 'PowerStatusHandler',
+               'active_int': 10,
+               'inactive_int': 30
+            },
+            {
+               'command': 'AudioMute',
+               'callback': 'AudioMuteStatusHandler',
+               'active_int': 10,
+               'inactive_int': 600
+            },
+            {
+               'command': 'Volume',
+               'callback': 'VolumeStatusHandler',
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ],
+      'Options': 
+         {
+            'PowerCommand': 
+               {
+                  'command': 'Power',
+               },
+            'SourceCommand':
+               {
+                  'command': 'Input',
+                  'value': 'HDMI'
+               },
+            'MuteCommand':
+               {
+                  'command': 'AudioMute',
+               },
+            'VolumeCommand':
+               {
+                  'command': 'Volume'
+               },
+            'VolumeRange': (0, 100)
+         }
+   },
+   {
+      'Id': 'PRJ001',
+      'Name': 'Projector',
+      'Manufacturer': 'SharpNEC',
+      'Model': 'V625',
+      'Interface': 
+         {
+            'module': 'hardware.nec_display_P_V_X_Series_v1_4_1_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'AmbientCurrentIlluminance',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'prj001',
+               'IPPort': 7142,
+               'Model': 'V625'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': 
+         [
+            {
+               'command': 'Power',
+               'callback': 'PowerStatusHandler',
+               'active_int': 10,
+               'inactive_int': 30
+            },
+            {
+               'command': 'AudioMute',
+               'callback': 'AudioMuteStatusHandler',
+               'active_int': 10,
+               'inactive_int': 600
+            },
+            {
+               'command': 'Volume',
+               'callback': 'VolumeStatusHandler',
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ],
+      'Options': 
+         {
+            'PowerCommand': 
+               {
+                  'command': 'Power',
+               },
+            'SourceCommand':
+               {
+                  'command': 'Input',
+                  'value': 'HDMI'
+               },
+            'MuteCommand':
+               {
+                  'command': 'AudioMute',
+               },
+            'VolumeCommand':
+               {
+                  'command': 'Volume'
+               },
+            'VolumeRange': (0, 100)
+         }
+   },
    {
       'Id': 'MIC001',
       'Name': 'Overhead Mic',

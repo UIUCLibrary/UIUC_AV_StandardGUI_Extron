@@ -176,8 +176,6 @@ class UtilityFunctions_DictValueSearchByKey(unittest.TestCase):
 class UtilityFunctions_SortKeys_TestClass(unittest.TestCase):
     
     def test_UtilityFunctions_SortKeys_SortDaysOfWeek(self):
-        # verify callable
-        self.assertTrue(callable(SortKeys.SortDaysOfWeek))
         
         # setup for test
         unsortedList = \

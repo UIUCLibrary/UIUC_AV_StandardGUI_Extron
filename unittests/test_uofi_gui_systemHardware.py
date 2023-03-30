@@ -572,8 +572,11 @@ class SystemPollingController_TestClass(unittest.TestCase):
                                                         **con)
                 except Exception as inst:
                     self.fail('AddPolling raised {} unexpectedly!'.format(type(inst)))
-                    
-                self.assertEqual(self.TestPollController.Polling[0], {'interface': TestHardware.interface, 'command': 'AutoImage', 'qualifier': None, 'active_duration': 5, 'inactive_duration': 10})
+                if con['active_duration'] is None:
+                    con['active_duration'] = self.TestPollController._SystemPollingController__DefaultActiveDur
+                if con['inactive_duration'] is None:
+                    con['inactive_duration'] = self.TestPollController._SystemPollingController__DefaultInactiveDur
+                self.assertEqual(self.TestPollController.Polling[0], {'interface': TestHardware.interface, 'command': 'AutoImage', 'qualifier': con['qualifier'], 'active_duration': con['active_duration'], 'inactive_duration': con['inactive_duration']})
         
     
     def test_SystemPollingController_RemovePolling(self):
