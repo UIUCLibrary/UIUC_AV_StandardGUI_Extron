@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.ui import Button, Knob, Label, Level, Slider
@@ -29,119 +29,106 @@ class PINController:
                  pinCode: str,
                  destPage: str,
                  openFn: Callable) -> None:
-        """Initializes the PIN Security Controller
-
-        Args:
-            UIHost (extronlib.device): UIHost to which the buttons are assigned
-            startBtn (extronlib.ui.Button): the button object which triggers the pin code module
-            pinBtns (Dict[List[extronlib.ui.Button], extronlib.ui.Button, extronlib.ui.Button]): dictionary containing pin page
-                buttons such as:
-                {
-                    "numPad":
-                        [
-                            TP_Btns['PIN-0'],
-                            TP_Btns['PIN-1'],
-                            TP_Btns['PIN-2'],
-                            TP_Btns['PIN-3'],
-                            TP_Btns['PIN-4'],
-                            TP_Btns['PIN-5'],
-                            TP_Btns['PIN-6'], 
-                            TP_Btns['PIN-7'],
-                            TP_Btns['PIN-8'],
-                            TP_Btns['PIN-9']
-                        ],
-                "backspace": TP_Btns['PIN-Del'],
-                "cancel": TP_Btns['PIN-Cancel']
-                }
-            pinLbl (extronlib.ui.Label): the label object which will contain masked user feedback
-            pinCode (str): the master pin value to match against
-            destPage (str): the page to show on successful pin auth
-
-        Returns:
-            bool: true on success, false on failure
-        """
         # Public Properties
         self.UIHost = UIHost
         self.PIN = pinCode
         
         # Private Properties
-        self._currentPIN = ""
-        self._pinPadBtns = \
+        self.__CurrentPIN = ""
+        self.__PINPadBtns = \
             {
                 "numPad": DictValueSearchByKey(self.UIHost.Btns, r'PIN-\d', regex=True),
                 "backspace": self.UIHost.Btns['PIN-Del'],
                 "cancel": self.UIHost.Btns['PIN-Cancel']
             }
-        self._pinLbl = self.UIHost.Lbls['PIN-Label']
-        self._destPage = destPage
-        self._destPageFn = openFn
-        self._startBtn = self.UIHost.Btns['Header-Settings']
+        self.__PINLbl = self.UIHost.Lbls['PIN-Label']
+        self.__DestPage = destPage
+        self.__DestPageFn = openFn
+        self.__StartBtn = self.UIHost.Btns['Header-Settings']
         
-        self.maskPIN()
+        self.__MaskPIN()
 
-        @event(self._pinPadBtns['numPad'], ['Pressed','Released'])
-        def UpdatePIN(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                val = button.ID - 9000
-                    # pin button IDs should start at 9000 and be in numerical order
-                self._currentPIN = self._currentPIN + str(val)
-                self.maskPIN() #remask pin after change
-                if (self._currentPIN == self.PIN):
-                    self.UIHost.ShowPopup("PIN Outcome Success", 2)
-                    # clean up and go to destination page while success popup is up
-                    self.UIHost.ShowPage(self._destPage)
-                    self._destPageFn()
-                    self.UIHost.HidePopup("PIN Code")
-                elif (len(self._currentPIN) >= 10):
-                    self.UIHost.ShowPopup("PIN Outcome Failure", 2)
-                    # clean up and go back to pin page while failure popup is up
-                    self.resetPIN()
-                button.SetState(0)
+        @event(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
+        def UpdatePINHandler(button: 'Button', action: str):
+            self.__UpdatePINHandler
         
-        @event(self._pinPadBtns['backspace'], ['Pressed','Released'])
-        def BackspacePIN(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self._currentPIN = self._currentPIN[:-1] # remove last character of current pin
-                self.maskPIN()  # remask pin after change
-                button.SetState(0)
+        @event(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
+        def BackspacePINHandler(button: 'Button', action: str):
+            self.__BackspacePINHandler(button, action)
 
-        @event(self._pinPadBtns['cancel'], ['Pressed','Released'])
+        @event(self.__PINPadBtns['cancel'], ['Pressed','Released']) # pragma: no cover
         def CancelBtnHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                self.hidePINMenu()
-                button.SetState(0)
+            self.__CancelBtnHandler(button, action)
 
-        @event(self._startBtn, 'Held')
+        @event(self.__StartBtn, 'Held') # pragma: no cover
         # triggers on startBtn defined long press, 3 sec recommended
         def StartBtnHandler(button: 'Button', action: str):
-            button.SetState(0)
-            self.showPINMenu()
+            self.__StartBtnHandler(button, action)
     
-    def maskPIN(self) -> None:
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __UpdatePINHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            val = button.ID - 9000
+                # pin button IDs should start at 9000 and be in numerical order
+            self.__CurrentPIN = self.__CurrentPIN + str(val)
+            self.__MaskPIN() #remask pin after change
+            if (self.__CurrentPIN == self.PIN):
+                self.UIHost.ShowPopup("PIN Outcome Success", 2)
+                # clean up and go to destination page while success popup is up
+                self.UIHost.ShowPage(self.__DestPage)
+                self.__DestPageFn()
+                self.UIHost.HidePopup("PIN Code")
+            elif (len(self.__CurrentPIN) >= 10):
+                self.UIHost.ShowPopup("PIN Outcome Failure", 2)
+                # clean up and go back to pin page while failure popup is up
+                self.ResetPIN()
+            button.SetState(0)
+    
+    def __BackspacePINHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.__CurrentPIN = self.__CurrentPIN[:-1] # remove last character of current pin
+            self.__MaskPIN()  # remask pin after change
+            button.SetState(0)
+    
+    def __CancelBtnHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.HidePINMenu()
+            button.SetState(0)
+    
+    def __StartBtnHandler(self, button: 'Button', action: str):
+        button.SetState(0)
+        self.ShowPINMenu()
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __MaskPIN(self) -> None:
         """Generates and sets Masked PIN feedback"""    
 
         mask = ""
-        while (len(mask) < len(self._currentPIN)):
+        while (len(mask) < len(self.__CurrentPIN)):
             mask = mask + "*"
-        self._pinLbl.SetText(mask)
-        
-    def resetPIN(self) -> None:
-        """Resets the currently input PIN code"""
-        self._currentPIN = ''
-        self.maskPIN()
+        self.__PINLbl.SetText(mask)
     
-    def showPINMenu(self) -> None:
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def ResetPIN(self) -> None:
+        """Resets the currently input PIN code"""
+        self.__CurrentPIN = ''
+        self.__MaskPIN()
+    
+    def ShowPINMenu(self) -> None:
         """Displays Pin Modal"""
-        self.resetPIN()
+        self.ResetPIN()
         self.UIHost.ShowPopup("PIN Code")
         
-    def hidePINMenu(self) -> None:
+    def HidePINMenu(self) -> None:
         """Hides PIN Modal"""
         self.UIHost.HidePopup("PIN Code")
 

@@ -5,3 +5,6 @@ secrets*
 ConnectionHandler.py
 hardware/*.pdf
 eup/*
+.coverage
+htmlcov/*
+*.log

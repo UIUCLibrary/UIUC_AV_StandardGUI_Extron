@@ -274,7 +274,10 @@ class Slider:
         Parameters:	enable (bool) – True to enable the object or False to disable it.
         """
         self.Enabled = enable
-        
+    
+    def SetFill(self, Fill: Union[int, float]) -> None:
+        self.Fill = Fill
+    
     def SetRange(self, Min: Union[int, float], Max: Union[int, float], Step: Union[int, float]=1) -> None:
         """Set slider object’s allowed range and the step size.
 

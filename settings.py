@@ -20,6 +20,7 @@ defaultCamera = 'CAM001'      # Default camera to show on camera control pages
 primaryDestination = "PRJ001" # Primary destination
 primarySwitcher = 'VMX001'    # Primary Matrix Switcher
 primaryTouchPanel = 'TP001'   # Primary Touch Panel
+primaryProcessor = 'CTL001'   # Primary Control Processor
 techMatrixSize = (8,4)        # (inputs, outputs) - size of the virtual matrix to display in Tech Menu
 camSwitcher = 'DEC001'        # ID of hardware device to switch between cameras
 primaryDSP = 'DSP001'         # Primary DSP for audio control
@@ -452,7 +453,7 @@ hardware = [
                   'command': 'PanTilt',
                   'qualifier': {'Pan Speed': 5, 'Tilt Speed': 5},
                },
-            'ZoomCommand':
+            'ZCommand':
                {
                   'command': 'Zoom',
                   'qualifier': {'Zoom Speed': 2},
@@ -498,7 +499,7 @@ hardware = [
                   'command': 'PanTilt',
                   'qualifier': {'Pan Speed': 5, 'Tilt Speed': 5},
                },
-            'ZoomCommand':
+            'ZCommand':
                {
                   'command': 'Zoom',
                   'qualifier': {'Zoom Speed': 2},
@@ -913,6 +914,70 @@ hardware = [
             'VolumeRange': (0, 100)
          }
    },
+   # {
+   #    'Id': 'MON002',
+   #    'Name': 'South Monitor',
+   #    'Manufacturer': 'SharpNEC',
+   #    'Model': 'V625',
+   #    'Interface': 
+   #       {
+   #          'module': 'hardware.nec_display_P_V_X_Series_v1_4_1_0',
+   #          'interface_class': 'EthernetClass',
+   #          'ConnectionHandler': {
+   #             'keepAliveQuery': 'AmbientCurrentIlluminance',
+   #             'DisconnectLimit': 5,
+   #             'pollFrequency': 60
+   #          },
+   #          'interface_configuration': {
+   #             'Hostname': 'mon002',
+   #             'IPPort': 7142,
+   #             'Model': 'V625'
+   #          }
+   #       },
+   #    'Subscriptions': [],
+   #    'Polling': 
+   #       [
+   #          {
+   #             'command': 'Power',
+   #             'callback': 'PowerStatusHandler',
+   #             'active_int': 10,
+   #             'inactive_int': 30
+   #          },
+   #          {
+   #             'command': 'AudioMute',
+   #             'callback': 'AudioMuteStatusHandler',
+   #             'active_int': 10,
+   #             'inactive_int': 600
+   #          },
+   #          {
+   #             'command': 'Volume',
+   #             'callback': 'VolumeStatusHandler',
+   #             'active_int': 10,
+   #             'inactive_int': 600
+   #          }
+   #       ],
+   #    'Options': 
+   #       {
+   #          'PowerCommand': 
+   #             {
+   #                'command': 'Power',
+   #             },
+   #          'SourceCommand':
+   #             {
+   #                'command': 'Input',
+   #                'value': 'HDMI'
+   #             },
+   #          'MuteCommand':
+   #             {
+   #                'command': 'AudioMute',
+   #             },
+   #          'VolumeCommand':
+   #             {
+   #                'command': 'Volume'
+   #             },
+   #          'VolumeRange': (0, 100)
+   #       }
+   # },
    {
       'Id': 'MIC001',
       'Name': 'Overhead Mic',

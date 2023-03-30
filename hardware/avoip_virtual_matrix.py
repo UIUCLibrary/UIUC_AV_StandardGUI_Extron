@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
 
 from extronlib.system import ProgramLog
@@ -416,7 +416,7 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
         utilityFunctions.Log('Error Message: {}'.format(message[0]))
   
     def Discard(self, message):
-        utilityFunctions.Log('Discarding Command', stack=True)
+        utilityFunctions.Log('Discarding Command')
         self.Error([message])
 
     def Disconnect(self):

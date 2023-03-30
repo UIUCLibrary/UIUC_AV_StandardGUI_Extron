@@ -1,28 +1,16 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.ui import Button, Knob, Label, Level, Slider
 
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+from extronlib import event
 
-print(Version()) ## Sanity check ControlScript Import
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
-import json
 import re
-from typing import Dict, Tuple, List, Union
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -41,16 +29,14 @@ class HeaderController:
                  UIHost: 'ExUIDevice') -> None:
         
         # Public Properties
-        # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
         self.GUIHost = self.UIHost.GUIHost
 
         # Private Properties
-        # utilityFunctions.Log('Set Private Properties')
-        self._closeBtn = self.UIHost.Btns['Popover-Close']
+        self.__CloseBtn = self.UIHost.Btns['Popover-Close']
         
-        self._hideWhenOff = ['Camera']
-        self._hideAlways = ['Alert']
+        self.__HideWhenOff = ['Camera']
+        self.__HideAlways = ['Alert']
         
         self.UIHost.Btns['Header-Alert'].PopoverName = 'Popover-Ctl-Alert'
         self.UIHost.Btns['Header-Camera'].PopoverName = 'Popover-Ctl-Camera_{}'.format(len(self.GUIHost.Cameras))
@@ -59,7 +45,7 @@ class HeaderController:
         self.UIHost.Btns['Header-Help'].PopoverName = 'Popover-Ctl-Help'
         self.UIHost.Btns['Room-Label'].PopoverName = 'Popover-Room'
         
-        self._headerBtns = [
+        self.__HeaderBtns = [
             self.UIHost.Btns['Header-Alert'],
             self.UIHost.Btns['Header-Camera'],
             self.UIHost.Btns['Header-Lights'],
@@ -68,33 +54,18 @@ class HeaderController:
             self.UIHost.Btns['Room-Label'],
         ]
         
-        self._allPopovers = []
-        for btn in self._headerBtns:
+        self.__AllPopovers = []
+        for btn in self.__HeaderBtns:
             btn.Hide = None
             re_match = re.match(r'Popover-Ctl-([A-Za-z]*)(?:_\d+)?', btn.PopoverName)
             if re_match is not None and re_match.group(1) is not None:
-                if re_match.group(1) in self._hideWhenOff:
+                if re_match.group(1) in self.__HideWhenOff:
                     btn.Hide = 'off'
-                if re_match.group(1) in self._hideAlways:
+                if re_match.group(1) in self.__HideAlways:
                     btn.Hide = 'always'
-            self._allPopovers.append(btn.PopoverName)
-            
-        # utilityFunctions.Log('Create Class Events')
+            self.__AllPopovers.append(btn.PopoverName)
         
-        @event(self._headerBtns, ['Pressed', 'Tapped','Released'])
-        def HeaderBtnHandler(button: 'Button', action: str):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif (action == 'Released' and button.holdTime is None) or action == 'Tapped':
-                button.SetState(0)
-                self.UIHost.ShowPopup(button.PopoverName)
-        
-        @event(self._closeBtn, 'Pressed')
-        def PopoverCloseHandler(button: 'Button', action: str):
-            for po in self._allPopovers:
-                self.UIHost.HidePopup(po)
-        
-        for btn in self._headerBtns:
+        for btn in self.__HeaderBtns:
             if btn.Hide is not None:
                 btn.SetEnable(False)
                 btn.SetVisible(False)
@@ -104,18 +75,40 @@ class HeaderController:
             # this can be removed if used in the future
             if btn.Name == 'Room-Label':
                 btn.SetEnable(False)
-                
-    # Private Methods
+        
+        @event(self.__HeaderBtns, ['Pressed', 'Tapped','Released']) # pragma: no cover
+        def HeaderBtnHandler(button: 'Button', action: str):
+            self.__HeaderButtonHandler(button, action)
+        
+        @event(self.__CloseBtn, 'Pressed') # pragma: no cover
+        def PopoverCloseHandler(button: 'Button', action: str):
+            self.__PopoverCloseHandler(button, action)
     
-    # Public Methods
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __HeaderButtonHandler(self, button: 'Button',  action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif (action == 'Released' and button.holdTime is None) or action == 'Tapped':
+            button.SetState(0)
+            self.UIHost.ShowPopup(button.PopoverName)
+    
+    def __PopoverCloseHandler(self, button: 'Button', action: str):
+        for po in self.__AllPopovers:
+            self.UIHost.HidePopup(po)
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
     def ConfigSystemOn(self) -> None:
-        for btn in self._headerBtns:
+        for btn in self.__HeaderBtns:
             if btn.Hide == 'off':
                 btn.SetEnable(True)
                 btn.SetVisible(True)
     
     def ConfigSystemOff(self) -> None:
-        for btn in self._headerBtns:
+        for btn in self.__HeaderBtns:
             if btn.Hide == 'off':
                 btn.SetEnable(False)
                 btn.SetVisible(False)

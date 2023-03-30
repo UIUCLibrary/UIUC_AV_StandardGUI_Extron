@@ -1,21 +1,13 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING:
+if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
+    from extronlib.ui import Button
 
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.ui import Button, Knob, Label, Level, Slider
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+from extronlib import event
+from extronlib.system import MESet
 
-print(Version()) ## Sanity check ControlScript Import
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
@@ -37,39 +29,37 @@ class TechMenuController:
     def __init__(self,
                  UIHost: 'ExUIDevice') -> None:
         # Public Properties
-        # utilityFunctions.Log('Set Public Properties')
         self.UIHost = UIHost
         self.GUIHost = self.UIHost.GUIHost
         self.TechMenuOpen = False
         
         # Private Properties
-        # utilityFunctions.Log('Set Private Properties')
-        self._PageSelects = \
+        self.__PageSelects = \
             {
-                'Tech-AdvancedVolume': self._AdvVolPage,
-                'Tech-CameraControls': self._CamCtlsPage,
-                'Tech-DisplayControls': self._DispCtlPage,
-                'Tech-ManualMatrix': self._ManMtxPage,
-                'Tech-RoomConfig': self._RmCfgPage
+                'Tech-AdvancedVolume': self.__AdvVolPage,
+                'Tech-CameraControls': self.__CamCtlsPage,
+                'Tech-DisplayControls': self.__DispCtlPage,
+                'Tech-ManualMatrix': self.__ManMtxPage,
+                'Tech-RoomConfig': self.__RmCfgPage
             }
-        self._PageUpdates = \
+        self.__PageUpdates = \
             {
-                'Tech-SystemStatus': self._StatusPage
+                'Tech-SystemStatus': self.__StatusPage
             }
             
-        self._menuBtns = MESet([])
-        self._defaultPage = 'Tech-SystemStatus'
-        self._defaultBtn = None
+        self.__MenuBtns = MESet([])
+        self.__DefaultPage = 'Tech-SystemStatus'
+        self.__DefaultBtn = None
         for btn in DictValueSearchByKey(self.UIHost.Btns, r'Tech-\w+$', regex=True):
-            if btn.Name in self._PageSelects.keys():
-                btn.Page = self._PageSelects[btn.Name]()
+            if btn.Name in self.__PageSelects.keys():
+                btn.Page = self.__PageSelects[btn.Name]()
             else:
                 btn.Page = btn.Name
-            self._menuBtns.Append(btn)
-            if btn.Name in self._defaultPage:
-                self._defaultBtn = btn
+            self.__MenuBtns.Append(btn)
+            if btn.Name in self.__DefaultPage:
+                self.__DefaultBtn = btn
         
-        self._ctlBtns = \
+        self.__CtlBtns = \
             {
                 'prev': self.UIHost.Btns['Tech-Menu-Previous'],
                 'next': self.UIHost.Btns['Tech-Menu-Next'],
@@ -79,101 +69,84 @@ class TechMenuController:
                     'Menu-Tech-2'
                 ]
             }
-        self._pageIndex = 0
-        # utilityFunctions.Log('Length of Menu Button MESet: {}'.format(len(self._menuBtns.Objects)))
-        # utilityFunctions.Log('Create Class Events')
+        self.__PageIndex = 0
         
-        @event(self._menuBtns.Objects, 'Pressed')
-        def TechMenuBtnHandler(button, action):
-            for fn in self._PageUpdates.values():
-                fn(show=False)
+        @event(self.__MenuBtns.Objects, 'Pressed') # pragma: no cover
+        def TechMenuBtnHandler(button: 'Button', action: str):
+            self.__TechMenuBtnHandler(button, action)
             
-            if button.Page in self._PageUpdates:
-                self._PageUpdates[button.Page](show=True)
-            
-            self._menuBtns.SetCurrent(button)
-            self.UIHost.ShowPopup(button.Page)
-            
-        @event(self._ctlBtns['prev'], ['Pressed', 'Released'])
-        def TechMenuPrevHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-                if self._pageIndex > 0:
-                    self._pageIndex -= 1
-            elif action == 'Released':
-                self.UIHost.ShowPopup(self._ctlBtns['menu-pages'][self._pageIndex])
-                if self._pageIndex == 0:
-                    button.SetState(2)
-                    button.SetEnable(False)
-                else:
-                    button.SetState(0)
-                if self._pageIndex < (len(self._ctlBtns['menu-pages'])-1):
-                    self._ctlBtns['next'].SetState(0)
-                    self._ctlBtns['next'].SetEnable(True)
+        @event(self.__CtlBtns['prev'], ['Pressed', 'Released']) # pragma: no cover
+        def TechMenuPrevHandler(button: 'Button', action: str):
+            self.__TechMenuPrevHandler(button, action)
         
-        @event(self._ctlBtns['next'], ['Pressed', 'Released'])
-        def TechMenuNextHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-                if self._pageIndex < (len(self._ctlBtns['menu-pages'])-1):
-                    self._pageIndex += 1
-            elif action == 'Released':
-                self.UIHost.ShowPopup(self._ctlBtns['menu-pages'][self._pageIndex])
-                if self._pageIndex == (len(self._ctlBtns['menu-pages'])-1):
-                    button.SetState(2)
-                    button.SetEnable(False)
-                else:
-                    button.SetState(0)
-                if self._pageIndex > 0:
-                    self._ctlBtns['prev'].SetState(0)
-                    self._ctlBtns['prev'].SetEnable(True)
+        @event(self.__CtlBtns['next'], ['Pressed', 'Released']) # pragma: no cover
+        def TechMenuNextHandler(button: 'Button', action: str):
+            self.__TechMenuNextHandler(button, action)
         
-        @event(self._ctlBtns['exit'], ['Pressed', 'Released'])
-        def TechMenuExitHandler(button, action):
-            if action == 'Pressed':
-                button.SetState(1)
-            elif action == 'Released':
-                button.SetState(0)
-                self.CloseTechMenu()
+        @event(self.__CtlBtns['exit'], ['Pressed', 'Released']) # pragma: no cover
+        def TechMenuExitHandler(button: 'Button', action: str):
+            self.__TechMenuExitHandler(button, action)
 
-        
-                    
-    # Public Methods
-    def OpenTechMenu(self) -> None:
-        self.TechMenuOpen = True
-        # utilityFunctions.Log('Updating Tech Menu Nav')
-        self._pageIndex = 0
-        self.UIHost.ShowPopup(self._ctlBtns['menu-pages'][self._pageIndex])
-        self._ctlBtns['prev'].SetState(2)
-        self._ctlBtns['prev'].SetEnable(False)
-        self._ctlBtns['next'].SetState(0)
-        self._ctlBtns['next'].SetEnable(True)
-        
-        # utilityFunctions.Log('Checking for Page Updates')
-        if self._defaultPage in self._PageUpdates:
-            # utilityFunctions.Log('Starting Updates for Page: {}'.format(self._defaultPage))
-            self._PageUpdates[self._defaultPage](show=True)
-            
-        self._menuBtns.SetCurrent(self._defaultBtn)
-        self.UIHost.ShowPopup(self._defaultPage)
+    # Event Handlers  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    def CloseTechMenu(self):
-        self.TechMenuOpen = False
-        if self.GUIHost.ActCtl.CurrentActivity == 'off':
-            self.UIHost.ShowPage('Opening')
-        else:
-            self.UIHost.ShowPage('Main')
-        for fn in self._PageUpdates.values():
+    def __TechMenuBtnHandler(self, button: 'Button', action: str):
+        for fn in self.__PageUpdates.values():
             fn(show=False)
+        
+        if button.Page in self.__PageUpdates:
+            self.__PageUpdates[button.Page](show=True)
+        
+        self.__MenuBtns.SetCurrent(button)
+        self.UIHost.ShowPopup(button.Page)
     
-    # Private Methods
-    def _AdvVolPage(self) -> str:
+    def __TechMenuPrevHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+            if self.__PageIndex > 0:
+                self.__PageIndex -= 1
+        elif action == 'Released':
+            self.UIHost.ShowPopup(self.__CtlBtns['menu-pages'][self.__PageIndex])
+            if self.__PageIndex == 0:
+                button.SetState(2)
+                button.SetEnable(False)
+            else:
+                button.SetState(0)
+            if self.__PageIndex < (len(self.__CtlBtns['menu-pages'])-1):
+                self.__CtlBtns['next'].SetState(0)
+                self.__CtlBtns['next'].SetEnable(True)
+    
+    def __TechMenuNextHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+            if self.__PageIndex < (len(self.__CtlBtns['menu-pages'])-1):
+                self.__PageIndex += 1
+        elif action == 'Released':
+            self.UIHost.ShowPopup(self.__CtlBtns['menu-pages'][self.__PageIndex])
+            if self.__PageIndex == (len(self.__CtlBtns['menu-pages'])-1):
+                button.SetState(2)
+                button.SetEnable(False)
+            else:
+                button.SetState(0)
+            if self.__PageIndex > 0:
+                self.__CtlBtns['prev'].SetState(0)
+                self.__CtlBtns['prev'].SetEnable(True)
+    
+    def __TechMenuExitHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.CloseTechMenu()
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __AdvVolPage(self) -> str:
         return 'Tech-AdvancedVolume_{}'.format(len(self.GUIHost.Microphones))
     
-    def _CamCtlsPage(self) -> str:
+    def __CamCtlsPage(self) -> str:
         return 'Tech-CameraControls_{}'.format(len(self.GUIHost.Cameras))
     
-    def _DispCtlPage(self):
+    def __DispCtlPage(self):
         confs = 0
         mons = 0
         projs = 0
@@ -187,19 +160,47 @@ class TechMenuController:
         
         return 'Tech-DisplayControls_{c},{p},{m}'.format(c = confs, p = projs, m = mons)
     
-    def _ManMtxPage(self):
+    def __ManMtxPage(self):
         return 'Tech-ManualMatrix_{i}x{o}'.format(i = self.GUIHost.TechMatrixSize[0], o = self.GUIHost.TechMatrixSize[1])
     
-    def _RmCfgPage(self):
+    def __RmCfgPage(self):
         return 'Tech-RoomConfig_{}'.format(len(self.GUIHost.Lights))
     
-    def _StatusPage(self, show: bool=False):
+    def __StatusPage(self, show: bool=False):
         if show:
-            self.UIHost.StatusCtl.resetPages()
+            self.UIHost.StatusCtl.ResetPages()
             self.UIHost.StatusCtl.UpdateTimer.Restart()
         else:
             self.UIHost.StatusCtl.UpdateTimer.Stop()
     
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def OpenTechMenu(self) -> None:
+        self.TechMenuOpen = True
+        # utilityFunctions.Log('Updating Tech Menu Nav')
+        self.__PageIndex = 0
+        self.UIHost.ShowPopup(self.__CtlBtns['menu-pages'][self.__PageIndex])
+        self.__CtlBtns['prev'].SetState(2)
+        self.__CtlBtns['prev'].SetEnable(False)
+        self.__CtlBtns['next'].SetState(0)
+        self.__CtlBtns['next'].SetEnable(True)
+        
+        # utilityFunctions.Log('Checking for Page Updates')
+        if self.__DefaultPage in self.__PageUpdates:
+            # utilityFunctions.Log('Starting Updates for Page: {}'.format(self._defaultPage))
+            self.__PageUpdates[self.__DefaultPage](show=True)
+            
+        self.__MenuBtns.SetCurrent(self.__DefaultBtn)
+        self.UIHost.ShowPopup(self.__DefaultPage)
+    
+    def CloseTechMenu(self):
+        self.TechMenuOpen = False
+        if self.GUIHost.ActCtl.CurrentActivity == 'off':
+            self.UIHost.ShowPage('Opening')
+        else:
+            self.UIHost.ShowPage('Main')
+        for fn in self.__PageUpdates.values():
+            fn(show=False)
 
 ## End Class Definitions -------------------------------------------------------
 ##

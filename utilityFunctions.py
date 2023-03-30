@@ -1,24 +1,14 @@
+from typing import TYPE_CHECKING, Dict, List, Union
+if TYPE_CHECKING: # pragma: no cover
+    from extronlib.ui import Button, Label
+    from uofi_gui.systemHardware import SystemHardwareController
+
 ## Begin ControlScript Import --------------------------------------------------
-# from extronlib import event, Version
-# from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-# from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-#     DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-#     EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-#     RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-#     VolumeInterface)
-# from extronlib.ui import Button, Knob, Label, Level, Slider
-# from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-#     ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
-#
-#print(Version()) ## Sanity check ControlScript Import
 from extronlib.system import ProgramLog
 from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-from datetime import datetime
-import json
-from typing import Dict, Tuple, List
 import inspect
 import re
 import functools
@@ -32,6 +22,45 @@ import traceback
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
+##
+## Begin Class Definitions -----------------------------------------------------
+
+class SortKeys:
+    
+    @classmethod
+    def StatusSort(cls, sortItem: Union['Button', 'Label']) -> int:
+        if not hasattr(sortItem, 'Name'):
+            raise IndexError('Sort item has no attribute Name')
+        res = re.match(r'DeviceStatus(?:Icon|Label)-(\d+)', sortItem.Name)
+        if res is None:
+            raise ValueError('Sort item does not match regex')
+        sortInt = int(res.group(1))
+        return sortInt
+    
+    @classmethod
+    def HardwareSort(cls, sortItem: 'SystemHardwareController') -> str:
+        if not hasattr(sortItem, 'Id'):
+            raise IndexError('Sort item has no attribute Id')
+        return sortItem.Id
+    
+    @classmethod
+    def SortDaysOfWeek(cls, sortItem: str) -> int:
+        if sortItem == 'Monday':
+            return 0
+        elif sortItem == 'Tuesday':
+            return 1
+        elif sortItem == 'Wednesday':
+            return 2
+        elif sortItem == 'Thursday':
+            return 3
+        elif sortItem == 'Friday':
+            return 4
+        elif sortItem == 'Saturday':
+            return 5
+        elif sortItem == 'Sunday':
+            return 6
+
+## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
 
@@ -69,7 +98,7 @@ def Log(content, level: str='info', stack: bool=False) -> None:
             parent = calframe[i]
             loop_match = re.match(regex, parent.filename)
             if loop_match == None:
-                parent_mod = parent.filename
+                parent_mod = parent.filename                                    # pragma: no cover
             else:
                 parent_fn = loop_match.group(1)
                 parent_mod = parent_fn.replace('/','.')
@@ -83,11 +112,11 @@ def Log(content, level: str='info', stack: bool=False) -> None:
             if ((parent_mod == 'main' and parent.function == '<module>')
                  or (parent_mod == 'extronlib.system.Timer' and parent.function == '__callback')
                  or (parent_mod == 'Extron.ButtonObject' and parent.function == '_handleMsgAcquired')):
-                break
+                break                                                           # pragma: no cover
         
         message = message + '{w}{content}'.format(w = ws, content = content)
     else:
-        message = ("Logging from {module} - {func} ({line})\n{w}{content}""".
+        message = ("Logging from {module} - {func} ({line})\n{w}{content}".
                    format(
                        module = mod,
                        func = calframe[1].function,
@@ -212,7 +241,7 @@ def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, captur
     else:
         raise ValueError('regex must be true if capture_dict is true')
 
-def debug(func):
+def debug(func): # pragma: no cover
     """Print the function signature and return value"""
     @functools.wraps(func)
     def wrapper_debug(*args, **kwargs):
@@ -239,7 +268,7 @@ def RunAsync(func, callback: callable=None):
     def wrapper_async(*args, **kwargs):
         # using Extron wait of 10ms to make the wrapped function effectively asynchronous
         @Wait(0.01)
-        def AsyncRun():
+        def AsyncRun(): # pragma: no cover
             value = func(*args, **kwargs)
             if callable(callback): # run callback with function output if callback is supplied and callable
                 callback(value)
