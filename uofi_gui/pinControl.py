@@ -50,7 +50,7 @@ class PINController:
 
         @event(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
         def UpdatePINHandler(button: 'Button', action: str):
-            self.__UpdatePINHandler
+            self.__UpdatePINHandler(button, action)
         
         @event(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
         def BackspacePINHandler(button: 'Button', action: str):

@@ -2351,6 +2351,54 @@
       "ID": 10161
     },
     {
+      "Name": "ProcInfoLabel-Model",
+      "ID": 10171
+    },
+    {
+      "Name": "ProcInfoLabel-Serial",
+      "ID": 10172
+    },
+    {
+      "Name": "ProcInfoLabel-MAC",
+      "ID": 10173
+    },
+    {
+      "Name": "ProcInfoLabel-Host",
+      "ID": 10174
+    },
+    {
+      "Name": "ProcInfoLabel-IP",
+      "ID": 10175
+    },
+    {
+      "Name": "ProcInfoLabel-FW",
+      "ID": 10176
+    },
+    {
+      "Name": "ProcStatusLabel-File",
+      "ID": 10177
+    },
+    {
+      "Name": "ProcStatusLabel-Version",
+      "ID": 10178
+    },
+    {
+      "Name": "ProcStatusLabel-Author",
+      "ID": 10179
+    },
+    {
+      "Name": "ProcStatusLabel-Storage",
+      "ID": 10180
+    },
+    {
+      "Name": "ProcStatusLabel-CPU",
+      "ID": 10181
+    },
+    {
+      "Name": "ProcStatusLabel-Memory",
+      "ID": 10182
+    },
+    {
       "Name": "DisplayCtl-proj-1",
       "ID": 10200
     },

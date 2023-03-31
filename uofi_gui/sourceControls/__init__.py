@@ -113,7 +113,6 @@ class SourceController:
         self.MatrixSwitch(0, 'All', 'untie')
         
         # Configure Source Selection Buttons
-        # Log('Create Class Events')
         @event(self.__SourceBtns.Objects, 'Pressed') # pragma: no cover
         def SourceBtnHandler(button: 'Button', action: str):
             self.__SourceBtnHandler(button, action)
@@ -323,7 +322,7 @@ class SourceController:
             self.UIHost.Lbls['SourceAlertLabel'].SetText('')
     
     def TogglePrivacy(self) -> None:
-        self.__Privacy = not self.__Privacy
+        self.Privacy = not self.Privacy
     
     def GetAdvShareLayout(self) -> str:
         layout = {}

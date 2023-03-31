@@ -451,10 +451,12 @@ class UIDevice:
         else:
             raise ValueError('Invalid state provided')
         
-        if int < 0:
+        if duration is None:
+            self.SleepTimer = 0
+        elif duration < 0:
             raise ValueError('Duration must be positive')
-        
-        self.SleepTimer = duration
+        else:
+            self.SleepTimer = duration
         
     def SetVolume(self, name: str, level: int) -> None:
         """Adjust volume level for the given channel
