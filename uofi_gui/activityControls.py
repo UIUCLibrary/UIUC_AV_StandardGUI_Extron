@@ -51,17 +51,13 @@ class ActivityController:
                 "cancel": [tp.Btns['Shutdown-Cancel'] for tp in self.GUIHost.TPs]
             }
         for set in self.__ActivityBtns['select']:
-            @event(set.Objects, 'Pressed') # pragma: no cover
-            def ActivityButtonHandler(button: 'Button', action: str):
-                self.__ActivityButtonHandler(button, action)
-        
-        @event(self.__ActivityBtns['end'], 'Pressed') # pragma: no cover
-        def EndNow(button: 'Button', action: str):
-            self.__EndNow(button, action)
-        
-        @event(self.__ActivityBtns['cancel'], 'Pressed') # pragma: no cover
-        def CancelShutdown(button: 'Button', action: str):
-            self.__CancelShutdown(button, action)
+            set.SetCurrent(0)
+        for set in self.__ActivityBtns['indicator']:
+            set.SetCurrent(0)
+
+        for lvl in self.__ConfTimeLvl:
+            lvl.SetRange(0, self.__ConfirmationTime, 1)
+            lvl.SetLevel(0)
         
         self.__ConfTimeLbl = [tp.Lbls['ShutdownConf-Count'] for tp in self.GUIHost.TPs]
         self.__ConfTimeLvl = [tp.Lvls['ShutdownConfIndicator'] for tp in self.GUIHost.TPs]
@@ -106,6 +102,15 @@ class ActivityController:
         self.__ShutdownTimer = Timer(1, self.__ShutdownTimerHandler)
         self.__ShutdownTimer.Stop()
         
+        self.__InitPageTimer = Timer(60, self.__InitPageTimerHandler)
+        self.__InitPageTimer.TriggerTime = self.GUIHost.Timers['initPage']
+        self.__InitPageTimer.LastInactivity = {}
+        self.__InitPageTimer.PanelInactivity = {}
+        for tp in self.GUIHost.TPs:
+            self.__InitPageTimer.LastInactivity[tp.Id] = 0
+            self.__InitPageTimer.PanelInactivity[tp.Id] = 0
+        self.__InitPageTimer.Restart()
+        
         self.__ActivitySplashTimerList = []
         for i in range(len(self.GUIHost.TPs)):
             self.__ActivitySplashTimerList.insert(i, Timer(1, self.__ActivitySplashWaitHandler))
@@ -116,13 +121,17 @@ class ActivityController:
         self.__StatusTimer.Stop()
         
         for set in self.__ActivityBtns['select']:
-            set.SetCurrent(0)
-        for set in self.__ActivityBtns['indicator']:
-            set.SetCurrent(0)
-
-        for lvl in self.__ConfTimeLvl:
-            lvl.SetRange(0, self.__ConfirmationTime, 1)
-            lvl.SetLevel(0)
+            @event(set.Objects, 'Pressed') # pragma: no cover
+            def ActivityButtonHandler(button: 'Button', action: str):
+                self.__ActivityButtonHandler(button, action)
+        
+        @event(self.__ActivityBtns['end'], 'Pressed') # pragma: no cover
+        def EndNow(button: 'Button', action: str):
+            self.__EndNow(button, action)
+        
+        @event(self.__ActivityBtns['cancel'], 'Pressed') # pragma: no cover
+        def CancelShutdown(button: 'Button', action: str):
+            self.__CancelShutdown(button, action)
         
         @event(self.__SwitchTimer, 'StateChanged') # pragma: no cover
         def SwitchTimerStateHandler(timer: 'Timer', state: str):
@@ -281,6 +290,21 @@ class ActivityController:
             for tp in self.GUIHost.TPs:
                 tp.HidePopup('Power-Transition')
             # Log('System shutdown')
+    
+    def __InitPageTimerHandler(self, timer: Timer, count: int) -> None:
+        for tp in self.GUIHost.TPs:
+            if self.CurrentActivity == 'off':
+                if tp.InactivityTime > timer.LastInactivity[tp.Id]:
+                    timer.PanelInactivity[tp.Id] += tp.InactivityTime - timer.LastInactivity[tp.Id]
+                else:
+                    timer.PanelInactivity[tp.Id] = 0
+                timer.LastInactivity[tp.Id] = tp.InactivityTime
+                
+                if timer.PanelInactivity[tp.Id] >= timer.TriggerTime:
+                    tp.ShowPage('Splash')
+            else:
+                timer.LastInactivity[tp.Id] = 0
+                timer.PanelInactivity[tp.Id] = 0
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     

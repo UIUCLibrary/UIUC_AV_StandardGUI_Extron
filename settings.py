@@ -10,11 +10,14 @@ activityMode = 3              # Activity mode popup to display
    # 1 - Share only
    # 2 - Share & Advanced Share
    # 3 - Share, Adv. Share, and Group Work
-startupTimer = 5              # Max startup timer duration
-switchTimer = 3               # Max switch timer duration
-shutdownTimer = 5             # Max shutdown timer duration
-shutdownConfTimer = 30        # Shutdown confirmation duration
-activitySplashTimer = 15      # Duration to show activity splash pages for
+
+startupTimer = 5              # Max startup timer duration, seconds
+switchTimer = 3               # Max switch timer duration, seconds
+shutdownTimer = 5             # Max shutdown timer duration, seconds
+shutdownConfTimer = 30        # Shutdown confirmation duration, seconds
+activitySplashTimer = 15      # Duration to show activity splash pages for, seconds
+initPageTimer = 600           # Inactivity timeout before showing "Splash" page when Activity is Off
+
 defaultSource = "PC001"       # Default source id on activity switch
 defaultCamera = 'CAM001'      # Default camera to show on camera control pages
 primaryDestination = "PRJ001" # Primary destination

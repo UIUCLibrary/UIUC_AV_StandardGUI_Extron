@@ -44,6 +44,7 @@ class GUIController:
                 'shutdown': Settings.shutdownTimer,
                 'shutdownConf': Settings.shutdownConfTimer,
                 'activitySplash': Settings.activitySplashTimer,
+                'initPage': Settings.initPageTimer
             }
             
         self.TechMatrixSize = Settings.techMatrixSize

@@ -39,7 +39,6 @@ class AutoScheduleController:
             {
                 180: self.__PopoverInactivityHandler,
                 300: self.__TechPageInactivityHandler,
-                # 600: self.__SplashPageInactivityHandler,
                 10800: self.__SystemInactivityHandler
             }
             
@@ -124,7 +123,6 @@ class AutoScheduleController:
         self.UIHost.Btns['Schedule-AM'].Value = 'AM'
         self.UIHost.Btns['Schedule-PM'].Value = 'PM'
         self.__btns_ampm = self.UIHost.Btn_Grps['Schedule-AMPM']
-        # Log('AM/PM MESet - Len: {}, Obj: {}'.format(len(self.__btns_ampm.Objects), self.__btns_ampm.Objects))
         
         self.__btn_save = self.UIHost.Btns['Schedule-Save']
         self.__btn_cancel = self.UIHost.Btns['Schedule-Cancel']
@@ -464,15 +462,6 @@ class AutoScheduleController:
             self.__AutoShutdownClock.Disable()
         
         self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
-        # I believe this is resolved and was a result of running BuildButtons twice when calling BuildAll
-        # # DEBUG: There is an issue with the button instnace in self.UIHost.Btns doesn't match the button instance in self.__activity_start
-        # try:
-        #     self.__activity_start.SetCurrent(self.UIHost.Btns['Schedule-Start-Act-{}'.format(self.__pattern_start.Activity)])
-        # except ValueError:
-        #     Log('Button Object Not Found in MESet. Finding by Name instead.', level='warning')
-        #     for obj in self.__activity_start.Objects:
-        #         if obj.Name == 'Schedule-Start-Act-{}'.format(self.__pattern_start.Activity):
-        #             self.__activity_start.SetCurrent(obj)
         
         self.__AutoStartClock.SetDays(self.__pattern_start.Pattern['Days'])
         self.__AutoStartClock.SetTimes([self.__ClockTime(self.__pattern_start.Pattern['Time'])])

@@ -158,7 +158,30 @@ class ActivityController_TestClass(unittest.TestCase): # rename for module to be
         # __StatusTimer
         with self.subTest(param='__StatusTimer'):
             self.assertIsInstance(self.TestActivityController._ActivityController__StatusTimer, Timer)
+            
+        # __InitPageTimer
+        with self.subTest(param='__InitPageTimer'):
+            self.assertIsInstance(self.TestActivityController._ActivityController__InitPageTimer, Timer)
+            self.assertIsInstance(self.TestActivityController._ActivityController__InitPageTimer.TriggerTime, int)
+            self.assertIsInstance(self.TestActivityController._ActivityController__InitPageTimer.LastInactivity, dict)
+            self.assertIsInstance(self.TestActivityController._ActivityController__InitPageTimer.PanelInactivity, dict)
         
+    
+    def test_ActivityController_Eventhandler_InitPageTimerHandler(self):
+        self.init_ActCtl()
+        context = ['off', 'share', 'adv_share', 'group_work']
+        timeList = [(50, 25), (25, 50), (650, 10)]
+        for con in context:
+            for t in timeList:
+                with self.subTest(context=con, time=t):
+                    self.TestGUIController.ActCtl.CurrentActivity = con
+                    for tp in self.TestGUIController.TPs:
+                        tp.InactivityTime = t[0]
+                        self.TestActivityController._ActivityController__InitPageTimer.LastInactivity[tp.Id] = t[1]
+                    try:
+                        self.TestActivityController._ActivityController__InitPageTimerHandler(self.TestActivityController._ActivityController__InitPageTimer, 5)
+                    except Exception as inst:
+                        self.fail('__InitPageTimerHandler raised {} unexpectedly!'.format(type(inst)))
     
     def test_ActivityController_EventHandler_ActivityButtonHandler(self):
         self.init_ActCtl()
