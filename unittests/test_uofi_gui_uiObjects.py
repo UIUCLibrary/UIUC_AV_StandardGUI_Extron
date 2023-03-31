@@ -76,12 +76,6 @@ class ExUIDevice_TestClass(unittest.TestCase):
         self.assertIsInstance(self.TestUIController.Id, str)
         self.assertEqual(self.TestUIController.Id, 'TP001')
         
-        # TP_Lights
-        self.assertIsInstance(self.TestUIController.TP_Lights, Button)
-        self.assertTrue(hasattr(self.TestUIController.TP_Lights, 'StateIds'))
-        self.assertIsInstance(self.TestUIController.TP_Lights.StateIds, dict)
-        self.assertEqual(len(self.TestUIController.TP_Lights.StateIds), 3)
-        
         # Btns
         self.assertIsInstance(self.TestUIController.Btns, dict)
         self.assertEqual(len(self.TestUIController.Btns), 0)
@@ -152,10 +146,10 @@ class ExUIDevice_TestClass(unittest.TestCase):
         
         test_state_list = \
             [
-                ['red','green'],
-                ['red', 'off'],
-                ['green', 'off'],
-                ['green', 'red', 'off'],
+                ['Red','Green'],
+                ['Red', 'Off'],
+                ['Green', 'Off'],
+                ['Green', 'Red', 'Off'],
                 None
             ]
             
@@ -171,16 +165,47 @@ class ExUIDevice_TestClass(unittest.TestCase):
         for i in range(len(test_rate)):
             with self.subTest(i=i):
                 try:
-                    self.TestUIController.BlinkLights(test_rate[i], test_state_list[i], test_timeout[i])
+                    self.TestUIController.BlinkLights(Rate=test_rate[i], StateList=test_state_list[i], Timeout=test_timeout[i])
                 except Exception as inst:
                     self.fail("BlinkLights ({}) raised {} unexpectedly!".format(i, type(inst)))
+        with self.subTest(i='default values'):
+            try:
+                self.TestUIController.BlinkLights()
+            except Exception as inst:
+                self.fail("BlinkLights ({}) raised {} unexpectedly!".format(i, type(inst)))
     
     def test_ExUIDevice_BlinkLights_BadRate(self):
         self.init_TP()
         
         with self.assertRaises(ValueError):
-            self.TestUIController.BlinkLights('Blinky', ['red', 'off'])
+            self.TestUIController.BlinkLights('Blinky')
+            
+    def test_ExUIDevice_BlinkLights_BadStates(self):
+        self.init_TP()
         
+        with self.assertRaises(ValueError):
+            self.TestUIController.BlinkLights('Medium', ['Orange', 'Blue'])
+            
+    def test_ExUIDevice_SetLights(self):
+        self.init_TP()
+        
+        stateList = ['Off', 'Red', 'Green']
+        timeoutList = [0, 5, 60]
+        
+        for state in stateList:
+            for to in timeoutList:
+                with self.subTest(state=state, timeout=to):
+                    try:
+                        self.TestUIController.SetLights(state, to)
+                    except Exception as inst:
+                        self.fail('SetLights rasied {} unexpectedly!'.format(type(inst)))
+    
+    def test_ExUIDevice_SetLights_BadStates(self):
+        self.init_TP()
+        
+        with self.assertRaises(ValueError):
+            self.TestUIController.SetLights('Orange')
+    
     def test_ExUIDevice_LightsOff(self):
         self.init_TP()
         try:

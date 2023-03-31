@@ -64,15 +64,14 @@ class TechMenuController:
                         'slider': self.UIHost.Slds['Slider-PanelAudio']
                     }
             }
-        self.__PanelControls['sleep']['slider'].SetRange(0, 200, 1)
+        self.__PanelControls['sleep']['slider'].SetRange(0, 3600, 60)
         self.__PanelControls['sleep']['slider'].SetFill(self.UIHost.SleepTimer)
-        self.__PanelControls['sleep']['label'].SetText(str(self.UIHost.SleepTimer))
+        self.__PanelControls['sleep']['label'].SetText(str(round(self.UIHost.SleepTimer/60)))
         self.__PanelControls['sleep']['auto-sleep'].SetState(int(self.UIHost.SleepTimerEnabled))
         self.__PanelControls['sleep']['wake-on-motion'].SetState(int(self.UIHost.WakeOnMotion))
         self.__PanelControls['brightness']['slider'].SetRange(0, 100, 1)
         self.__PanelControls['brightness']['slider'].SetFill(self.UIHost.Brightness)
-        if self.UIHost.AutoBrightness:
-            self.__PanelControls['brightness']['slider'].SetEnable(False)
+        self.__PanelControls['brightness']['slider'].SetEnable((not self.UIHost.AutoBrightness))
         self.__PanelControls['brightness']['auto-brightness'].SetState(int(self.UIHost.AutoBrightness))
         self.__PanelControls['volume']['slider'].SetRange(0, 100, 1)
         self.__PanelControls['volume']['slider'].SetFill(self.UIHost.GetVolume('Master'))
@@ -158,7 +157,7 @@ class TechMenuController:
             
         @event(self.__PanelControls['volume']['slider'], ['Changed']) # pragma: no cover
         def PanelVolumeHandler(slider: 'Slider', action: str, value: Union[int, float]):
-            self.__PanelVolumeHandler(slider, action)
+            self.__PanelVolumeHandler(slider, action, value)
 
     # Event Handlers  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -213,7 +212,7 @@ class TechMenuController:
     
     def __PanelSleepHandler(self, slider: 'Slider', action: str, value: Union[int, float]):
         slider.SetFill(value)
-        self.__PanelControls['sleep']['label'].SetText(str(round(value)))
+        self.__PanelControls['sleep']['label'].SetText(str(round(value/60)))
         if self.UIHost.SleepTimerEnabled:
             self.UIHost.SetSleepTimer('On', int(value))
     
@@ -237,7 +236,7 @@ class TechMenuController:
     def __PanelAutoBrightnessHandler(self, button: 'Button', action: str):
         state = not self.UIHost.AutoBrightness
         button.SetState(int(state))
-        self.__PanelControls['brightness']['slider'].SetEnable(state)
+        self.__PanelControls['brightness']['slider'].SetEnable((not state))
         self.UIHost.SetAutoBrightness(state)
     
     def __PanelBrightnessChangeHandler(self, tp: Union['ExUIDevice', 'UIDevice'], value: int):
@@ -252,7 +251,7 @@ class TechMenuController:
         total = roundDown(self.GUIHost.CtlProc_Main.UserUsage[1]/1024)
         self.__AboutLabels['Storage'].SetText('{}/{} MB'.format(used, total))
         self.__AboutLabels['CPU'].SetText('{}%'.format(self.__GetCPUUsage()))
-        self.__AboutLabels['Memory'].SetText('{} used; {} free; {} total'.format(*self.__GetRAMUsage()))
+        self.__AboutLabels['Memory'].SetText('{} MB used; {} MB free;\n{} MB total'.format(*self.__GetRAMUsage()))
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     

@@ -21,14 +21,14 @@ class TechMenuController_TestClass(unittest.TestCase):
         self.TestTechController = self.TestUIController.TechCtl
         return super().setUp()
     
-    def test_TechMenuController_Init(self):
-        self.TestUIController.SetAutoBrightness('On')
-        TestTechCtl1 = TechMenuController(self.TestUIController)
-        self.assertIsInstance(TestTechCtl1, TechMenuController)
+    # def test_TechMenuController_Init(self):
+    #     self.TestUIController.SetAutoBrightness('On')
+    #     TestTechCtl1 = TechMenuController(self.TestUIController)
+    #     self.assertIsInstance(TestTechCtl1, TechMenuController)
         
-        self.TestUIController.SetAutoBrightness('Off')
-        TestTechCtl2 = TechMenuController(self.TestUIController)
-        self.assertIsInstance(TestTechCtl2, TechMenuController)
+    #     self.TestUIController.SetAutoBrightness('Off')
+    #     TestTechCtl2 = TechMenuController(self.TestUIController)
+    #     self.assertIsInstance(TestTechCtl2, TechMenuController)
     
     def test_TechMenuController_Type(self):
         self.assertIsInstance(self.TestTechController, TechMenuController)

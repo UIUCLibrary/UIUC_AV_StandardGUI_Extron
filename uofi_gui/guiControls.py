@@ -101,7 +101,7 @@ class GUIController:
         if type(TouchPanels) is str:
             tp = ExUIDevice(self, TouchPanels)
             tp.BuildAll(jsonPath=self.CtlJSON)
-            tp.BlinkLights('Slow', ['red', 'off'])
+            tp.BlinkLights('Slow')
             self.TPs = [tp]
         elif type(TouchPanels) is list:
             self.TPs = []
@@ -110,14 +110,11 @@ class GUIController:
                     raise TypeError(type(self).GetErrorStr('E1','TPs', tp, type(tp)))
                 panel = ExUIDevice(self, tp)
                 panel.BuildAll(jsonPath=self.CtlJSON)
-                panel.BlinkLights('Slow', ['red', 'off'])
+                panel.BlinkLights('Slow')
                 self.TPs.append(panel)
-                # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in panel.Btn_Grps['Activity-Select'].Objects])
         else:
             raise TypeError(type(self).GetErrorStr('E1','TPs', TouchPanels, type(TouchPanels)))
-        
-        # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TPs[0].Btn_Grps['Activity-Select'].Objects])
-        
+                
         if len(self.TPs) == 0:
             Log('No touch panels designated')
             self.TP_Main = None
@@ -127,7 +124,6 @@ class GUIController:
         else:
             Log('Set TP_Main by index')
             self.TP_Main = self.TPs[0]
-        # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TP_Main.Btn_Grps['Activity-Select'].Objects])
         
         ## Button Panel Definition ---------------------------------------------
         # TODO: button panel init
@@ -202,7 +198,7 @@ class GUIController:
         print('System Initialized')
         Log('System Initialized')
         for tp in self.TPs:
-            tp.BlinkLights(Rate='Fast', StateList=['green', 'red'], Timeout=2.5)
+            tp.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
             tp.Click(5, 0.2)
             
     @classmethod

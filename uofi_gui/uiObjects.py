@@ -41,13 +41,6 @@ class ExUIDevice(UIDevice):
         UIDevice.__init__(self, DeviceAlias, PartNumber)
         self.GUIHost = GUIHost
         self.Id = DeviceAlias
-        self.TP_Lights = Button(self, 65533)
-        self.TP_Lights.StateIds = \
-            {
-                'red': 16711680,
-                'green': 65280,
-                'off': 0
-            }
         self.Btns = {}
         self.Btn_Grps = {}
         self.Knobs = {}
@@ -88,10 +81,7 @@ class ExUIDevice(UIDevice):
         
         self.HideAllPopups()
         
-    def InitializeUIControllers(self):
-        #### Activity Control Module
-        # self.ActCtl = ActivityController(self)
-        
+    def InitializeUIControllers(self):        
         #### Source Control Module
         self.SrcCtl = SourceController(self)
         
@@ -128,19 +118,33 @@ class ExUIDevice(UIDevice):
 
     def BlinkLights(self, Rate: str='Medium', StateList: List=None, Timeout: Union[int, float]=0):
         if StateList is None:
-            StateList = [self.TP_Lights.StateIds['off'], self.TP_Lights.StateIds['red']]
+            StateList = ['Off', 'Red']
+        
+        for State in StateList:
+            if State not in ['Off', 'Green', 'Red']:
+                raise ValueError('State must be one of "Off", "Red", or "Green"')
         
         allowedRates = ['Slow', 'Medium', 'Fast']
         if Rate not in allowedRates:
             raise ValueError('Rate must be one of {}'.format(allowedRates))
         
-        self.TP_Lights.SetBlinking(Rate, StateList)
+        # self.TP_Lights.SetBlinking(Rate, StateList) 
+        self.SetLEDBlinking(65533, Rate, StateList)
         
-        if Timeout != 0:
-            Wait(float(Timeout), self.LightsOff)
+        if Timeout > 0:
+            Wait(float(Timeout), self.LightsOff())
+    
+    def SetLights(self, State, Timeout: Union[int, float]=0):
+        if State not in ['Off', 'Green', 'Red']:
+            raise ValueError('State must be one of "Off", "Red", or "Green"')
+        self.SetLEDState(65533, State)
         
+        if Timeout > 0:
+            Wait(float(Timeout), self.LightsOff())
+    
     def LightsOff(self):
-        self.TP_Lights.SetState(self.TP_Lights.StateIds['off'])
+        # self.TP_Lights.SetState(self.TP_Lights.StateIds['off'])
+        self.SetLEDState(65533, 'Off')
     
     def BuildAll(self, jsonObj: Dict = {}, jsonPath: str = '') -> None:
         # Log('Build All Buttons for TP: {}'.format(self.Id))
