@@ -139,7 +139,7 @@ class DisplayController:
             self.__SliderFillHandler(control, action, value)
         
         @event(self.__ControlList, ['Pressed', 'Released']) # pragma: no cover
-        def displayControlButtonHandler(control: Union['Button', 'Slider'], action: str, value: float):
+        def displayControlButtonHandler(control: Union['Button', 'Slider'], action: str, value: float=None):
             self.__DisplayControlButtonHandler(control, action, value)
             
     @property

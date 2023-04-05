@@ -1,10 +1,11 @@
 import unittest
+import importlib
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.systemHardware import SystemHardwareController, VirtualDeviceInterface, SystemPollingController, SystemStatusController
-import settings
+import test_settings as settings
 from ConnectionHandler import ConnectionHandler
 
 from extronlib.device import UIDevice
@@ -20,6 +21,7 @@ class VirtualDeviceInterface_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         
@@ -107,6 +109,7 @@ class SystemHardwareController_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -411,6 +414,7 @@ class SystemPollingController_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -616,6 +620,7 @@ class SystemStatusController_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main

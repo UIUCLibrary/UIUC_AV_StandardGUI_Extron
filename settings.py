@@ -44,8 +44,8 @@ sources = \
          "icon": 2,
          "input": 3,
          "alert": "Ensure the PC is awake.",
-         "src-ctl": "PC",
-         "adv-src-ctl": None
+         "srcCtl": "PC",
+         "advSrcCtl": None
       },
       {
          "id": "PL001-1",
@@ -53,8 +53,8 @@ sources = \
          "icon": 1,
          "input": 1,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated.",
-         "src-ctl": "HDMI",
-         "adv-src-ctl": None
+         "srcCtl": "HDMI",
+         "advSrcCtl": None
       },
       {
          "id": "PL001-2",
@@ -62,8 +62,8 @@ sources = \
          "icon": 1,
          "input": 2,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
-         "src-ctl": "HDMI",
-         "adv-src-ctl": None
+         "srcCtl": "HDMI",
+         "advSrcCtl": None
       },
       {
          "id": "WPD001",
@@ -71,8 +71,8 @@ sources = \
          "icon": 3,
          "input": 4,
          "alert": "Contact Library IT for Assistance with this Wireless Device",
-         "src-ctl": "WPD",
-         "adv-src-ctl": "WPD"
+         "srcCtl": "WPD",
+         "advSrcCtl": "WPD"
       },
       {
          "id": "WPD002",
@@ -80,8 +80,8 @@ sources = \
          "icon": 3,
          "input": 5,
          "alert": "Contact Library IT for Assistance with this Wireless Device",
-         "src-ctl": "WPD",
-         "adv-src-ctl": "WPD"
+         "srcCtl": "WPD",
+         "advSrcCtl": "WPD"
       },
       {
          "id": "WPD003",
@@ -89,8 +89,8 @@ sources = \
          "icon": 3,
          "input": 6,
          "alert": "Contact Library IT for Assistance with this Wireless Device",
-         "src-ctl": "WPD",
-         "adv-src-ctl": "WPD"
+         "srcCtl": "WPD",
+         "advSrcCtl": "WPD"
       }
    ]
 
@@ -108,11 +108,12 @@ destinations = \
          'output': 1,
          'type': 'conf',
          'rly': None,
-         'group-work-src': 'WPD001',
-         'adv-layout': {
+         'groupWrkSrc': 'WPD001',
+         'advLayout': {
             "row": 0,
             "pos": 1
-         }
+         },
+         'confFollow': 'PRJ001'
       },
       {
          "id": "PRJ001",
@@ -120,8 +121,8 @@ destinations = \
          "output": 3,
          "type": "proj+scn",
          "rly": [1, 2],
-         "group-work-src": "WPD001",
-         "adv-layout": {
+         "groupWrkSrc": "WPD001",
+         "advLayout": {
             "row": 0,
             "pos": 0
          }
@@ -132,8 +133,8 @@ destinations = \
          "output": 2,
          "type": "mon",
          "rly": None,
-         "group-work-src": "WPD002",
-         "adv-layout": {
+         "groupWrkSrc": "WPD002",
+         "advLayout": {
             "row": 1,
             "pos": 0
          }
@@ -144,8 +145,8 @@ destinations = \
          "output": 4,
          "type": "mon",
          "rly": None,
-         "group-work-src": "WPD003",
-         "adv-layout": {
+         "groupWrkSrc": "WPD003",
+         "advLayout": {
             "row": 1,
             "pos": 1
          }
@@ -850,7 +851,8 @@ hardware = [
             'InputSignalStatusCommand': 
                {
                   'command': 'InputSignalStatus'
-               }
+               },
+            'SystemAudioOuput': 1
          }
    },
    {

@@ -15,7 +15,7 @@
     {
       "Name": "Disp-Aud-0,0",
       "ID": 6003,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -45,7 +45,7 @@
     {
       "Name": "Disp-Aud-1,0",
       "ID": 6008,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -75,7 +75,7 @@
     {
       "Name": "Disp-Aud-0,1",
       "ID": 6013,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -105,7 +105,7 @@
     {
       "Name": "Disp-Aud-1,1",
       "ID": 6018,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -135,7 +135,7 @@
     {
       "Name": "Disp-Aud-2,1",
       "ID": 6023,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -165,7 +165,7 @@
     {
       "Name": "Disp-Aud-3,1",
       "ID": 6028,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {

@@ -1,10 +1,11 @@
 import unittest
+import importlib
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.techControls import TechMenuController
-import settings
+import test_settings as settings
 
 from extronlib.device import UIDevice
 from extronlib.ui import Button, Label, Slider
@@ -15,6 +16,7 @@ class TechMenuController_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main

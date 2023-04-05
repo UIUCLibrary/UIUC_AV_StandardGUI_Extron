@@ -1,11 +1,12 @@
 import unittest
+import importlib
 from typing import Dict, Tuple, List, Callable, Union, cast
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.pinControl import PINController
-import settings
+import test_settings as settings
 
 from extronlib.device import UIDevice
 from extronlib.ui import Button, Label
@@ -16,6 +17,7 @@ class PINController_TestClass(unittest.TestCase): # rename for module to be test
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main

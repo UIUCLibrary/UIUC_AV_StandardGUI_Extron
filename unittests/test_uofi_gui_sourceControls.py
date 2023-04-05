@@ -1,5 +1,7 @@
 import unittest
 from typing import Dict, Tuple, List, Callable, Union, cast
+import importlib
+import random
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
@@ -7,21 +9,37 @@ from uofi_gui.activityControls import ActivityController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.sourceControls import SourceController, Source, Destination, MatrixController, MatrixRow, LayoutTuple, RelayTuple, MatrixTuple
 from uofi_gui.systemHardware import SystemHardwareController
-import settings
+import test_settings as settings
 
 from extronlib.ui import Button, Label
 from extronlib.system import MESet, Timer
+
+from utilityFunctions import Log
 ## -----------------------------------------------------------------------------
  
 class SourceController_TestClass(unittest.TestCase): # rename for module to be tested
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl
         return super().setUp()
+    
+    def tearDown(self) -> None:
+        self.TestCtls = None
+        self.TestTPs = None
+        self.TestGUIController = None
+        self.TestUIController = None
+        self.TestSourceController = None
+    
+    def test_SourceController_Init_BadDest(self):
+        settings.destinations[0].pop('advLayout')
+        guiCtl = GUIController(settings, self.TestCtls, self.TestTPs)
+        with self.assertRaises(ValueError):
+            SourceController(guiCtl.TP_Main)
     
     def test_SourceController_Type(self):
         self.assertIsInstance(self.TestSourceController, SourceController)
@@ -68,6 +86,10 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
         # BlankSource
         with self.subTest(param='BlankSource'):
             self.assertIsInstance(self.TestSourceController.BlankSource, Source)
+            
+        # SystemAudioFollowDestination
+        with self.subTest(param='SystemAudioFollowDestination'):
+            self.assertIsInstance(self.TestSourceController.SystemAudioFollowDestination, Destination)
         
     def test_SourceController_PRIV_Properties(self):
         # __SourceBtns
@@ -112,6 +134,26 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
         # __Matrix
         with self.subTest(param='__Matrix'):
             self.assertIsInstance(self.TestSourceController._SourceController__Matrix, MatrixController)
+    
+        # __SystemAudioFollowDestination
+        with self.subTest(param='__SystemAudioFollowDestination'):
+            self.assertIsInstance(self.TestSourceController._SourceController__SystemAudioFollowDestination, Destination)
+        
+        # __SystemAudioOutputDestination
+        with self.subTest(param='__SystemAudioOutputDestination'):
+            self.assertIsInstance(self.TestSourceController._SourceController__SystemAudioOutputDestination, Destination)
+    
+        # __AdvRlyBtns
+        with self.subTest(param='__AdvRlyBtns'):
+            self.assertIsInstance(self.TestSourceController._SourceController__AdvRlyBtns, dict)
+            for key, value in self.TestSourceController._SourceController__AdvRlyBtns.items():
+                with self.subTest(key=key, value=value):
+                    self.assertIsInstance(key, str)
+                    self.assertIsInstance(value, Button)
+        
+        # __AdvRlyDest
+        with self.subTest(param='__AdvRlyDest'):
+            self.assertIsInstance(self.TestSourceController._SourceController__AdvRlyDest, (Destination, type(None)))
     
     def test_SourceController_EventHandler_SourceBtnHandler(self):
         btnList = self.TestSourceController._SourceController__SourceBtns.Objects
@@ -232,6 +274,20 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
                             except Exception as inst:
                                 self.fail('__WPDClearAllHandler raised {} unexpectedly!'.format(type(inst)))
     
+    def test_SourceController_EventHandler_ScreenControlHandler(self):
+        btnList = list(self.TestSourceController._SourceController__AdvRlyBtns.values())
+        actList = ['Pressed', 'Released']
+        
+        for dest in [d for d in self.TestSourceController.Destinations if d._Destination__Relay != RelayTuple(None, None)]:
+            for btn in btnList:
+                for act in actList:
+                    with self.subTest(destination=dest, button=btn.Name, action=act):
+                        self.TestSourceController.SetAdvRelayDestination(dest)
+                        try:
+                            self.TestSourceController._SourceController__ScreenControlHandler(btn, act)
+                        except Exception as inst:
+                            self.fail('__ScreenControlHandler raised {} unexpectedly!'.format(type(inst)))
+    
     def test_SourceController_PRIV_GetUIForAdvDest(self): 
         destList = self.TestSourceController.Destinations
         
@@ -263,8 +319,21 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
                     with self.assertRaises(KeyError):
                         self.TestSourceController._SourceController__GetUIForAdvDest(dest)
     
-    # def test_SourceController_PRIV_GetPositionByName(self):
-    #     pass
+    def test_SourceController_PRIV_GetSystemAudioInput(self):
+        destList = self.TestSourceController.Destinations
+        destList.append(None)
+        
+        for dest in destList:
+            with self.subTest(destination=dest):
+                self.TestSourceController.SystemAudioFollowDestination = dest
+                try:
+                    result = self.TestSourceController._SourceController__GetSystemAudioInput()
+                except Exception as inst:
+                    self.fail('__GetSystemAudioInput raised {} unexpectedly!'.format(type(inst)))
+                if dest is not None:
+                    self.assertEqual(result, dest.AssignedSource.Vid.Input)
+                else:
+                    self.assertEqual(result, 0)
     
     def test_SourceController_SourceAlertHandler(self):
         context = ['Alert Message', None]
@@ -312,7 +381,28 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
                 except Exception as inst:
                     self.fail('Setting Privacy Off raised {} unexpectedly!'.format(type(inst)))
                 self.assertFalse(self.TestSourceController.Privacy)
-                        
+    
+    def test_SourceController_DynProp_SystemAudioFollowDestination(self):
+        contextList = ['off', 'share', 'adv_share', 'group_work']
+        testList = [None]
+        testList.extend(self.TestSourceController.Destinations)
+        
+        for con in contextList:
+            for test in testList:
+                with self.subTest(context=con, test=test):
+                    self.TestGUIController.ActCtl.CurrentActivity = con
+                    try:
+                        self.TestSourceController.SystemAudioFollowDestination = test
+                    except Exception as inst:
+                        self.fail("Setting SystemAudioFollowDestination raised {} unexpectedly!".format(type(inst)))
+    
+    def test_SourceController_DynProp_SystemAudioFollowDestination_BadType(self):
+        testList = [1, 2.5, 'MON001', {'MON001': 'data'}, ['list'], True]
+        for test in testList:
+            with self.subTest(test=test):
+                with self.assertRaises(TypeError):
+                    self.TestSourceController.SystemAudioFollowDestination = test
+    
     def test_SourceController_GetAdvShareLayout(self):
         try:
             rtnVal = self.TestSourceController.GetAdvShareLayout()
@@ -572,6 +662,27 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
                         self.fail('ShowSelectedSource raised {} unexpectedly!'.format(type(inst)))
                     self.TestSourceController.Sources.pop()
     
+    def test_SourceController_SetAdvRelayDestination(self):
+        destList = self.TestSourceController.Destinations
+        destList.append(None)
+        
+        for dest in destList:
+            with self.subTest(destination=dest):
+                try:
+                    self.TestSourceController.SetAdvRelayDestination(dest)
+                except Exception as inst:
+                    self.fail('SetAdvRelayDestination raised {} unexpectedly!'.format(type(inst)))
+                    
+                self.assertIs(dest, self.TestSourceController._SourceController__AdvRlyDest)
+    
+    def test_SourceController_SetAdvRelayDestination_BadInput(self):
+        testList = [1, 2.5, True, "MON001", [self.TestSourceController.Destinations[0]], {'MON001': self.TestSourceController.Destinations[0]}]
+        
+        for test in testList:
+            with self.subTest(test=test):
+                with self.assertRaises(ValueError):
+                    self.TestSourceController.SetAdvRelayDestination(test)
+    
     # TODO: Figure out a way to test these two functions while the run asynchronously
     # def test_SourceController_SwitchSources(self):
     #     try:
@@ -586,6 +697,7 @@ class Source_TestClass(unittest.TestCase): # rename for module to be tested
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -878,12 +990,12 @@ class Destination_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl
         self.TestDestination = Destination(self.TestSourceController, 'TEST001', 'Test Destination', 4, 'proj', RelayTuple(1, 2), 'WPD001', LayoutTuple(0,0))
-        return super().setUp()
 
     def test_Destination_Type(self):
         self.assertIsInstance(self.TestDestination, Destination)
@@ -933,6 +1045,13 @@ class Destination_TestClass(unittest.TestCase):
         # Mute
         with self.subTest(param='Mute'):
             self.assertIsInstance(self.TestDestination.Mute, bool)
+            
+        # SystemAudioState
+        with self.subTest(param='SystemAudioState', initState=False):
+            self.assertIsInstance(self.TestDestination.SystemAudioState, (int, type(None)))
+        with self.subTest(param='SystemAudioState', initState=True):
+            self.TestDestination.AssignAdvUI(self.TestSourceController._SourceController__GetUIForAdvDest(self.TestDestination))
+            self.assertIsInstance(self.TestDestination.SystemAudioState, int)
     
     def test_Destination_PRIV_Properties(self):
         # __Mute
@@ -1025,23 +1144,40 @@ class Destination_TestClass(unittest.TestCase):
                             self.fail('__SourceControlHandler raised {} unexpectedly!'.format(type(inst)))
     
     def test_Destination_EventHandler_AudioHandler(self):
-        self.TestDestination.AssignAdvUI(self.TestSourceController._SourceController__GetUIForAdvDest(self.TestDestination))
-        
-        btnList = [self.TestDestination._Destination__AdvAudBtn]
-        actList = ['Tapped', 'Released']
+        actList = ['Tapped', 'Released', 'Held']
+        typeList = ['mon', 'conf', 'proj+scn']
         
         contextList = [0, 1, 2, 3]
         
-        for btn in btnList:
-            for act in actList:
-                for con in contextList:
-                    with self.subTest(button=btn.Name, action=act, context=con):
-                        try:
-                            btn.SetState(con)
-                            self.TestDestination._Destination__AudioHandler(btn, act)
-                        except Exception as inst:
-                            self.fail('__AudioHandler raised {} unexpectedly!'.format(type(inst)))
-                        # TODO: test changes after handler processes
+        for t in typeList:
+            TestDestination = [dest for dest in self.TestSourceController.Destinations if dest.Type == t][0]
+            btnList = [TestDestination._Destination__AdvAudBtn]
+            for btn in btnList:
+                for act in actList:
+                    for con in contextList:
+                        with self.subTest(button=btn.Name, type=t, action=act, context=con):
+                            if t != 'mon' and con in [2, 3]:
+                                self.skipTest('Incompatable combination')
+                            try:
+                                btn.SetState(con)
+                                TestDestination._Destination__AudioHandler(btn, act)
+                            except Exception as inst:
+                                self.fail('__AudioHandler raised {} unexpectedly!'.format(type(inst)))
+                            
+                            if act is 'Tapped':
+                                if con == 0:
+                                    self.assertEqual(btn.State, 1)
+                                elif con == 1:
+                                    self.assertEqual(btn.State, 0)
+                                elif con == 2:
+                                    self.assertEqual(btn.State, 3)
+                                elif con == 3:
+                                    self.assertEqual(btn.State, 2)
+                            elif act is 'Released':
+                                if con in [0, 1] and t == 'mon':
+                                    self.assertIn(btn.State, [2, 3])
+                                elif con in [2, 3]:
+                                    self.assertEqual(btn.State, 1)
     
     def test_Destination_EventHandler_AlertHandler(self):
         self.TestDestination.AssignAdvUI(self.TestSourceController._SourceController__GetUIForAdvDest(self.TestDestination))
@@ -1070,6 +1206,56 @@ class Destination_TestClass(unittest.TestCase):
                         self.TestDestination._Destination__ScreenHandler(btn, act)
                     except Exception as inst:
                         self.fail('__ScreenHandler raised {} unexpectedly!'.format(type(inst)))
+    
+    def test_Destination_DestAudioFeedbackHandler(self):
+        testList = [0, 1, 2, 3, 'System Source', 'System Mute', 'Local Source', 'Local Mute']
+        stateList = [0, 1, 2, 3]
+        
+        for dest in self.TestSourceController.Destinations:
+            for state in stateList:
+                for test in testList:
+                    with self.subTest(destination=dest.Name, state=state, test=test):
+                        if dest.Type != 'mon' and state in [2, 3]:
+                            self.skipTest('Incompatiable Combination')
+                        dest._Destination__AdvAudBtn.SetState(state)
+                        if state == 0:
+                            for follow in [True, False]:
+                                with self.subTest(follow=follow):
+                                    if follow:
+                                        self.TestSourceController.SystemAudioFollowDestination = dest
+                                    else:
+                                        self.TestSourceController.SystemAudioFollowDestination = None
+                                    
+                                    try:
+                                        dest.DestAudioFeedbackHandler(test)
+                                    except Exception as inst:
+                                        self.fail('DestAudioFeedbackHandler raised {} unexpectedly!'.format(type(inst)))
+                        else:
+                            try:
+                                dest.DestAudioFeedbackHandler(test)
+                            except Exception as inst:
+                                self.fail('DestAudioFeedbackHandler raised {} unexpectedly!'.format(type(inst)))
+                            
+                        if test in [0, 'System Source']:
+                            self.assertEqual(dest._Destination__AdvAudBtn.State, 0)
+                        elif test in [1, 'System Mute']:
+                            self.assertEqual(dest._Destination__AdvAudBtn.State, 1)
+                        elif test in [2, 'Local Source']:
+                            self.assertEqual(dest._Destination__AdvAudBtn.State, 2)
+                        elif test in [3, 'Local Mute']:
+                            self.assertEqual(dest._Destination__AdvAudBtn.State, 3)
+    
+    def test_Destination_DestAudioFeedbackHandler_BadInput(self):
+        testList = [4, 5, 6, 7, 8, 'Other strings', 'Go Here', ['bad data types too'], 1.5, False]
+        
+        for test in testList:
+            with self.subTest(test=test):
+                if type(test) in [str, int]:
+                    with self.assertRaises(ValueError):
+                        self.TestDestination.DestAudioFeedbackHandler(test)
+                else:
+                    with self.assertRaises(TypeError):
+                        self.TestDestination.DestAudioFeedbackHandler(test)
     
     def test_Destination_ToggleMute(self):
         state1 = self.TestDestination._Destination__Mute
@@ -1227,10 +1413,12 @@ class Destination_TestClass(unittest.TestCase):
                     self.TestDestination.AssignMatrixBySource(self.TestSourceController.Sources[0], input)
     
     def test_Destination_AssignAdvUI(self):
-        try:
-            self.TestDestination.AssignAdvUI(self.TestSourceController._SourceController__GetUIForAdvDest(self.TestDestination))
-        except Exception as inst:
-            self.fail('AssignAdvUI raised {} unexpectedly!'.format(type(inst)))
+        for dest in self.TestSourceController.Destinations:
+            with self.subTest(destination=dest):
+                try:
+                    dest.AssignAdvUI(self.TestSourceController._SourceController__GetUIForAdvDest(self.TestDestination))
+                except Exception as inst:
+                    self.fail('AssignAdvUI raised {} unexpectedly!'.format(type(inst)))
     
     def test_Destination_UpdateAdvUI(self):
         self.TestDestination.AssignAdvUI(self.TestSourceController._SourceController__GetUIForAdvDest(self.TestDestination))
@@ -1272,6 +1460,7 @@ class MatrixController_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -1364,6 +1553,7 @@ class MatrixRow_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -1423,12 +1613,16 @@ class MatrixRow_TestClass(unittest.TestCase):
         for btn in btnList:
             for mode in modeList:
                 for state in stateList:
-                    with self.subTest(modButton=btn, mode=mode, initalState=state):
-                        try:
-                            btn.SetState(state)
-                            self.TestMatrixRow._MatrixRow__UpdateRowBtns(btn, mode)
-                        except Exception as inst:
-                            self.fail('__UpdateRowBtns raised {} unexpectedly!'.format(type(inst)))
+                    for ostate in stateList:
+                        with self.subTest(modButton=btn, mode=mode, initalState=state, otherBtnState=ostate):
+                            otherBtns = [obtn for obtn in btnList if obtn != btn]
+                            otherBtn = otherBtns[random.randint(0, (len(otherBtns) - 1))]
+                            otherBtn.SetState(ostate)
+                            try:
+                                btn.SetState(state)
+                                self.TestMatrixRow._MatrixRow__UpdateRowBtns(btn, mode)
+                            except Exception as inst:
+                                self.fail('__UpdateRowBtns raised {} unexpectedly!'.format(type(inst)))
     
     def test_MatrixRow_MakeTie_Sources(self):
         modeList = ['AV', 'Vid', 'Aud', 'untie']
@@ -1446,14 +1640,16 @@ class MatrixRow_TestClass(unittest.TestCase):
     def test_MatrixRow_MakeTie_Btns(self):
         modeList = ['AV', 'Vid', 'Aud', 'untie']
         srcList = self.TestMatrixRow.Objects
-        
+        btnStateList = [0, 1, 2, 3]
         for src in srcList:
-            for mode in modeList:
-                with self.subTest(source=src.Name, mode=mode):
-                    try:
-                        self.TestMatrixRow.MakeTie(src, mode)
-                    except Exception as inst:
-                        self.fail('MakeTie raised {} unexpectedly!'.format(type(inst)))
+            for state in btnStateList:
+                for mode in modeList:
+                    with self.subTest(source=src.Name, state=state, mode=mode):
+                        src.SetState(state)
+                        try:
+                            self.TestMatrixRow.MakeTie(src, mode)
+                        except Exception as inst:
+                            self.fail('MakeTie raised {} unexpectedly!'.format(type(inst)))
     
     def test_MatrixRow_MakeTie_BadTie(self):
         modeList = [1, True, 2.5, ['test'], {'test': 2}, 'other string']

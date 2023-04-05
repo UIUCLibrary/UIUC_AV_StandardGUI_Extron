@@ -9,7 +9,7 @@ from utilityFunctions import Log, RunAsync, debug
 
 class Source:
     def __init__(self,
-                 SrcCtl: 'SourceController',
+                 SCHost: 'SourceController',
                  id: str,
                  name: str,
                  icon: int,
@@ -18,7 +18,7 @@ class Source:
                  srcCtl: str=None,
                  advSrcCtl: str=None) -> None:
         
-        self.SourceController = SrcCtl
+        self.SourceController = SCHost
         self.Id = id
         self.Name = name
         self.Icon = icon
@@ -38,7 +38,7 @@ class Source:
     @property
     def AlertText(self):
         if not self.__OverrideState:
-            if len(self.__AlertText) > 1:
+            if len(self.__AlertText) > 0:
                 txt =  list(self.__AlertText.keys())[self.__AlertIndex]
                 self.CycleAlert()
             else:

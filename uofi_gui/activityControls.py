@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import MatrixTuple, Destination
+    from uofi_gui.sourceControls import MatrixTuple, destination
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
@@ -55,12 +55,14 @@ class ActivityController:
         for set in self.__ActivityBtns['indicator']:
             set.SetCurrent(0)
 
+        
+        self.__ConfTimeLbl = [tp.Lbls['ShutdownConf-Count'] for tp in self.GUIHost.TPs]
+        self.__ConfTimeLvl = [tp.Lvls['ShutdownConfIndicator'] for tp in self.GUIHost.TPs]
+        
         for lvl in self.__ConfTimeLvl:
             lvl.SetRange(0, self.__ConfirmationTime, 1)
             lvl.SetLevel(0)
         
-        self.__ConfTimeLbl = [tp.Lbls['ShutdownConf-Count'] for tp in self.GUIHost.TPs]
-        self.__ConfTimeLvl = [tp.Lvls['ShutdownConfIndicator'] for tp in self.GUIHost.TPs]
         self.__Transition = \
             {
                 "label": [tp.Lbls['PowerTransLabel-State'] for tp in self.GUIHost.TPs],
@@ -311,6 +313,9 @@ class ActivityController:
     def __ActivitySwitchTPConfiguration(self, activity, touchPanel: 'ExUIDevice'):
         index = self.GUIHost.TPs.index(touchPanel)
         
+        # update system audio destination
+        touchPanel.SrcCtl.SystemAudioFollowDestination = touchPanel.SrcCtl.PrimaryDestination
+        
         if activity == "share":
             self.__ActivityBtns['select'][index].SetCurrent(1)
             self.__ActivityBtns['indicator'][index].SetCurrent(1)
@@ -318,16 +323,18 @@ class ActivityController:
             touchPanel.HidePopupGroup(8) # Activity-Controls Group
             touchPanel.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
             
+            # update monitor audio routing
+            for dest in touchPanel.SrcCtl.Destinations:
+                dest = cast('Destination', dest)
+                if dest.Type == 'mon' and dest is not touchPanel.SrcCtl.SystemAudioFollowDestination:
+                    dest.DestAudioFeedbackHandler(1)
+            
             # get video source assigned to the primaryDestination
             curSrc = self.GUIHost.SrcCtl.PrimaryDestination.AssignedSource.Vid
-            # Log("Pre-Activity Change Source - Name: {}, Id: {}".format(curSrc.Name, curSrc.Id))
             
             if curSrc.Name == 'None':
-                # Log('Current Source = None, Setting current source to default, ID = {}'.format(self.UIHost.DefaultSourceID))
                 curSrc = touchPanel.SrcCtl.GetSource(id=self.GUIHost.DefaultSourceId)
-                # Log('New Current Source - Name: {}, ID: {}'.format(curSrc.Name, curSrc.Id))
                 touchPanel.SrcCtl.SelectSource(curSrc)
-                # Log('Selected Source - Name: {}, Id: {}'.format(self.UIHost.SrcCtl.SelectedSource.Name, self.UIHost.SrcCtl.SelectedSource.Id))
                 touchPanel.SrcCtl.Privacy = 'on'
             
             # update source selection to match primaryDestination
@@ -341,28 +348,30 @@ class ActivityController:
         elif activity == "adv_share":
             self.__ActivityBtns['select'][index].SetCurrent(2)
             self.__ActivityBtns['indicator'][index].SetCurrent(2)
-            # Log('Configuring for Adv Share mode')
             touchPanel.ShowPopup("Activity-Control-AdvShare")
             
             touchPanel.ShowPopup(touchPanel.SrcCtl.GetAdvShareLayout())
             touchPanel.ShowPopup("Audio-Control-{}".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
-        
+            
+            # update monitor audio routing
+            for dest in touchPanel.SrcCtl.Destinations:
+                dest = cast('Destination', dest)
+                if dest.Type == 'mon' and dest is not touchPanel.SrcCtl.SystemAudioFollowDestination:
+                    dest.DestAudioFeedbackHandler(1)
+            
             if self.GUIHost.SrcCtl.Privacy:
-                # Log('Handling Privacy reconfigure for Adv Share')
                 touchPanel.SrcCtl.Privacy = 'off'
                 destList = []
                 for dest in touchPanel.SrcCtl.Destinations:
                     dest = cast('Destination', dest)
                     if dest.Type != 'conf':
-                        # Log('Non-Confidence destination found - {}'.format(dest.Name))
                         destList.append(dest)
-                # Log('Count of non-Confidence destinations: {}'.format(len(destList)))
+                        
                 touchPanel.SrcCtl.SwitchSources(touchPanel.SrcCtl.BlankSource, destList)
                         
         elif  activity == "group_work":
             self.__ActivityBtns['select'][index].SetCurrent(3)
             self.__ActivityBtns['indicator'][index].SetCurrent(3)
-            # Log('Configuring for Group Work mode')
             touchPanel.ShowPopup("Activity-Control-Group")
             touchPanel.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
             
@@ -370,6 +379,8 @@ class ActivityController:
             for dest in touchPanel.SrcCtl.Destinations:
                 dest = cast('Destination', dest)
                 touchPanel.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])
+                if dest.Type == 'mon' and dest is not touchPanel.SrcCtl.SystemAudioFollowDestination:
+                    dest.DestAudioFeedbackHandler(2)
             touchPanel.SrcCtl.Privacy = 'off'
             
             # show activity splash screen, will be updated config.activitySplash
@@ -391,7 +402,6 @@ class ActivityController:
                 tp.ShowPopup('Shutdown-Confirmation')
             
     def SystemStart(self, activity: str) -> None:
-        # Log("System Start function activated", stack=True)
         self.CurrentActivity = activity
         
         for tp in self.GUIHost.TPs:
@@ -407,15 +417,12 @@ class ActivityController:
             tp.SrcCtl.SelectSource(self.GUIHost.DefaultSourceId)
             tp.SrcCtl.SwitchSources(tp.SrcCtl.SelectedSource, 'All')
 
-        # Log('Startup Timer Restarting')
         self.__StartTimer.Restart()
 
-        # STARTUP ONLY ITEMS HERE - function in main
-        # Log('Performing unsynced Startup functions')
+        # STARTUP ONLY ITEMS HERE
         self.__Transition['start']['init']()
         
     def SystemSwitch(self, activity: str) -> None:
-        # Log("System Switch function activated", stack=True)
         for timer in self.__ActivitySplashTimerList:
             timer.Stop()
         self.CurrentActivity = activity
@@ -432,11 +439,7 @@ class ActivityController:
             tp.ShowPopup('Power-Transition')
             tp.ShowPage('Main')
         
-        # Log('Activity Switch Timer Restarting')
         self.__SwitchTimer.Restart()
-        
-        # TODO: Figure out a way to reset the activity timer
-        #self.UIHost.InactivityTime = 0
         
         self.__StatusTimerHandler(None, None)
 
@@ -450,7 +453,6 @@ class ActivityController:
         self.__Transition['switch']['init']()
 
     def SystemShutdown(self) -> None:
-        # Log("System Switch function activated", stack=True)
         self.CurrentActivity = 'off'
         self.__StatusTimer.Stop()
         
@@ -468,14 +470,9 @@ class ActivityController:
             tp.HidePopup("Shutdown-Confirmation")
             tp.ShowPage('Opening')
 
-        # Log('Shutdown timer restarting')
         self.__ShutdownTimer.Restart()        
         
-        # self.UIHost.InactivityTime = 0
-        # TODO: Figure out a way to reset the activity timer
-        
         # SHUTDOWN ITEMS HERE - function in main
-        # Log('Performing unsynced Shutdown functions')
         self.__Transition['shutdown']['init']()
 
 ## End Class Definitions -------------------------------------------------------

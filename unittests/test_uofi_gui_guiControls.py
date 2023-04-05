@@ -1,13 +1,14 @@
 import unittest
+import importlib
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController, ExProcessorDevice
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.systemHardware import SystemPollingController, SystemHardwareController
 import sys
-import settings
+import test_settings as settings
 del sys.modules['settings']
-import settings as settings_no_primary
+import test_settings as settings_no_primary
 
 from extronlib.device import ProcessorDevice, UIDevice
 ## -----------------------------------------------------------------------------
@@ -33,6 +34,8 @@ class GUIController_TestClass(unittest.TestCase):
         print('Setting Up')
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
+        importlib.reload(settings_no_primary)
 
         if hasattr(settings_no_primary, 'primaryProcessor'):
             delattr(settings_no_primary, 'primaryProcessor')
@@ -44,10 +47,11 @@ class GUIController_TestClass(unittest.TestCase):
     
     
     def InitializeController(self):
+        importlib.reload(settings)
         self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestController.Initialize()
     
-    def test_GUIController_Init_Lists(self):        
+    def test_GUIController_Init_Lists(self):
         for i in range(len(self.settingsList)):
             with self.subTest(i=i):
                 try:
@@ -76,26 +80,32 @@ class GUIController_TestClass(unittest.TestCase):
         self.assertIsInstance(TestController, GUIController)
     
     def test_GUIController_Init_Failure_EmptyCtlList(self):
+        importlib.reload(settings)
         with self.assertRaises(ValueError):
             GUIController(settings, [], self.TestTPs[0])
             
     def test_GUIController_Init_Failure_BadTypeCtl(self):
+        importlib.reload(settings)
         with self.assertRaises(TypeError):
             GUIController(settings, 1, self.TestTPs[0])
             
     def test_GUIController_Init_Failure_BadTypeCtlList(self):
+        importlib.reload(settings)
         with self.assertRaises(TypeError):
             GUIController(settings, [1], self.TestTPs[0])
             
     def test_GUIController_Init_Failure_BadTypeTP(self):
+        importlib.reload(settings)
         with self.assertRaises(TypeError):
             GUIController(settings, self.TestCtls[0], 1)
             
     def test_GUIController_Init_Failure_BadTypeTPList(self):
+        importlib.reload(settings)
         with self.assertRaises(TypeError):
             GUIController(settings, self.TestCtls[0], [1])
             
     def test_GUIController_Properties(self):
+        importlib.reload(settings)
         self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
         
         # CtlJSON

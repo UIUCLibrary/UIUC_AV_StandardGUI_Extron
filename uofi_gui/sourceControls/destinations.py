@@ -9,6 +9,7 @@ from collections import namedtuple
 from extronlib import event
 from uofi_gui.sourceControls.sources import Source
 from hardware.mersive_solstice_pod import PodFeedbackHelper
+from utilityFunctions import Log
 
 MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
@@ -18,10 +19,11 @@ class Destination:
                  id: str,
                  name: str,
                  output: int,
-                 destType: str,
+                 type: str,
                  rly: 'RelayTuple',
                  groupWrkSrc: str,
-                 advLayout: 'LayoutTuple') -> None:
+                 advLayout: 'LayoutTuple',
+                 confFollow: str=None) -> None:
         
         self.SourceController = SrcCtl
         self.Id = id
@@ -29,7 +31,8 @@ class Destination:
         self.Output = output
         self.AdvLayoutPosition = advLayout
         self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
-        self.Type = destType
+        self.Type = type
+        self.ConfFollow = confFollow
         
         self.__Mute = False
         self.__Relay = rly
@@ -67,6 +70,13 @@ class Destination:
     def Mute(self, state: Union[bool, int, str]):
         setState = (state in ['on', 'On', 'ON', 1, True, 'Mute', 'mute', 'MUTE'])
         self.__Mute = setState
+        
+    @property
+    def SystemAudioState(self) -> int:
+        if self.__AdvAudBtn is None:
+            return None # this has not yet been assigned
+        else:
+            return self.__AdvAudBtn.State
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -89,42 +99,100 @@ class Destination:
     
     def __AudioHandler(self, button: 'Button', action: str):
         if action == "Tapped":
-            # TODO: handle system audio changes
-            if button.State == 0: # system audio unmuted
-                pass # deselect this destination as the system audio follow
-            elif button.State == 1: # system audio muted
-                pass # select this destination as the system audio follow, deselect any other destination as the system audio follow
+            if button.State == 0: # system audio currently selected
+                # deselect this destination as the system audio follow
+                button.SetState(1)
+                self.SourceController.SystemAudioFollowDestination = None
+            elif button.State == 1: # system audio currently unselected
+                # select this destination as the system audio follow, deselect any other destination as the system audio follow
+                button.SetState(0)
+                self.SourceController.SystemAudioFollowDestination = self
             elif button.State == 2: # local audio unmuted
-                pass # mute local audio
+                # mute local audio
+                button.SetState(3)
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'On')
             elif button.State == 3: # local audio muted
-                pass # unmute local audio
+                # unmute local audio
+                button.SetState(2)
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'Off')
         elif action == "Released":
-            if (button.State == 0 or button.State == 1) \
-            and self.Type == 'mon':
-                # TODO: if this destination is the system audio follow, unfollow
-                muteState = 0 # TODO: get current mute state of the destination monitor
+            if (button.State in [0, 1]) and self.Type == 'mon':
+                if self is self.SourceController.SystemAudioFollowDestination:
+                    self.SourceController.SystemAudioFollowDestination = None
+                    
+                try:
+                    muteState = self.SourceController.UIHost.DispCtl.DisplayMute[self.Id]
+                except:
+                    # TODO: handle emulated mute state in DisplayController
+                    muteState = True
+                    
                 if muteState:
-                    # TODO: set destination to unmute
-                    button.SetState(2)
-                else:
-                    # TODO: set mute
                     button.SetState(3)
+                else:
+                    button.SetState(2)
             elif (button.State == 2 or button.State == 3):
                 button.SetState(1)
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'On')
+        elif action == 'Held':
+            if self.Type == 'mon':
+                self.SourceController.UIHost.Click(1)
     
     def __AlertHandler(self, button: 'Button', action: str):
-        self.SourceController.UIHost.Lbls['SourceAlertLabel'].SetText(self.AssignedSource.Vid.AlertText)
+        self.SourceController.UIHost.Lbls['SourceAlertLabel'].SetText(self.AssignedSource.Vid.AlertBlock)
         self.SourceController.UIHost.ShowPopup('Modal-SrcErr')
     
     def __ScreenHandler(self, button: 'Button', action: str):
         # Configure Screen Control Modal
-        # TODO: Configure screen control modal
+        self.SourceController.SetAdvRelayDestination(self)
         # Show Screen Control Modal
         self.SourceController.UIHost.ShowPopup('Modal-ScnCtl')
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def DestAudioFeedbackHandler(self, Configuration: Union[int, str]):
+        AudDict = \
+            {
+                0: 'System Source',
+                1: 'System Mute',
+                2: 'Local Source',
+                3: 'Local Mute'
+            }
+        if type(Configuration) is int and Configuration in list(AudDict.keys()):
+            pass
+        elif type(Configuration) is str and Configuration in list(AudDict.values()):
+            Configuration = list(AudDict.values()).index(Configuration)
+        else:
+            if type(Configuration) not in [int, str]:
+                raise TypeError("Configuration must be a str or int")
+            else:
+                raise ValueError("Configuration must be a valid state int or str")
+        
+        curConfig = self.__AdvAudBtn.State
+        
+        if Configuration == 0:
+            if curConfig == 2:
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'On')
+            if self is not self.SourceController.SystemAudioFollowDestination:
+                self.SourceController.SystemAudioFollowDestination = self
+            self.__AdvAudBtn.SetState(Configuration)
+        if Configuration == 1:
+            if curConfig == 2:
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'On')
+            self.__AdvAudBtn.SetState(Configuration)
+        if Configuration == 2:
+            if curConfig == 3:
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'Off')
+            elif curConfig == 0 and self is self.SourceController.SystemAudioFollowDestination:
+                self.SourceController.SystemAudioFollowDestination = None
+            self.__AdvAudBtn.SetState(Configuration)
+        if Configuration == 3:
+            if curConfig == 2:
+                self.SourceController.UIHost.DispCtl.DisplayMute = (self, 'On')
+            elif curConfig == 0 and self is self.SourceController.SystemAudioFollowDestination:
+                self.SourceController.SystemAudioFollowDestination = None
+            self.__AdvAudBtn.SetState(Configuration)
     
     def ToggleMute(self) -> None:
         self.__Mute = not self.__Mute
@@ -189,9 +257,16 @@ class Destination:
             self.__SourceControlHandler(button, action)
         
         # Destination Audio Buttons
-        self.__AdvAudBtn.SetState(1)
+        if self.Type == 'conf':
+            self.__AdvAudBtn.SetEnable(False)
+            self.__AdvAudBtn.SetVisible(False)
+        else:
+            if self is self.SourceController.PrimaryDestination:
+                self.__AdvAudBtn.SetState(0)
+            else:
+                self.__AdvAudBtn.SetState(1)
         
-        @event(self.__AdvAudBtn, ['Tapped', 'Released']) # pragma: no cover
+        @event(self.__AdvAudBtn, ['Tapped', 'Released', 'Held']) # pragma: no cover
         def advAudHandler(button: 'Button', action: str):
             self.__AudioHandler(button, action)
         

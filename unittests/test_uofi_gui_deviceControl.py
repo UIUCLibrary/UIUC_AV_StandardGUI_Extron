@@ -1,5 +1,6 @@
 import unittest
 import os
+import importlib
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
@@ -18,6 +19,7 @@ class CameraController_TestClass(unittest.TestCase): # rename for module to be t
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -319,6 +321,7 @@ class DisplayController_TestClass(unittest.TestCase): # rename for module to be 
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
@@ -612,6 +615,7 @@ class AudioController_TestClass(unittest.TestCase): # rename for module to be te
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main

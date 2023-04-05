@@ -1,6 +1,7 @@
 import unittest
 import json
 from typing import Dict
+import importlib
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
@@ -14,7 +15,7 @@ from uofi_gui.deviceControl import CameraController, DisplayController, AudioCon
 from uofi_gui.scheduleControls import AutoScheduleController
 from uofi_gui.keyboardControl import KeyboardController
 from uofi_gui.pinControl import PINController
-import settings
+import test_settings as settings
 
 from extronlib.device import UIDevice
 from extronlib.ui import Button, Knob, Level, Slider, Label
@@ -25,6 +26,7 @@ class ExUIDevice_TestClass(unittest.TestCase):
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = []
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
         return super().setUp()
     

@@ -43,35 +43,28 @@ class SourceController:
         
         self.Sources = []
         for src in self.GUIHost.Sources:
-            srcObj = Source(self,
-                            src['id'], 
-                            src['name'], 
-                            src['icon'], 
-                            src['input'], 
-                            src['alert'],
-                            src['src-ctl'], 
-                            src['adv-src-ctl'])
+            srcObj = Source(self, **src)
             self.Sources.append(srcObj)
-            if src.get('srcObj') is None:
-                src['srcObj'] = {}
-            src['srcObj'][self.UIHost.Id] = srcObj
+            # if src.get('srcObj') is None:
+            #     src['srcObj'] = {}
+            # src['srcObj'][self.UIHost.Id] = srcObj
         
         self.BlankSource = Source(self, 'none', 'None', 0, 0, None, None)
             
         self.Destinations = []
         for dest in self.GUIHost.Destinations:
-            if type(dest['rly']) != type(None):
-                dest_relay = RelayTuple(Up=dest['rly'][0], Down=dest['rly'][1])
+            if dest.get('rly', None) is not None:
+                dest['rly'] = RelayTuple(Up=dest['rly'][0], Down=dest['rly'][1])
             else:
-                dest_relay = RelayTuple(Up=None, Down=None)
-            destObj = Destination(self,
-                                  dest['id'],
-                                  dest['name'],
-                                  dest['output'],
-                                  dest['type'],
-                                  dest_relay,
-                                  dest['group-work-src'],
-                                  LayoutTuple(Row=dest['adv-layout']['row'], Pos=dest['adv-layout']['pos']))
+                dest['rly'] = RelayTuple(Up=None, Down=None)
+                
+            if dest.get('advLayout', None) is not None:
+                dest['advLayout'] = LayoutTuple(Row=dest['advLayout']['row'], Pos=dest['advLayout']['pos'])
+            else:
+                raise ValueError('No advLayout provided for destination')
+            
+            
+            destObj = Destination(self, **dest)
             self.Destinations.append(destObj)
             if dest.get('destObj') is None:
                 dest['destObj'] = {}
@@ -106,10 +99,20 @@ class SourceController:
                                         self.UIHost.Btns['Tech-Matrix-DeleteTies'],
                                         DictValueSearchByKey(self.UIHost.Lbls, r'MatrixLabel-In-\d+', regex=True),
                                         DictValueSearchByKey(self.UIHost.Lbls, r'MatrixLabel-Out-\d+', regex=True))
+        self.__SystemAudioFollowDestination = self.PrimaryDestination
+        self.__SystemAudioOutputDestination = self.GetDestinationByOutput(self.__Matrix.Hardware.SystemAudioOuput)
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
             dest.AssignAdvUI(self.__GetUIForAdvDest(dest))
-            
+        
+        self.__AdvRlyBtns = \
+            {
+                'up': self.UIHost.Btns['Scn-Up'],
+                'down': self.UIHost.Btns['Scn-Down'],
+                'stop': self.UIHost.Btns['Scn-Stop']
+            }
+        self.__AdvRlyDest = None
+        
         self.MatrixSwitch(0, 'All', 'untie')
         
         # Configure Source Selection Buttons
@@ -144,6 +147,46 @@ class SourceController:
         @event(self.__WPDClearAllBtn, ['Pressed', 'Released']) # pragma: no cover
         def WPDClearAllHandler(button: 'Button', action: str):
             self.__WPDClearAllHandler(button, action)
+            
+        @event(list(self.__AdvRlyBtns.values()), ['Pressed', 'Released']) # pragma: no cover
+        def ScreenControlHandler(button: 'Button', action: str):
+            self.__ScreenControlHandler(button, action)
+    
+    @property
+    def SystemAudioFollowDestination(self) -> Destination:
+        return self.__SystemAudioFollowDestination
+    
+    @SystemAudioFollowDestination.setter
+    def SystemAudioFollowDestination(self, dest) -> None:
+        if type(dest) is not Destination and dest is not None:
+            raise TypeError('SystemAudioDestination must be a Destination object or None')
+        
+        self.__SystemAudioFollowDestination = dest
+        
+        audInput = self.__GetSystemAudioInput()
+        audDest = self.GetDestinationByOutput(self.__Matrix.Hardware.SystemAudioOuput)
+        audDest.AssignMatrixByInput(audInput, 'Aud')
+        
+        # Assign Audio per Source as SystemAudioDestination
+        self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                             value=None,
+                                             qualifier={'Input': audInput, 
+                                                        'Output': audDest.Output,
+                                                        'Tie Type': 'Audio'})
+        
+        # Update destination buttons
+        if self.GUIHost.ActCtl.CurrentActivity == 'adv_share':
+            for d in self.Destinations:
+                d = cast('Destination', d)
+                if d is dest:
+                    d.DestAudioFeedbackHandler(0)
+                else:
+                    if d.Type == 'mon' \
+                        and self.GUIHost.ActCtl.CurrentActivity in ['adv_share', 'group_work'] \
+                        and d.SystemAudioState in [2, 3]: # pragma: no cover
+                            pass # no change required here
+                    else:
+                        d.DestAudioFeedbackHandler(1)
     
     @property
     def Privacy(self) -> bool:
@@ -194,7 +237,12 @@ class SourceController:
             if self.GUIHost.ActCtl.CurrentActivity == 'share':
                 self.SwitchSources(self.SelectedSource)
             elif self.GUIHost.ActCtl.CurrentActivity == 'group_work':
-                self.SwitchSources(self.SelectedSource, [self.PrimaryDestination])
+                # Find any destinations following the primary destination
+                srcList = [dest for dest in self.Destinations if (dest.ConfFollow is self.PrimaryDestination.Id)]
+                # Add the primary destination to the source switch list
+                srcList.append(self.PrimaryDestination)
+                # Switch primary destination and it's following conf monitors
+                self.SwitchSources(self.SelectedSource, srcList)
                 
             page = self.SelectedSource.SourceControlPage 
             if page == 'PC':
@@ -222,6 +270,7 @@ class SourceController:
         self.UIHost.HidePopup('Modal-SrcCtl-Camera')
         self.UIHost.HidePopup('Modal-SrcErr')
         self.UIHost.HidePopup('Modal-ScnCtl')
+        self.SetAdvRelayDestination()
         self.OpenControlPopup = None
             
     def __SendToAllHandler(self, button: 'Button', action: str):
@@ -278,6 +327,19 @@ class SourceController:
                 curHW.interface.Set('BootUsers', value=None, qualifier={'hw': curHW})
             else:
                 raise KeyError("Hardware not found for Source - {}".format(srcId))
+            
+    def __ScreenControlHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            if button.Name.endswith('Up'):
+                self.UIHost.DispCtl.Destinations[self.__AdvRlyDest.Id]['Scn']['up'].Pulse(0.2)
+            elif button.Name.endswith('Down'):
+                self.UIHost.DispCtl.Destinations[self.__AdvRlyDest.Id]['Scn']['dn'].Pulse(0.2)
+            elif button.Name.endswith('Stop'):
+                self.UIHost.DispCtl.Destinations[self.__AdvRlyDest.Id]['Scn']['up'].Pulse(0.2)
+                self.UIHost.DispCtl.Destinations[self.__AdvRlyDest.Id]['Scn']['dn'].Pulse(0.2)
                 
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -302,23 +364,28 @@ class SourceController:
         except:
             raise KeyError("At least one destination button not found.")
     
-    # def __GetPositionByBtnName(self, btnName: str) -> LayoutTuple:
-    #     btnLoc = btnName[-3:]
-    #     btnPR = btnLoc.split(',')
-    #     return LayoutTuple(Row = btnPR[1], Pos = btnPR[0])
+    def __GetSystemAudioInput(self) -> int:
+        if self.SystemAudioFollowDestination is None:
+            return 0
+        else:
+            return self.SystemAudioFollowDestination.AssignedSource.Vid.Input
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
+    def SetAdvRelayDestination(self, destination: Destination=None) -> None:
+        if destination is None:
+            self.__AdvRlyDest = None
+        elif type(destination) is Destination:
+            self.__AdvRlyDest = destination
+        else:
+            raise ValueError('Destination must be a Destination object or None')
+    
     def SourceAlertHandler(self) -> None:
-        # Log('Checking Alerts for Src ({})'.format(self.SelectedSource.Name))
         # Does currently selected source have an alert flag
         if self.SelectedSource is not None and self.SelectedSource.AlertFlag:
-            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
             txt = self.SelectedSource.AlertText
-            # Log('Text to set: {} ({})'.format(txt, type(txt)))
             self.UIHost.Lbls['SourceAlertLabel'].SetText(txt)
         else:
-            # Log('Alerts Found for Src ({})'.format(self.SelectedSource.Name))
             self.UIHost.Lbls['SourceAlertLabel'].SetText('')
     
     def TogglePrivacy(self) -> None:
@@ -393,6 +460,8 @@ class SourceController:
         raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
                 
     def GetSourceByInput(self, inputNum: int) -> Source:
+        if inputNum == 0:
+            return self.BlankSource
         for src in self.Sources:
             if src.Input == inputNum:
                 return src
@@ -523,8 +592,9 @@ class SourceController:
     
     @RunAsync # pragma: no cover
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
+        
+        
         # Not checking this for code coverage as I can't get it to check asyc functions
-        # TODO: Figure out why this function has turned into a complete mess
         if type(dest) == str and dest != 'All':
             raise TypeError("Destination string must be 'All' or a list of Destination objects, names, and/or IDs")
         
@@ -538,43 +608,54 @@ class SourceController:
             raise TypeError('Src must be either a string or Source object.')
         
         if type(dest) is str and dest == 'All':
-            # Log('Source Switch - Destination: All, Source: {}'.format(srcObj.Name))
-            for d in self.Destinations:
-                d = cast('Destination', d)
-                d.AssignSource(srcObj)
-                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
-                                                    value=None,
-                                                    qualifier={'Input': srcObj.Input, 
-                                                            'Output': d.Output,
-                                                            'Tie Type': 'Audio/Video'})
-                if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
-                        d.AdvSourceAlertHandler()
+            destList = self.Destinations
         elif type(dest) is list:
-            for d in dest:
-                if type(d) == Destination:
-                    # Log('Source Switch - Destination: {}, Source: {}'.format(d.Name, srcObj.Name))
-                    d.AssignSource(srcObj)
-                    self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
-                                                        value=None,
-                                                        qualifier={'Input': srcObj.Input, 
-                                                                   'Output': d.Output,
-                                                                   'Tie Type': 'Audio/Video'})
-                    if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
-                        d.AdvSourceAlertHandler()
-                elif type(d) == str:
-                    dObj = self.GetDestination(id = d, name = d)
-                    # Log('Source Switch - Destination: {}, Source: {}'.format(dObj.Name, srcObj.Name))
-                    dObj.AssignSource(srcObj)
-                    self.__Matrix.Hardware.interface.Set('MatrixTieCommand',  
-                                                        value=None,
-                                                        qualifier={'Input': srcObj.Input, 
-                                                                   'Output': dObj.Output,
-                                                                   'Tie Type': 'Audio/Video'})
-                    if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
-                        dObj.AdvSourceAlertHandler()
+            destList = dest
         else:
             raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
-                    
+        
+        for d in destList:
+            if type(d) == Destination:
+                dObj = d
+            elif type(d) == str:
+                dObj = self.GetDestination(id = d, name = d)
+
+            if dObj is self.__SystemAudioOutputDestination:
+                dObj.AssignMatrixBySource(srcObj, 'Vid')
+                # Assign Video normally
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                     value=None,
+                                                     qualifier={'Input': srcObj.Input, 
+                                                                'Output': dObj.Output,
+                                                                'Tie Type': 'Video'})
+                # Don't assign audio
+            elif dObj is self.__SystemAudioFollowDestination:
+                dObj.AssignSource(srcObj)
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                     value=None,
+                                                     qualifier={'Input': srcObj.Input, 
+                                                                'Output': dObj.Output,
+                                                                'Tie Type': 'Audio/Video'})
+                
+                audInput = self.__GetSystemAudioInput()
+                self.__SystemAudioOutputDestination.AssignMatrixByInput(audInput, 'Aud')
+                # Assign Source Audio from SystemAudioFollowDestination to SystemAudioOutputDestination
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                     value=None,
+                                                     qualifier={'Input': audInput, 
+                                                                'Output': dObj.Output,
+                                                                'Tie Type': 'Audio'})
+            else: # no special case, assign as normal
+                dObj.AssignSource(srcObj)
+                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                     value=None,
+                                                     qualifier={'Input': srcObj.Input, 
+                                                                'Output': dObj.Output,
+                                                                'Tie Type': 'Audio/Video'})
+            
+            if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
+                dObj.AdvSourceAlertHandler()
+        
         if self.GUIHost.ActCtl.CurrentActivity in ['share', 'group_work']:
             self.SourceAlertHandler()
 
@@ -614,36 +695,35 @@ class SourceController:
         # Log('Source Object ({}) - Input: {}'.format(srcObj, srcNum))
         
         if type(dest) is str and dest == 'All':
-            for d in self.Destinations:
-                d = cast('Destination', d)
-                d.AssignMatrixBySource(srcObj, mode)
-                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
-                                                    value=None, 
-                                                    qualifier={'Input': cmdInput, 
-                                                            'Output': d.Output,
-                                                            'Tie Type': cmdTieType})
+            destList = self.Destinations
         elif type(dest) is list:
-            for d in dest:
-                if type(d) == Destination:
-                    d.AssignMatrixBySource(srcObj, mode)
-                    destNum = d.Output
-                elif type(d) == str:
-                    destObj = self.GetDestination(id = d, name = d)
-                    destObj.AssignMatrixBySource(srcObj, mode)
-                    destNum = destObj.Output
-                elif type(d) == int:
-                    destObj = self.GetDestinationByOutput(d)
-                    if destObj is not None:
-                        #destObj.AssignSource(srcObj)
-                        destObj.AssignMatrixBySource(srcObj, mode)
-                    destNum = d
-                self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
-                                                    value=None, 
-                                                    qualifier={'Input': cmdInput, 
-                                                               'Output': destNum,
-                                                               'Tie Type': cmdTieType})
+            destList = dest
         else:
             raise TypeError("Destination must either be 'All' or a list of Destination objects, names, IDs, or switcher output integers")
+
+        for d in destList:
+            if type(d) == Destination:
+                destObj = d
+            elif type(d) == str:
+                destObj = self.GetDestination(id = d, name = d)
+            elif type(d) == int:
+                destObj = self.GetDestinationByOutput(d)
+                
+            if destObj is None:
+                raise LookupError('No destination object found for output {}'.format(d))
+            
+            destObj.AssignMatrixBySource(srcObj, mode)
+            self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
+                                                 value=None, 
+                                                 qualifier={'Input': cmdInput, 
+                                                            'Output': destObj.Output,
+                                                            'Tie Type': cmdTieType})
+            
+            if self.GUIHost.ActCtl.CurrentActivity in ['adv_share']:
+                destObj.AdvSourceAlertHandler()
+        
+        if self.GUIHost.ActCtl.CurrentActivity in ['share', 'group_work']:
+            self.SourceAlertHandler()
 
 ## End Class Definitions -------------------------------------------------------
 ##

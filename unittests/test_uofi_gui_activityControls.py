@@ -1,11 +1,12 @@
 import unittest
+import importlib
 
 ## test imports ----------------------------------------------------------------
 from uofi_gui import GUIController
 from uofi_gui.activityControls import ActivityController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.scheduleControls import AutoScheduleController
-import settings
+import test_settings as settings
 
 from extronlib.ui import Button, Label, Level
 from extronlib.system import MESet, Clock, Timer
@@ -15,6 +16,7 @@ class ActivityController_TestClass(unittest.TestCase): # rename for module to be
     def setUp(self) -> None:
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
+        importlib.reload(settings)
         self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
     
     def init_ActCtl(self):

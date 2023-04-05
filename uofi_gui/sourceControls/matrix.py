@@ -12,6 +12,8 @@ from extronlib.ui import Button
 
 import re
 
+from utilityFunctions import Log
+
 class MatrixController:
     def __init__(self,
                  srcCtl: 'SourceController',
@@ -170,9 +172,10 @@ class MatrixRow:
             raise ValueError("TieType must be one of 'AV', 'Aud', 'Vid', or 'untie")
         
         if input == 0:
-            for btn in self.Objects:
-                btn.SetState(0)
-                btn.SetText('')
+            # for btn in self.Objects:
+            #     btn.SetState(0)
+            #     btn.SetText('')
+            self.__UpdateRowBtns(None, tieType)
         else:
             if type(input) is int:
                 for btn in self.Objects:
@@ -182,9 +185,18 @@ class MatrixRow:
                 modBtn = input
             else:
                 raise TypeError('Input must be either an int or Button object')
-                
-            modBtn.SetState(self.Matrix.StateDict[tieType])
-            modBtn.SetText(tieType)
+            
+            prevState = modBtn.State
+            if (prevState == 2 and tieType == 'Vid') \
+                or (prevState == 1 and tieType == 'Aud') \
+                or prevState == 3:
+                # now AV tie
+                modBtn.SetState(3)
+                modBtn.SetText('AV')
+            else:
+                modBtn.SetState(self.Matrix.StateDict[tieType])
+                modBtn.SetText(tieType)
+            
             if tieType == 'untie':
                 @Wait(5) # pragma: no cover
                 def untiedTextHandler():
