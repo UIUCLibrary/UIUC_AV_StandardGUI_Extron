@@ -353,6 +353,16 @@ class TechMenuController_TestClass(unittest.TestCase):
                 except Exception as inst:
                     self.fail('__AboutUpdate raised {} unexpectedly!'.format(type(inst)))
     
+    def test_TechMenuController_PRIV_AudioGainUpdate(self):
+        contextList = [True, False]
+        for con in contextList:
+            with self.subTest(context=con):
+                try:
+                    self.TestTechController._TechMenuController__AudioGainUpdate(con)
+                except Exception as inst:
+                    self.fail('__AudioGainUpdate raised {} unexpectedly!'.format(type(inst)))
+    
+    
     def test_TechMenuController_OpenTechMenu(self):
         try:
             self.TestTechController.OpenTechMenu()

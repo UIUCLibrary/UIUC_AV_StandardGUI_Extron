@@ -15,7 +15,7 @@
     {
       "Name": "Disp-Aud-0,0",
       "ID": 6003,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -45,7 +45,7 @@
     {
       "Name": "Disp-Aud-1,0",
       "ID": 6008,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -75,7 +75,7 @@
     {
       "Name": "Disp-Aud-0,1",
       "ID": 6013,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -105,7 +105,7 @@
     {
       "Name": "Disp-Aud-1,1",
       "ID": 6018,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -135,7 +135,7 @@
     {
       "Name": "Disp-Aud-2,1",
       "ID": 6023,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -165,7 +165,7 @@
     {
       "Name": "Disp-Aud-3,1",
       "ID": 6028,
-      "holdTime": null,
+      "holdTime": 3,
       "repeatTime": null
     },
     {
@@ -1588,13 +1588,13 @@
       "Name": "AudIn1-Gain-Up",
       "ID": 12601,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn1-Gain-Dn",
       "ID": 12602,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn1-Phantom",
@@ -1606,13 +1606,13 @@
       "Name": "AudIn2-Gain-Up",
       "ID": 12604,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn2-Gain-Dn",
       "ID": 12605,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn2-Phantom",
@@ -1624,13 +1624,13 @@
       "Name": "AudIn3-Gain-Up",
       "ID": 12607,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn3-Gain-Dn",
       "ID": 12608,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn3-Phantom",
@@ -1642,13 +1642,13 @@
       "Name": "AudIn4-Gain-Up",
       "ID": 12610,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn4-Gain-Dn",
       "ID": 12611,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn4-Phantom",
@@ -1660,13 +1660,13 @@
       "Name": "AudIn5-Gain-Up",
       "ID": 12613,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn5-Gain-Dn",
       "ID": 12614,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn5-Phantom",
@@ -1678,13 +1678,13 @@
       "Name": "AudIn6-Gain-Up",
       "ID": 12616,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn6-Gain-Dn",
       "ID": 12617,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": 0.5
     },
     {
       "Name": "AudIn6-Phantom",
@@ -1693,13 +1693,13 @@
       "repeatTime": null
     },
     {
-      "Name": "AudioInput-Page-Up",
+      "Name": "AudioInput-Page-Down",
       "ID": 12698,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "AudioInput-Page-Dn",
+      "Name": "AudioInput-Page-Up",
       "ID": 12699,
       "holdTime": null,
       "repeatTime": null
@@ -2545,6 +2545,10 @@
     {
       "Name": "AudIn6-Gain",
       "ID": 10616
+    },
+    {
+      "Name": "AudioInput-Page-Div",
+      "ID": 10697
     },
     {
       "Name": "AudioInput-Page-Current",

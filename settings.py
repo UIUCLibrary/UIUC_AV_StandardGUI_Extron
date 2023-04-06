@@ -356,6 +356,30 @@ hardware = [
                'tag': ('mics', '1'),
                'active_int': 30,
                'inactive_int': 120,
+            },
+            {
+               'command': 'AECGain',
+               'qualifier': [
+                  {'Instance Tag': 'AecInput1', 'Channel': '1'},
+                  {'Instance Tag': 'AecInput1', 'Channel': '2'},
+                  {'Instance Tag': 'AecInput1', 'Channel': '3'},
+                  {'Instance Tag': 'AecInput1', 'Channel': '4'}
+               ],
+               'callback': 'FeedbackGainHandler',
+               'active_int': 30,
+               'inactive_int': 120
+            },
+            {
+               'command': 'AECPhantomPower',
+               'qualifier': [
+                  {'Instance Tag': 'AecInput1', 'Channel': '1'},
+                  {'Instance Tag': 'AecInput1', 'Channel': '2'},
+                  {'Instance Tag': 'AecInput1', 'Channel': '3'},
+                  {'Instance Tag': 'AecInput1', 'Channel': '4'}
+               ],
+               'callback': 'FeedbackPhantomHandler',
+               'active_int': 60,
+               'inactive_int': 600
             }
          ],
       'Options':
@@ -391,6 +415,93 @@ hardware = [
                   'command': 'LevelControl',
                   'qualifier': {'Instance Tag': 'Mic2Level', 'Channel': '1'}
                },
+            'InputControls':
+               [
+                  {
+                     'Name': 'Program L',
+                     'Block': 'AecInput1',
+                     'Channel': '1',
+                     'GainCommand': 'AECGain',
+                     'PhantomCommand': 'AECPhantomPower'
+                  },
+                  {
+                     'Name': 'Program R',
+                     'Block': 'AecInput1',
+                     'Channel': '2',
+                     'GainCommand': 'AECGain',
+                     'PhantomCommand': 'AECPhantomPower'
+                  },
+                  {
+                     'Name': 'Mic - RF001',
+                     'Block': 'AecInput1',
+                     'Channel': '3',
+                     'GainCommand': 'AECGain',
+                     'PhantomCommand': 'AECPhantomPower'
+                  },
+                  {
+                     'Name': 'Unused Input',
+                     'Block': 'AecInput1',
+                     'Channel': '4',
+                     'GainCommand': 'AECGain',
+                     'PhantomCommand': 'AECPhantomPower'
+                  },
+                  # {
+                  #    'Name': 'Input 5',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '5',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 6',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '6',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 7',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '7',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 8',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '8',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 9',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '9',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 10',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '10',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 11',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '11',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # },
+                  # {
+                  #    'Name': 'Input 12',
+                  #    'Block': 'AecInput1',
+                  #    'Channel': '12',
+                  #    'GainCommand': 'AECGain',
+                  #    'PhantomCommand': 'AECPhantomPower'
+                  # }
+               ]
          }
    },
    {

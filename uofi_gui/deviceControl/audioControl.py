@@ -2,15 +2,16 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
-    from extronlib.ui import Button
     
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
-from extronlib.ui import Level
+from extronlib.ui import Button, Label, Level
 
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
+
+import math
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -82,6 +83,81 @@ class AudioController:
             self.__Labels[str(i)] = self.UIHost.Lbls['Aud-Mic-{}'.format(str(i))]
             self.__Labels[str(i)].SetText(self.Microphones[str(i)]['Name'])
         
+        self.__GainControls = \
+            {
+                'inputs': [
+                    {
+                        'up': self.UIHost.Btns['AudIn1-Gain-Up'],
+                        'down': self.UIHost.Btns['AudIn1-Gain-Dn'],
+                        'phantom': self.UIHost.Btns['AudIn1-Phantom'],
+                        'dBLbl': self.UIHost.Lbls['AudIn1-Gain'],
+                        'inputLbl': self.UIHost.Lbls['AudIn1-Label']
+                    },
+                    {
+                        'up': self.UIHost.Btns['AudIn2-Gain-Up'],
+                        'down': self.UIHost.Btns['AudIn2-Gain-Dn'],
+                        'phantom': self.UIHost.Btns['AudIn2-Phantom'],
+                        'dBLbl': self.UIHost.Lbls['AudIn2-Gain'],
+                        'inputLbl': self.UIHost.Lbls['AudIn2-Label']
+                    },
+                    {
+                        'up': self.UIHost.Btns['AudIn3-Gain-Up'],
+                        'down': self.UIHost.Btns['AudIn3-Gain-Dn'],
+                        'phantom': self.UIHost.Btns['AudIn3-Phantom'],
+                        'dBLbl': self.UIHost.Lbls['AudIn3-Gain'],
+                        'inputLbl': self.UIHost.Lbls['AudIn3-Label']
+                    },
+                    {
+                        'up': self.UIHost.Btns['AudIn4-Gain-Up'],
+                        'down': self.UIHost.Btns['AudIn4-Gain-Dn'],
+                        'phantom': self.UIHost.Btns['AudIn4-Phantom'],
+                        'dBLbl': self.UIHost.Lbls['AudIn4-Gain'],
+                        'inputLbl': self.UIHost.Lbls['AudIn4-Label']
+                    },
+                    {
+                        'up': self.UIHost.Btns['AudIn5-Gain-Up'],
+                        'down': self.UIHost.Btns['AudIn5-Gain-Dn'],
+                        'phantom': self.UIHost.Btns['AudIn5-Phantom'],
+                        'dBLbl': self.UIHost.Lbls['AudIn5-Gain'],
+                        'inputLbl': self.UIHost.Lbls['AudIn5-Label']
+                    },
+                    {
+                        'up': self.UIHost.Btns['AudIn6-Gain-Up'],
+                        'down': self.UIHost.Btns['AudIn6-Gain-Dn'],
+                        'phantom': self.UIHost.Btns['AudIn6-Phantom'],
+                        'dBLbl': self.UIHost.Lbls['AudIn6-Gain'],
+                        'inputLbl': self.UIHost.Lbls['AudIn6-Label']
+                    }
+                ],
+                'page':
+                    {
+                        'next': self.UIHost.Btns['AudioInput-Page-Up'],
+                        'prev': self.UIHost.Btns['AudioInput-Page-Down'],
+                        'currentLbl': self.UIHost.Lbls['AudioInput-Page-Current'],
+                        'maxLbl': self.UIHost.Lbls['AudioInput-Page-Max'],
+                        'divLbl': self.UIHost.Lbls['AudioInput-Page-Div']
+                    }                    
+            }
+        
+        self.__GainControlLists = \
+            {
+                'up': [],
+                'down': [],
+                'phantom': [],
+                'dBLbl': [],
+                'inputLbl': []
+            }
+        for inputDict in self.__GainControls['inputs']:
+            for key in inputDict.keys():
+                if type(inputDict[key]) is Button:
+                    inputDict[key].CtlType = key
+                if key == 'dBLbl':
+                    inputDict[key].GainVal = 0
+                inputDict[key].InputIndex = self.__GainControls['inputs'].index(inputDict)
+                self.__GainControlLists[key].append(inputDict[key])
+        
+        self.__GainPageIndex = 0
+        
         # Program Buttons
         @event(list(self.__Controls['prog'].values()), ['Pressed', 'Released', 'Repeated']) # pragma: no cover
         def ProgramControlHandler(button: 'Button', action: str):
@@ -96,6 +172,24 @@ class AudioController:
         @event(self.__Controls['all-mics'], ['Pressed']) # pragma: no cover
         def AllMicsMuteHandler(button: 'Button', action: str):
             self.ToggleAllMicsMute()
+            
+        # Gain Buttons
+        gainCtls = []
+        gainCtls.extend(self.__GainControlLists['up'])
+        gainCtls.extend(self.__GainControlLists['down'])
+        @event(gainCtls, ['Pressed', 'Released', 'Repeated']) # pragma: no cover
+        def GainControlsHandler(button: 'Button', action: str):
+            self.__InputGainHandler(button, action)
+            
+        # Phantom Power Buttons
+        @event(self.__GainControlLists['phantom'], ['Pressed']) # pragma: no cover
+        def PhantomControlsHandler(button: 'Button', action: str):
+            self.__InputPhantomHandler(button, action)
+            
+        # Gain Controls Pagination Buttons
+        @event([self.__GainControls['page']['next'], self.__GainControls['page']['prev']], ['Pressed', 'Released']) # pragma: no cover
+        def GainControlPaginationHandler(button: 'Button', action: str):
+            self.__PaginationHandler(button, action)
     
     @property
     def AllMicsMute(self)->bool:
@@ -224,6 +318,14 @@ class AudioController:
         
         self.DSP.interface.Set(hwCmd['command'], Level, qual)
     
+    @property
+    def __InputCount(self) -> int:
+        return len(self.DSP.InputControls)
+    
+    @property
+    def __GainPageCount(self) -> int:
+        return math.ceil(self.__InputCount / 6)
+    
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def __ProgramControlHandler(self, button: 'Button', action: str):
@@ -258,7 +360,234 @@ class AudioController:
             if button.CtlType in ['up', 'down']:
                 self.MicLevel = (button.MicNum, self.AdjustLevel(level, button.CtlType, 'large'))
     
+    def __PaginationHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            if button.Name.endswith('Up'):
+                # do page up
+                self.__GainPageIndex += 1
+                if self.__GainPageIndex >= self.__GainPageCount:
+                    self.__GainPageIndex = self.__GainPageCount
+            elif button.Name.endswith('Down'):
+                # do page down
+                self.__GainPageIndex -= 1
+                if self.__GainPageIndex < 0:
+                    self.__GainPageIndex = 0
+                    
+        self.__UpdatePagination()
+        self.__ShowInputState()
+        
+    def __InputGainHandler(self, button: 'Button', action: str):
+        inputIndex = button.InputIndex + (self.__GainPageIndex * 6)
+        #Log('Gain Control: {}, {}'.format(button.CtlType, inputIndex))
+        if not button.Enabled: # pragma: no cover
+            return
+        
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released' or action == 'Repeated':
+            if action == 'Released':
+                button.SetState(0)
+            elif action == 'Repeated':
+                self.UIHost.Click()
+            cmd = self.DSP.InputControls[inputIndex]['GainCommand']
+            block = self.DSP.InputControls[inputIndex]['Block']
+            channel = self.DSP.InputControls[inputIndex]['Channel']
+            qual = self.__GetCmdQualifier(cmd, block, channel)
+            newVal = self.AdjustGain(self.__GainControlLists['dBLbl'][inputIndex], button.CtlType)
+            self.DSP.interface.Set(cmd, newVal, qual)
+    
+    def __InputPhantomHandler(self, button: 'Button', action: str):
+        inputIndex = button.InputIndex + (self.__GainPageIndex * 6)
+        # Log('Phantom Control: {}, {}'.format(button.State, inputIndex))
+        
+        cmd = self.DSP.InputControls[inputIndex]['PhantomCommand']
+        block = self.DSP.InputControls[inputIndex]['Block']
+        channel = self.DSP.InputControls[inputIndex]['Channel']
+        qual = self.__GetCmdQualifier(cmd, block, channel)
+        
+        if button.State == 0:
+            self.DSP.interface.Set(cmd, 'On', qual)
+            button.SetState(1)
+        elif button.State == 1:
+            self.DSP.interface.Set(cmd, 'Off', qual)
+            button.SetState(0)
+    
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def __UpdatePagination(self):
+        if self.__GainPageCount == 1:
+            # No page flips. Show no pagination
+            self.__GainControls['page']['next'].SetEnable(False)
+            self.__GainControls['page']['next'].SetVisible(False)
+            self.__GainControls['page']['prev'].SetEnable(False)
+            self.__GainControls['page']['prev'].SetVisible(False)
+            
+            self.__GainControls['page']['currentLbl'].SetVisible(False)
+            self.__GainControls['page']['maxLbl'].SetVisible(False)
+            self.__GainControls['page']['divLbl'].SetVisible(False)
+            
+        elif self.__GainPageCount > 1 and self.__GainPageIndex == 0:
+            # Show page flips, disable prev button
+            self.__GainControls['page']['next'].SetEnable(True)
+            self.__GainControls['page']['next'].SetVisible(True)
+            self.__GainControls['page']['prev'].SetEnable(False)
+            self.__GainControls['page']['prev'].SetVisible(True)
+            
+            self.__GainControls['page']['next'].SetState(0)
+            self.__GainControls['page']['prev'].SetState(2)
+            
+            self.__GainControls['page']['currentLbl'].SetVisible(True)
+            self.__GainControls['page']['currentLbl'].SetText(str(self.__GainPageIndex + 1))
+            self.__GainControls['page']['maxLbl'].SetVisible(True)
+            self.__GainControls['page']['maxLbl'].SetText(str(self.__GainPageCount))
+            self.__GainControls['page']['divLbl'].SetVisible(True)
+            
+        elif self.__GainPageCount > 1 and (self.__GainPageIndex + 1) == self.__GainPageCount:
+            # Show page flips, disable next button
+            self.__GainControls['page']['next'].SetEnable(False)
+            self.__GainControls['page']['next'].SetVisible(True)
+            self.__GainControls['page']['prev'].SetEnable(True)
+            self.__GainControls['page']['prev'].SetVisible(True)
+            
+            self.__GainControls['page']['next'].SetState(2)
+            self.__GainControls['page']['prev'].SetState(0)
+            
+            self.__GainControls['page']['currentLbl'].SetVisible(True)
+            self.__GainControls['page']['currentLbl'].SetText(str(self.__GainPageIndex + 1))
+            self.__GainControls['page']['maxLbl'].SetVisible(True)
+            self.__GainControls['page']['maxLbl'].SetText(str(self.__GainPageCount))
+            self.__GainControls['page']['divLbl'].SetVisible(True)
+            
+        elif self.__GainPageCount > 1:
+            # Show page flips, both arrows enabled
+            self.__GainControls['page']['next'].SetEnable(True)
+            self.__GainControls['page']['next'].SetVisible(True)
+            self.__GainControls['page']['prev'].SetEnable(True)
+            self.__GainControls['page']['prev'].SetVisible(True)
+            
+            self.__GainControls['page']['next'].SetState(0)
+            self.__GainControls['page']['prev'].SetState(0)
+            
+            self.__GainControls['page']['currentLbl'].SetVisible(True)
+            self.__GainControls['page']['currentLbl'].SetText(str(self.__GainPageIndex + 1))
+            self.__GainControls['page']['maxLbl'].SetVisible(True)
+            self.__GainControls['page']['maxLbl'].SetText(str(self.__GainPageCount))
+            self.__GainControls['page']['divLbl'].SetVisible(True)
+    
+    # def __ClearInputState(self):
+    #     for key in self.__GainControlLists.keys():
+    #         for ctl in self.__GainControlLists[key]:
+    #             if type(ctl) is Button:
+    #                 ctl.SetEnable(False)
+    #                 ctl.SetState(2)
+    #             elif type(ctl) is Label and key == 'dBLbl':
+    #                 ctl.SetText('--')
+    #             elif type(ctl) is Label and key == 'inputLbl':
+    #                 ctl.SetText('No Input Configured')
+    
+    def __GetCmdQualifier(self, command: str, block: str, channel: Union[str, int]) -> dict:
+        if self.DSP.Manufacturer == "Biamp":
+            return {'Instance Tag': str(block), 'Channel': str(channel)}
+        elif self.DSP.Manufacturer == "BSS":
+            if command == 'Gain':
+                id = 4 + ((int(channel) - 1) * 6)
+            elif command == 'PhantomSwitch':
+                id = 5 + ((int(channel) - 1) * 6)
+            else:
+                raise ValueError('BSS DSP Command ({}) not configured'.format(command))
+            return {'HiQAddress': str(block), 'ID': id}
+        else:
+            raise ValueError('DSP Manufacturer ({}) not configured'.format(self.DSP.Manufacturer))
+    
+    def __ShowInputState(self):
+        mfg = self.DSP.Manufacturer
+        # self.__ClearInputState()
+        
+        indexStart = self.__GainPageIndex * 6
+        indexEnd = ((self.__GainPageIndex + 1) * 6) # add one because range() is non-inclusive of the end index value
+        Log('Loading Audio Tech Page: {} - {}'.format(indexStart, indexEnd))
+        displayList = []
+        for i in range(indexStart, indexEnd):
+            if i >= self.__InputCount:
+                break
+            displayList.append(self.DSP.InputControls[i])
+            
+        if len(displayList) < 6:
+            loadRange = len(displayList)
+        else:
+            loadRange = 6
+            
+        for j in range(loadRange):
+            input = displayList[j]
+            inputLbl = self.__GainControlLists['inputLbl'][j]
+            dbLbl = self.__GainControlLists['dBLbl'][j]
+            upBtn = self.__GainControlLists['up'][j]
+            dnBtn = self.__GainControlLists['down'][j]
+            phantomBtn = self.__GainControlLists['phantom'][j]
+            
+            inputLbl.SetText(input['Name'])
+            
+            upBtn.Block = input['Block']
+            upBtn.Channel = input['Channel']
+            upBtn.Cmd = input['GainCommand']
+            dnBtn.Block = input['Block']
+            dnBtn.Channel = input['Channel']
+            dnBtn.Cmd = input['GainCommand']
+            phantomBtn.Block = input['Block']
+            phantomBtn.Channel = input['Channel']
+            phantomBtn.Cmd = input['PhantomCommand']
+            
+            # get initial values
+            qual_dB = self.__GetCmdQualifier(input['GainCommand'], input['Block'], input['Channel'])
+            dB = self.DSP.interface.ReadStatus(input['GainCommand'], qual_dB)
+            Log('dB Value: {}'.format(dB))
+            if dB is None:
+                self.DSP.interface.Update(input['GainCommand'], qual_dB)
+                dB = self.DSP.interface.ReadStatus(input['GainCommand'], qual_dB)
+                Log('Retry dB Value: {}'.format(dB))
+            
+            if mfg == 'BSS':
+                dB = (dB/100)*48
+            
+            downEnable = True
+            upEnable = True
+            if dB == 0 or dB is None:
+                dbLbl.SetText('0dB')
+                dbLbl.GainVal = dB
+                downEnable = False
+                dB = 0
+            elif dB > 0:
+                dbLbl.SetText('+{}dB'.format(dB))
+                dbLbl.GainVal = dB
+            
+            if mfg == 'Biamp' and dB >= 66:
+                upEnable = False
+            if mfg == 'BSS' and dB >= 48:
+                upEnable = False
+            
+            if upEnable:
+                upBtn.SetState(0)
+            else:
+                upBtn.SetState(2)
+            upBtn.SetEnable(upEnable)
+            if downEnable:
+                dnBtn.SetState(0)
+            else:
+                dnBtn.SetState(2)
+            dnBtn.SetEnable(downEnable)
+                
+            qual_phan = self.__GetCmdQualifier(input['PhantomCommand'], input['Block'], input['Channel'])
+            phantom = self.DSP.interface.ReadStatus(input['PhantomCommand'], qual_phan)
+            if phantom is None:
+                self.DSP.interface.Update(input['PhantomCommand'], qual_phan)
+                phantom = self.DSP.interface.ReadStatus(input['PhantomCommand'], qual_phan)
+            setState = (phantom in ['on', 'On', 'ON', 1, True, 'Mute', 'mute', 'MUTE'])
+            
+            phantomBtn.SetState(int(setState))
+            phantomBtn.SetEnable(True)
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -294,6 +623,62 @@ class AudioController:
         
         return newLevel
     
+    def AdjustGain(self, gain, direction: str='up'):
+        if type(gain) is not Label:
+            raise TypeError('Level must be a Gain Label object')
+        if type(direction) is not str:
+            raise TypeError('Direction must be a string')
+        
+        mfg = self.DSP.Manufacturer
+        inputIndex = self.__GainControlLists['dBLbl'].index(gain)
+        
+        if direction == 'up':
+            newGain = gain.GainVal + 6
+        elif direction == 'down':
+            newGain = gain.GainVal - 6
+        else:
+            raise ValueError('Direction must either be "up" or "down"')
+        
+        downEnable = True
+        upEnable = True
+        
+        if newGain <= 0:
+            # disable down arrow
+            downEnable = False
+            newGain = 0
+        
+        if mfg == 'Biamp':
+            newLevel = newGain
+            if newGain >= 66:
+                upEnable = False
+        elif mfg == 'BSS':
+            # BSS require gain in a percentage value
+            newLevel = (newGain / 48) * 100
+            if newGain >= 48:
+                upEnable = False
+        
+        
+        gain.GainVal = newGain
+        
+        self.__GainControlLists['down'][inputIndex].SetEnable(downEnable)
+        if downEnable:
+            self.__GainControlLists['down'][inputIndex].SetState(0)
+        else:
+            self.__GainControlLists['down'][inputIndex].SetState(2)
+            
+        self.__GainControlLists['up'][inputIndex].SetEnable(upEnable)
+        if upEnable:
+            self.__GainControlLists['up'][inputIndex].SetState(0)
+        else:
+            self.__GainControlLists['up'][inputIndex].SetState(2)
+        
+        if newGain == 0:
+            gain.SetText("0dB")
+        elif newGain > 0:
+            gain.SetText('+{}dB'.format(newGain))
+        
+        return newLevel
+    
     def AudioStartUp(self):
         # Set default levels & unmute all sources
         self.__Levels['prog'].SetLevel(self.DSP.Program['StartUp'])
@@ -321,8 +706,13 @@ class AudioController:
     def ToggleAllMicsMute(self):
         self.AllMicsMute = not self.AllMicsMute 
     
+    def ResetGainPage(self):
+        self.__GainPageIndex = 0
+        self.__UpdatePagination()
+        self.__ShowInputState()
+    
     def AudioLevelFeedback(self, tag: Tuple, value: int):
-        # Log("Audio Level Feedback - Tag: {}; Value: {}".format(tag, value))
+        Log("Audio Level Feedback - Tag: {}; Value: {}".format(tag, value))
         if tag[0] == 'prog':
             # Log('Prog Level Feedback')
             if not (self.__Controls[tag[0]]['up'].PressedState or self.__Controls[tag[0]]['down'].PressedState):
@@ -356,6 +746,65 @@ class AudioController:
                 self.Microphones[str(tag[1])]['mute'] = False
             self.AllMicsMuteButtonState()
 
+    def AudioGainFeedback(self, qualifier, value):
+        Log('Gain Feedback Received: qual={}; val={}'.format(qualifier, value))
+        mfg = self.DSP.Manufacturer
+        
+        feedbackIndex = None
+        for inputCtl in self.DSP.InputControls:
+            if mfg == 'Biamp' and inputCtl['Block'] == qualifier['Instance Tag'] and inputCtl['Channel'] == qualifier['Channel']:
+                feedbackIndex = self.DSP.InputControls.index(inputCtl)
+            elif mfg == 'BSS' and inputCtl['Block'] == qualifier['HiQAddress'] and (4 + ((int(inputCtl['Channel']) - 1) * 6)) == qualifier['ID']:
+                feedbackIndex = self.DSP.InputControls.index(inputCtl)
+        
+        if mfg == 'Biamp':
+            value = int(value)
+        elif mfg == 'BSS':
+            value = (int(value)/100) * 48
+        
+        if value == 0:
+            self.__GainControlLists['dBLbl'][feedbackIndex].SetText("0dB")
+        elif value > 0:
+            self.__GainControlLists['dBLbl'][feedbackIndex].SetText('+{}dB'.format(value))
+
+        downEnable = True
+        upEnable = True
+        if value <= 0:
+            # disable down arrow
+            downEnable = False
+        
+        if mfg == 'Biamp' and value >= 66:
+            upEnable = False
+        elif mfg == 'BSS' and value >= 48:
+            upEnable = False
+            
+        self.__GainControlLists['up'][feedbackIndex].SetEnable(upEnable)
+        if upEnable:
+            self.__GainControlLists['up'][feedbackIndex].SetState(0)
+        else:
+            self.__GainControlLists['up'][feedbackIndex].SetState(2)
+            
+        self.__GainControlLists['down'][feedbackIndex].SetEnable(downEnable)
+        if downEnable:
+            self.__GainControlLists['down'][feedbackIndex].SetState(0)
+        else:
+            self.__GainControlLists['down'][feedbackIndex].SetState(2)
+        
+    def AudioPhantomFeedback(self, qualifier, value):
+        Log('Phantom Feedback Received: qual={}; val={}'.format(qualifier, value))
+        mfg = self.DSP.Manufacturer
+        
+        feedbackIndex = None
+        for inputCtl in self.DSP.InputControls:
+            if mfg == 'Biamp' and inputCtl['Block'] == qualifier['Instance Tag'] and inputCtl['Channel'] == qualifier['Channel']:
+                feedbackIndex = self.DSP.InputControls.index(inputCtl)
+            elif mfg == 'BSS' and inputCtl['Block'] == qualifier['HiQAddress'] and (4 + ((int(inputCtl['Channel']) - 1) * 6)) == qualifier['ID']:
+                feedbackIndex = self.DSP.InputControls.index(inputCtl)
+                
+        setState = (value in ['on', 'On', 'ON', 1, True])
+        
+        self.__GainControlLists['phantom'][feedbackIndex].SetState(int(setState))
+        
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------

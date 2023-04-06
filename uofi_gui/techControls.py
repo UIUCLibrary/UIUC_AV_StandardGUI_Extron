@@ -89,6 +89,7 @@ class TechMenuController:
                 'Tech-SystemStatus': self.__StatusUpdate,
                 'Tech-About': self.__AboutUpdate,
                 'Tech-PanelSetup': self.__PnlSetupUpdate,
+                'Tech-AudioGain': self.__AudioGainUpdate
             }
             
         self.__MenuBtns = MESet([])
@@ -335,6 +336,12 @@ class TechMenuController:
             self.__AboutUpdateTimer.Restart()
         else:
             self.__AboutUpdateTimer.Stop()
+            
+    def __AudioGainUpdate(self, show: bool=False):
+        if show:
+            self.UIHost.AudioCtl.ResetGainPage()
+        else:
+            pass
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     

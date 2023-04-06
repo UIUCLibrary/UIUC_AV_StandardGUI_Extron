@@ -133,6 +133,15 @@ class DeviceClass:
         for TP in self.GUIHost.TPs:
             TP.AudioCtl.AudioLevelFeedback(tag, value)
 
+    def FeedbackGainHandler(self, command, value, qualifier, hardware=None, tag=None):
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
+        for TP in self.GUIHost.TPs:
+            TP.AudioCtl.AudioGainFeedback(qualifier, value)
+            
+    def FeedbackPhantomHandler(self, command, value, qualifier, hardware=None, tag=None):
+        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
+        for TP in self.GUIHost.TPs:
+            TP.AudioCtl.AudioPhantomFeedback(qualifier, value)
 ## -----------------------------------------------------------------------------
 ## End Feedback Callback Functions
 ## -----------------------------------------------------------------------------
