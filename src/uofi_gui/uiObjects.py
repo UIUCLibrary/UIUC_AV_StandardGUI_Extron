@@ -109,7 +109,7 @@ class ExUIDevice(UIDevice):
         self.StatusCtl = SystemStatusController(self)
         
         #### Camera Controller Module
-        if self.GUIHost.CameraSwitcherId is not None:
+        if self.GUIHost.CameraSwitcherId is not None or len(self.GUIHost.Cameras) > 0:
             self.CamCtl = CameraController(self)
         
         #### Display Control Module

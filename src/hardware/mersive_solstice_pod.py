@@ -32,7 +32,6 @@ import traceback
 
 import utilityFunctions
 
-@utilityFunctions.debug
 def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = True) -> None:
     utilityFunctions.Log('Feedback TP: {} ({})'.format(touchpanel.Id, touchpanel))
     podIdLabel = touchpanel.Lbls['WPD-PodIDs']
@@ -177,7 +176,7 @@ class DeviceClass:
 
         for TP in self.GUIHost.TPs:
             if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
-                if TP.SrcCtl.SelectedSource.Id == hardware.Id:
+                if TP.SrcCtl.SelectedSource is not None and TP.SrcCtl.SelectedSource.Id == hardware.Id:
                     PodFeedbackHelper(TP, hardware, blank_on_fail=False)
             else:
                 if (TP.SrcCtl.OpenControlPopup is not None and

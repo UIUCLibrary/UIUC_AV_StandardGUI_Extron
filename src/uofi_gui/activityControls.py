@@ -410,8 +410,8 @@ class ActivityController:
         if self.CurrentActivity != 'off':
             self.__ConfirmationTimer.Restart()
             for tp in self.GUIHost.TPs:
-                Log(self.__ConfTimeLbl)
-                Log(self.__ConfTimeLbl[self.GUIHost.TPs.index(tp)])
+                # Log(self.__ConfTimeLbl)
+                # Log(self.__ConfTimeLbl[self.GUIHost.TPs.index(tp)])
                 self.__ConfTimeLbl[self.GUIHost.TPs.index(tp)].SetText(TimeIntToStr(self.__ConfirmationTime))
                 if click:
                     tp.Click(5, 0.2)

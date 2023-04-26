@@ -319,6 +319,7 @@ class DisplayController:
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def SetDisplayPower(self, dest: Union[str, 'Destination'], state: str='On'):
+        # Log('Dest: {}; State: {}'.format(dest, state))
         if type(dest) is str:
             Hw = self.Destinations[dest]['hw']
         elif type(dest) is Destination:

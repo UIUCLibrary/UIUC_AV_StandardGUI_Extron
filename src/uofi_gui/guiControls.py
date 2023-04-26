@@ -165,7 +165,7 @@ class GUIController:
         # power on displays
         for dest in self.Destinations:
             try:
-                self.TP_Main.DispCtl.SetDisplayPower(dest['Id'], 'On')
+                self.TP_Main.DispCtl.SetDisplayPower(dest['id'], 'On')
             except LookupError:
                 # display does not have hardware to power on or off
                 pass
@@ -177,7 +177,7 @@ class GUIController:
         # set display sources
         for dest in self.Destinations:
             try:
-                self.TP_Main.DispCtl.SetDisplaySource(dest['Id'])
+                self.TP_Main.DispCtl.SetDisplaySource(dest['id'])
             except LookupError:
                 # display does not have hardware to power on or off
                 pass
@@ -198,13 +198,14 @@ class GUIController:
             self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
                 
         # power off displays
+        # Log(self.Destinations)
         for dest in self.Destinations:
             try:
-                self.TP_Main.DispCtl.SetDisplayPower(dest['Id'], 'Off')
+                self.TP_Main.DispCtl.SetDisplayPower(dest['id'], 'Off')
             except LookupError:
                 # display does not have hardware to power on or off
                 pass
-        
+                
         self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
         self.TP_Main.AudioCtl.AudioShutdown()
         for tp in self.TPs:

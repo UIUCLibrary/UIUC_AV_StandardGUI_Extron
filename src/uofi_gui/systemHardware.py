@@ -99,6 +99,8 @@ class SystemHardwareController:
         self.__Constructor = getattr(self.__Module,
                                      Interface['interface_class'])
         
+        if Interface['interface_class'] == 'SerialClass':
+            Interface['interface_configuration']['Host'] = self.GUIHost.CtlProc_Main
         Interface['interface_configuration']['GUIHost'] = self.GUIHost
         if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
             self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),
@@ -106,6 +108,7 @@ class SystemHardwareController:
             
             connInfo = self.interface.Connect()
         else:
+            # Log(Interface)
             self.interface = self.__Constructor(**Interface['interface_configuration'])
         
         self.interface.SubscribeStatus('ConnectionStatus', None, self.__ConnectionStatus)

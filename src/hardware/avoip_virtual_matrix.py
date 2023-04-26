@@ -100,7 +100,7 @@ class DeviceClass:
             # utilityFunctions.Log('Output {} ({}) StreamTuple = {}'.format(OutputHw.MatrixOutput, OutputHw.Name, StreamTuple), 'info')
             # If elements 0 & 1 of StreamTuple match, tie type must be Audio/Video
             # if StreamTuple[1] == 0 audio follows video and tie type must be Audio/Video
-            if StreamTuple == (None, None):
+            if StreamTuple != (None, None):
                 if StreamTuple[0] == StreamTuple[1] or StreamTuple[1] == 0: # Audio/Video
                     mInput = 0
                     for InputHw in self.VirtualInputDevices.values():
@@ -228,9 +228,9 @@ class DeviceClass:
     
     def SetStandby(self, value, qualifier):
         if value in [True, 1, 'on', 'On', 'ON', 'Standby']:
-            cmdVal = 'on'
+            cmdVal = 'off' # standby On = Tx off
         elif value in [False, 0, 'off', 'Off', 'OFF', 'Unstandby']:
-            cmdVal = 'off'
+            cmdVal = 'on' # standby off = Tx on
         
         if qualifier is not None and 'Input' in qualifier:
             self.VirtualInputDevices[qualifier['Input']].interface.Set('Tx', cmdVal)
@@ -282,7 +282,7 @@ class DeviceClass:
     
     def FeedbackOutputTieStatusHandler(self, command, value, qualifier, hardware=None):
         utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        utilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
+        # utilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
     
 ## -----------------------------------------------------------------------------
 ## End Command & Callback Functions

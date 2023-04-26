@@ -62,22 +62,28 @@ class CameraController:
             else:
                 raise KeyError('No hardware item found for Camera Id ({})'.format(cam['Id']))
         
-        self.__Switcher = self.GUIHost.Hardware[self.GUIHost.CameraSwitcherId]
+        if self.GUIHost.CameraSwitcherId is not None:
+            self.__Switcher = self.GUIHost.Hardware[self.GUIHost.CameraSwitcherId]
+            
+            self.__DefaultCamera = None
+            self.__SelectBtns = self.UIHost.Btn_Grps['Camera-Select']
+            for selBtn in self.__SelectBtns.Objects:
+                re_match = re.match(r'Ctl-Camera-Select-(\d+)', selBtn.Name)
+                camNum = int(re_match.group(1))
+                cam = [cam for cam in self.Cameras.values() if camNum == cam['Number']][0]
+                # Log('Cam selection: {} ({})'.format(cam, type(cam)))
+                        
+                if cam['Id'] in self.Cameras:
+                    selBtn.camera = cam
+                    selBtn.camName = cam['Name']
+                    selBtn.SetText(cam['Name'])
+                if cam['Id'] == self.GUIHost.DefaultCameraId:
+                    self.__DefaultCamera = selBtn   
+        else:
+            self.__Switcher = None
+            self.__Camera = list(self.Cameras.values())[0]
 
-        self.__DefaultCamera = None
-        self.__SelectBtns = self.UIHost.Btn_Grps['Camera-Select']
-        for selBtn in self.__SelectBtns.Objects:
-            re_match = re.match(r'Ctl-Camera-Select-(\d+)', selBtn.Name)
-            camNum = int(re_match.group(1))
-            cam = [cam for cam in self.Cameras.values() if camNum == cam['Number']][0]
-            # Log('Cam selection: {} ({})'.format(cam, type(cam)))
-                    
-            if cam['Id'] in self.Cameras:
-                selBtn.camera = cam
-                selBtn.camName = cam['Name']
-                selBtn.SetText(cam['Name'])
-            if cam['Id'] == self.GUIHost.DefaultCameraId:
-                self.__DefaultCamera = selBtn
+        
                 
         self.__PresetBtns = DictValueSearchByKey(self.UIHost.Btns, r'Ctl-Camera-Preset-\d+', regex=True)
         for preBtn in self.__PresetBtns:
@@ -105,9 +111,10 @@ class CameraController:
         self.LoadPresetStates()
         self.SelectDefaultCamera()
         
-        @event(self.__SelectBtns.Objects, ['Pressed', 'Released']) # pragma: no cover
-        def camSelectBtnHandler(button: 'Button', action: str):
-            self.__CamSelectBtnHandler(button, action)
+        if self.__Switcher is not None:
+            @event(self.__SelectBtns.Objects, ['Pressed', 'Released']) # pragma: no cover
+            def camSelectBtnHandler(button: 'Button', action: str):
+                self.__CamSelectBtnHandler(button, action)
         
         @event(self.__PresetBtns, ['Pressed', 'Tapped', 'Held']) # pragma: no cover
         def presetBtnHandler(button: 'Button', action: str):
@@ -154,13 +161,19 @@ class CameraController:
             button.SetState(1)
         elif action == 'Tapped':
             button.SetState(0)
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             qual = camHW.PresetRecallCommand.get('qualifier', None)
             Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(button.PresetValue), qual))
             camHW.interface.Set(camHW.PresetRecallCommand['command'], str(button.PresetValue), qual)
         elif action == 'Held':
             button.SetState(0)
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             PresetName = button.defaultText
             if button.PresetValue in camHW.Presets:
                 PresetName = camHW.Presets[button.PresetValue]
@@ -175,20 +188,29 @@ class CameraController:
             button.SetState(1)
         elif action == 'Tapped':
             button.SetState(0)
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             qual = camHW.PresetRecallCommand.get('qualifier', None)
-            Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(button.PresetValue), qual))
-            camHW.interface.Set(camHW.PresetRecallCommand['command'], str(button.PresetValue), qual)
+            Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(0), qual))
+            camHW.interface.Set(camHW.PresetRecallCommand['command'], str(0), qual)
         elif action == 'Held':
             button.SetState(0)
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             qual = camHW.PresetSaveCommand.get('qualifier', None)
-            Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetSaveCommand['command'], str(self.__EditorName.PresetValue), qual))
-            camHW.interface.Set(camHW.PresetSaveCommand['command'], str(self.__EditorName.PresetValue), qual)
+            Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetSaveCommand['command'], str(0), qual))
+            camHW.interface.Set(camHW.PresetSaveCommand['command'], str(0), qual)
             self.UIHost.Click(3, 0.25)
     
     def __CamCtlHandler(self, button: 'Button', action: str):
-        camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+        if self.__Switcher is not None:
+            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+        else:
+            camHW = self.__Camera['Hw']
         if action == 'Pressed':
             button.SetState(1)
             if button.moveMode == 'P' or button.moveMode == 'T': # Pan & Tilt
@@ -228,7 +250,10 @@ class CameraController:
         if action == 'Pressed':
             button.SetState(1)
         elif action == 'Released':
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             PresetName = ''
             if button.PresetValue in camHW.Presets:
                 PresetName = camHW.Presets[button.PresetValue]
@@ -239,7 +264,10 @@ class CameraController:
         if action == 'Pressed':
             button.SetState(1)
         elif action == 'Released':
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             qual = camHW.PresetRecallCommand.get('qualifier', None)
             Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(0), qual))
             camHW.interface.Set(camHW.PresetRecallCommand['command'], str(0), qual)
@@ -249,7 +277,10 @@ class CameraController:
         if action == 'Pressed':
             button.SetState(1)
         elif action == 'Released':
-            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            if self.__Switcher is not None:
+                camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+            else:
+                camHW = self.__Camera['Hw']
             qual = camHW.PresetSaveCommand.get('qualifier', None)
             camHW.Presets[self.__EditorName.PresetValue] = self.__EditorName.PresetText
             Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetSaveCommand['command'], str(self.__EditorName.PresetValue), qual))
@@ -341,7 +372,10 @@ class CameraController:
         NameBtn.SetText(PresetName)
     
     def UpdatePresetButtons(self):
-        camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+        if self.__Switcher is not None:
+            camHW = self.__SelectBtns.GetCurrent().camera['Hw']
+        else:
+            camHW = self.__Camera['Hw']
         for presetBtn in self.__PresetBtns:
             PresetName = presetBtn.defaultText
             if presetBtn.PresetValue in camHW.Presets:
@@ -349,6 +383,10 @@ class CameraController:
             presetBtn.SetText(PresetName)
     
     def SelectDefaultCamera(self):
+        Log('Selecting Default Camera')
+        if self.__Switcher is None:
+            self.UpdatePresetButtons()
+            return
         self.__SelectBtns.SetCurrent(self.__DefaultCamera)
         input = self.__DefaultCamera.camera['Input']
         qual = self.__Switcher.SwitchCommand.get('qualifier', None)

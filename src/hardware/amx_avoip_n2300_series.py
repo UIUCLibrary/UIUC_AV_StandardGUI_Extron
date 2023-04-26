@@ -379,9 +379,9 @@ class DeviceClass:
         self.WriteStatus('SerialConfig', dataVal)
     
     def SetTx(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value in [True, 1, 'on', 'On', 'ON', 'Enable']:
             self.__SetHelper('Tx', 'txenable{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value in [False, 0, 'off', 'Off', 'OFF', 'Disable']:
             self.__SetHelper('Tx', 'txdisable{}'.format(self.__lineEnding), value, qualifier)
     
     def SetVidSource(self, value, qualifier):
@@ -400,6 +400,7 @@ class DeviceClass:
     def __CallbackStream(self, match, tag):
         # STREAM:(\d{1,4})
         dataVal = int(match.group(1))
+        # ProgramLog('CallbackStream: {}'.format(dataVal))
         self.WriteStatus('Stream', dataVal)
     
     def SetAudioStream(self, value, qualifier):
@@ -408,6 +409,7 @@ class DeviceClass:
     def __CallbackAudioStream(self, match, tag):
         # STREAMAUDIO:(\d{1,4})
         dataVal = int(match.group(1))
+        # ProgramLog('CallbackAudioStream: {}'.format(dataVal))
         self.WriteStatus('AudioStream', dataVal)
     
     def SetKVMMasterIP(self, value, qualifier):
@@ -733,7 +735,7 @@ class DeviceClass:
         # Handle incoming data
         self.__receiveBuffer += data
         index = 0    # Start of possible good data
-        
+        # ProgramLog('SVSI Received:\n{}'.format(self.__receiveBuffer))
         #check incoming data if it matched any expected data from device module
         for regexString, CurrentMatch in self.__matchStringDict.items():
             result = re.search(regexString, self.__receiveBuffer)

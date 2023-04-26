@@ -652,14 +652,15 @@ class SourceController:
                                                                 'Output': dObj.Output,
                                                                 'Tie Type': 'Audio/Video'})
                 
-                audInput = self.__GetSystemAudioInput()
+                audInput = self.__GetSystemAudioInput() # not sure this is needed. Fairly sure srcObj.Input is always going to be the same when this method runs.
                 self.__SystemAudioOutputDestination.AssignMatrixByInput(audInput, 'Aud')
                 # Assign Source Audio from SystemAudioFollowDestination to SystemAudioOutputDestination
                 self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
                                                      value=None,
                                                      qualifier={'Input': audInput, 
-                                                                'Output': dObj.Output,
+                                                                'Output': self.__SystemAudioOutputDestination.Output,
                                                                 'Tie Type': 'Audio'})
+                
             else: # no special case, assign as normal
                 dObj.AssignSource(srcObj)
                 self.__Matrix.Hardware.interface.Set('MatrixTieCommand', 
