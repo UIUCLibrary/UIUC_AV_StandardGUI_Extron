@@ -481,9 +481,10 @@ class SerialClass(SerialInterface, DeviceClass):
 
 class SerialOverEthernetClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, GUIHost, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Serial'
+        self.GUIHost = GUIHost
         DeviceClass.__init__(self) 
         # Check if Model belongs to a subclass       
         if len(self.Models) > 0:

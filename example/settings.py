@@ -533,15 +533,15 @@ hardware = [
       'Interface': 
          {
             'module': 'hardware.shrp_display_LC_xxC6400U_xxLE640U_xxLE633U_v1_0_1_1',
-            'interface_class': 'EthernetClass',
+            'interface_class': 'SerialOverEthernetClass',
             'ConnectionHandler': {
                'keepAliveQuery': 'AspectRatio',
                'DisconnectLimit': 5,
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'libavstest13.library.illinois.edu',
-               'IPPort': 10002,
+               'Hostname': 'libavstest12.library.illinois.edu',
+               'IPPort': 50004,
                'Model': 'LC-52LE64OU'
             }
          },
