@@ -22,7 +22,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 from extronlib.system import Timer, Wait
 from modules.helper.UtilityFunctions import RunAsync, debug
-from variables import PROG, TRACE
+from modules.helper.UtilityFunctions import Logger
 
 class Source:
     def __init__(self,

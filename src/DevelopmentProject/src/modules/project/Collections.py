@@ -37,7 +37,7 @@ from collections import UserDict, ValuesView, ItemsView, KeysView, _KT
 from modules.helper.ModuleSupport import WatchVariable
 from modules.helper.UtilityFunctions import DictValueSearchByKey, RunAsync, debug
 from modules.project.systemHardware import SystemHardwareController
-from variables import PROG, TRACE, BLANK_SOURCE
+from modules.helper.UtilityFunctions import Logger, BLANK_SOURCE
 
 
 
@@ -91,7 +91,7 @@ class DeviceCollection(UserDict):
         
         self.data[item.Id] = item
         
-        TRACE.Log('Devices Changed')
+        Logger.Trace.Log('Devices Changed')
         self.DevicesChanged.Change(self.data)
     
     # Typecasts __getitem__

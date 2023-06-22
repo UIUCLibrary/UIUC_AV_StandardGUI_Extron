@@ -9,7 +9,6 @@ from enum import Enum
 # Extron Library imports
 
 # Project imports
-from modules.helper.ModuleSupport import ProgramLogLogger, TraceLogger
 from modules.device.classes.sources import Source
 
 class ActivityMode(Enum):
@@ -17,9 +16,6 @@ class ActivityMode(Enum):
     Share = 1
     AdvShare = 2
     GroupWork = 3
-
-PROG = ProgramLogLogger()
-TRACE = TraceLogger()
 
 BLANK_SOURCE = Source(None, 'none', 'None', 0, 0, None, None)
 
