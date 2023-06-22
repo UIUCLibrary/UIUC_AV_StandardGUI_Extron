@@ -17,11 +17,11 @@
 from typing import TYPE_CHECKING, Dict, List, Union
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.ui import Button, Label
-    from uofi_gui.systemHardware import SystemHardwareController
+    from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib.system import ProgramLog
 from extronlib.system import Wait
+
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
@@ -33,9 +33,7 @@ import traceback
 ## End Python Imports ----------------------------------------------------------
 ##
 ## Begin User Import -----------------------------------------------------------
-#### Custom Code Modules
-
-#### Extron Global Scripter Modules
+from variables import PROG, TRACE
 
 ## End User Import -------------------------------------------------------------
 ##
@@ -80,69 +78,69 @@ class SortKeys:
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def Log(content, level: str='info', stack: bool=False) -> None:
-    """Logs data with Extron ProgramLog. Included helpful troubleshooting log header.
+# def Log(content, level: str='info', stack: bool=False) -> None:
+#     """Logs data with Extron ProgramLog. Included helpful troubleshooting log header.
 
-    Args:
-        content (Any): Content to log. Must be a string or printable as a string.
-        level (str, optional): Log level. May be 'info', 'warning', or 'error'. Defaults to 'info'.
-        stack (bool, optional): Whether or not to print the function call stack. Defaults to False.
-    """    
+#     Args:
+#         content (Any): Content to log. Must be a string or printable as a string.
+#         level (str, optional): Log level. May be 'info', 'warning', or 'error'. Defaults to 'info'.
+#         stack (bool, optional): Whether or not to print the function call stack. Defaults to False.
+#     """    
     
-    curframe = inspect.currentframe()
-    calframe = inspect.getouterframes(curframe, 2)
+#     curframe = inspect.currentframe()
+#     calframe = inspect.getouterframes(curframe, 2)
     
-    regex = r"^(?:\/var\/nortxe\/proj\/eup\/|\/var\/nortxe\/uf\/admin\/modules\/|\/usr\/lib\/python3.5\/)?(.+)\.py$"
+#     regex = r"^(?:\/var\/nortxe\/proj\/eup\/|\/var\/nortxe\/uf\/admin\/modules\/|\/usr\/lib\/python3.5\/)?(.+)\.py$"
     
-    re_match = re.match(regex, calframe[1].filename)
-    fileName = re_match.group(1)
-    mod = fileName.replace('/', '.')
-    ws = '    '
+#     re_match = re.match(regex, calframe[1].filename)
+#     fileName = re_match.group(1)
+#     mod = fileName.replace('/', '.')
+#     ws = '    '
     
-    content = str(content).replace('\n', '\n{0}'.format(ws))
+#     content = str(content).replace('\n', '\n{0}'.format(ws))
     
-    if stack:
-        # show call stack back to main
-        message = 'Logging from {module} - {func} ({line})\n'.format(
-                       module = mod,
-                       func = calframe[1].function,
-                       line = calframe[1].lineno
-                    )
-        message = message + '{w}Stack:\n'.format(w=ws)
-        i = 2
-        while i < len(calframe):
-            parent = calframe[i]
-            loop_match = re.match(regex, parent.filename)
-            if loop_match == None:
-                parent_mod = parent.filename                                    # pragma: no cover
-            else:
-                parent_fn = loop_match.group(1)
-                parent_mod = parent_fn.replace('/','.')
-            message = message + '{w}{module} - {func} ({line})\n'.format(
-                w = ws+ws,
-                module = parent_mod,
-                func = parent.function,
-                line = parent.lineno
-            )
-            i += 1
-            if ((parent_mod == 'main' and parent.function == '<module>')
-                 or (parent_mod == 'extronlib.system.Timer' and parent.function == '__callback')
-                 or (parent_mod == 'Extron.ButtonObject' and parent.function == '_handleMsgAcquired')):
-                break                                                           # pragma: no cover
+#     if stack:
+#         # show call stack back to main
+#         message = 'Logging from {module} - {func} ({line})\n'.format(
+#                        module = mod,
+#                        func = calframe[1].function,
+#                        line = calframe[1].lineno
+#                     )
+#         message = message + '{w}Stack:\n'.format(w=ws)
+#         i = 2
+#         while i < len(calframe):
+#             parent = calframe[i]
+#             loop_match = re.match(regex, parent.filename)
+#             if loop_match == None:
+#                 parent_mod = parent.filename                                    # pragma: no cover
+#             else:
+#                 parent_fn = loop_match.group(1)
+#                 parent_mod = parent_fn.replace('/','.')
+#             message = message + '{w}{module} - {func} ({line})\n'.format(
+#                 w = ws+ws,
+#                 module = parent_mod,
+#                 func = parent.function,
+#                 line = parent.lineno
+#             )
+#             i += 1
+#             if ((parent_mod == 'main' and parent.function == '<module>')
+#                  or (parent_mod == 'extronlib.system.Timer' and parent.function == '__callback')
+#                  or (parent_mod == 'Extron.ButtonObject' and parent.function == '_handleMsgAcquired')):
+#                 break                                                           # pragma: no cover
         
-        message = message + '{w}{content}'.format(w = ws, content = content)
-    else:
-        message = ("Logging from {module} - {func} ({line})\n{w}{content}".
-                   format(
-                       module = mod,
-                       func = calframe[1].function,
-                       line = calframe[1].lineno,
-                       w = ws,
-                       content = content
-                    )
-                   )
+#         message = message + '{w}{content}'.format(w = ws, content = content)
+#     else:
+#         message = ("Logging from {module} - {func} ({line})\n{w}{content}".
+#                    format(
+#                        module = mod,
+#                        func = calframe[1].function,
+#                        line = calframe[1].lineno,
+#                        w = ws,
+#                        content = content
+#                     )
+#                    )
     
-    ProgramLog(message, level)
+#     ProgramLog(message, level)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string
@@ -265,17 +263,17 @@ def debug(func): # pragma: no cover
         kwargs_repr = ["{}={!r}".format(k, v) for k, v in kwargs.items()]
         signature = ", ".join(args_repr + kwargs_repr)
         callStr = "Calling {}({})".format(func.__name__, signature)
-        print(callStr)
+        TRACE.Log(callStr)
         try:
             value = func(*args, **kwargs)
             rtnStr = "{!r} returned {!r}".format(func.__name__, value)
-            print(rtnStr)
-            Log('{}\n  {}'.format(callStr, rtnStr))
+            TRACE.Log(callStr, rtnStr, sep='\n')
+            PROG.Log(callStr, rtnStr, sep='\n')
             return value
         except Exception as inst:
             tb = traceback.format_exc()
-            print(tb)
-            Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), 'error')
+            TRACE.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), severity='error')
+            PROG.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), severity='error')
     return wrapper_debug
 
 def RunAsync(func, callback: callable=None):

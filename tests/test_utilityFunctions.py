@@ -23,7 +23,7 @@ sys.path.append(".\\tests\\reqs")
 
 
 ## test imports ================================================================
-from utilityFunctions import TimeIntToStr, Log, DictValueSearchByKey, RunAsync, SortKeys
+from DevelopmentProject.src.modules.helper.UtilityFunctions import TimeIntToStr, Log, DictValueSearchByKey, RunAsync, SortKeys
 from extronlib.system import _ReadProgramLog, _ClearProgramLog
 from datetime import datetime
 ## =============================================================================

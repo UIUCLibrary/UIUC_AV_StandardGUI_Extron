@@ -18,9 +18,9 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.systemHardware import SystemHardwareController
+    from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 
 from urllib import request, error, parse
 import ssl
@@ -30,11 +30,11 @@ import json
 from extronlib.system import Wait, ProgramLog
 import traceback
 
-import utilityFunctions
+import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
 
-@utilityFunctions.debug
+@UtilityFunctions.debug
 def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = True) -> None:
-    utilityFunctions.Log('Feedback TP: {} ({})'.format(touchpanel.Id, touchpanel))
+    UtilityFunctions.Log('Feedback TP: {} ({})'.format(touchpanel.Id, touchpanel))
     podIdLabel = touchpanel.Lbls['WPD-PodIDs']
     podKeyLabel = touchpanel.Lbls['WPD-Key']
     
@@ -58,11 +58,12 @@ def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = T
     except Exception as inst:
         tb = traceback.format_exc()
         print(tb)
-        utilityFunctions.Log('An error occured attempting set pod feedback.\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(type(inst), inst, tb), 'error')
+        UtilityFunctions.Log('An error occured attempting set pod feedback.\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(type(inst), inst, tb), 'error')
         if blank_on_fail:
             # utilityFunctions.Log('Pod HW not found')
             podIdLabel.SetText('')
             podKeyLabel.SetText('')
+            
 class DeviceClass:
     def __init__(self, host, protocol, port, devicePassword=None):
 
@@ -173,7 +174,7 @@ class DeviceClass:
         self.__SetHelper('Wake', value, qualifier, url=api_path, method='GET', data=None)
         
     def FeedbackStatusHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback - Value: {}; Qualifier: {}'.format(hardware.Name, command, value, qualifier))
+        UtilityFunctions.Log('{} {} Callback - Value: {}; Qualifier: {}'.format(hardware.Name, command, value, qualifier))
 
         for TP in self.GUIHost.TPs:
             if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
@@ -419,7 +420,7 @@ class DeviceClass:
         
 class RESTClass(DeviceClass):
 
-    def __init__(self, GUIHost: 'GUIController', host, protocol='https', port='443', devicePassword=None, Model=None):
+    def __init__(self, GUIHost: 'SystemController', host, protocol='https', port='443', devicePassword=None, Model=None):
         self.ConnectionType = 'REST'
         self.GUIHost = GUIHost
         DeviceClass.__init__(self, host, protocol, port, devicePassword)

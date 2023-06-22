@@ -24,7 +24,7 @@ sys.path.append(".\\tests\\reqs")
 
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.techControls import TechMenuController
 import test_settings as settings
@@ -39,7 +39,7 @@ class TechMenuController_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestTechController = self.TestUIController.TechCtl
@@ -64,7 +64,7 @@ class TechMenuController_TestClass(unittest.TestCase):
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestTechController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestTechController.GUIHost, SystemController)
         
         # TechMenuOpen
         with self.subTest(param='TechMenuOpen'):

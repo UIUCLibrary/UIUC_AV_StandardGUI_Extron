@@ -1,0 +1,57 @@
+{
+    "system": {
+        "name": "VSCodeProject",
+        "code_folder_path": "src",
+        "code_entry_file": "main.py",
+        "layout_folder_path": "layout",
+        "sound_folder_path": "sound",
+        "rfile_folder_path": "rfile",
+        "irfile_folder_path": "ir",
+        "system_id": "3673",
+        "author": {
+            "name": "Your Name",
+            "email": "user@yourdomain.com"
+        },
+        "version": "0.0.1",
+        "primary_device_alias": "CTL001"
+    },
+    "devices": [
+        {
+            "name": "CTL001 : LIBAVSSYS02",
+            "part_number": "60-1911-01",
+            "alias": "CTL001",
+            "network": {
+                "host_network_type": "LAN",
+                "interfaces": [
+                    {
+                        "address": "192.168.254.250",
+                        "type": "LAN"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "TLP Pro 1025M with LinkLicense : 192.168.254.251",
+            "part_number": "60-1566-02C",
+            "alias": "ProcessorAlias",
+            "network": {
+                "host_network_type": "LAN",
+                "interfaces": [
+                    {
+                        "address": "192.168.254.251",
+                        "type": "LAN"
+                    }
+                ]
+            },
+            "extron_control_web_id": "cd71c6ee-bb56-4eb6-a6a9-e2aa915da2be",
+            "ui": {
+                "layout_file": "Project1.gdl",
+                "enable_click_sound": true,
+                "press_feedback": "none",
+                "thumb_change_report_interval": 0.1,
+                "thumb_to_fill_sync_time": 0.5
+            }
+        }
+    ],
+    "schemaVersion": "1.0.0"
+}

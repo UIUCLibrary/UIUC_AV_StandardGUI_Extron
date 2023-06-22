@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
 
 from extronlib.interface import SerialInterface, EthernetClientInterface
 from re import compile, findall, search
@@ -8,7 +8,7 @@ from extronlib.system import ProgramLog, Wait
 from decimal import Decimal, ROUND_HALF_UP
 import copy
 
-import utilityFunctions
+import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):
@@ -124,22 +124,22 @@ class DeviceClass:
 ## -----------------------------------------------------------------------------
 
     def FeedbackMuteHandler(self, command, value, qualifier, hardware=None, tag=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag: {}'.format(hardware.Name, command, value, qualifier, tag))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag: {}'.format(hardware.Name, command, value, qualifier, tag))
         for TP in self.GUIHost.TPs:
             TP.AudioCtl.AudioMuteFeedback(tag, value)
         
     def FeedbackLevelHandler(self, command, value, qualifier, hardware=None, tag=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
         for TP in self.GUIHost.TPs:
             TP.AudioCtl.AudioLevelFeedback(tag, value)
 
     def FeedbackGainHandler(self, command, value, qualifier, hardware=None, tag=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
         for TP in self.GUIHost.TPs:
             TP.AudioCtl.AudioGainFeedback(qualifier, value)
             
     def FeedbackPhantomHandler(self, command, value, qualifier, hardware=None, tag=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
         for TP in self.GUIHost.TPs:
             TP.AudioCtl.AudioPhantomFeedback(qualifier, value)
 ## -----------------------------------------------------------------------------
@@ -2507,7 +2507,7 @@ class SerialOverEthernetClass(EthernetClientInterface, DeviceClass):
 
 class SSHClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, GUIHost: 'GUIController', Hostname, IPPort, Protocol='SSH', ServicePort=0, Credentials=(None), Model=None):
+    def __init__(self, GUIHost: 'SystemController', Hostname, IPPort, Protocol='SSH', ServicePort=0, Credentials=(None), Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort, Credentials)
         self.ConnectionType = 'Ethernet'
         self.GUIHost = GUIHost

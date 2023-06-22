@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
@@ -35,7 +35,7 @@ import json
 #### Custom Code Modules
 from uofi_gui.sourceControls import SourceController
 from uofi_gui.headerControls import HeaderController
-from uofi_gui.systemHardware import SystemStatusController
+from DevelopmentProject.src.modules.project.systemHardware import SystemStatusController
 from uofi_gui.techControls import TechMenuController
 from uofi_gui.pinControl import PINController
 from uofi_gui.keyboardControl import KeyboardController
@@ -44,14 +44,14 @@ from uofi_gui.scheduleControls import AutoScheduleController
 
 #### Extron Global Scripter Modules
 
-from utilityFunctions import Log, RunAsync, debug
+from DevelopmentProject.src.modules.helper.UtilityFunctions import Log, RunAsync, debug
 
 ## End User Import -------------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
 
 class ExUIDevice(UIDevice):
-    def __init__(self, GUIHost: 'GUIController', DeviceAlias: str, PartNumber: str = None) -> object:
+    def __init__(self, GUIHost: 'SystemController', DeviceAlias: str, PartNumber: str = None) -> object:
         UIDevice.__init__(self, DeviceAlias, PartNumber)
         self.GUIHost = GUIHost
         self.Id = DeviceAlias

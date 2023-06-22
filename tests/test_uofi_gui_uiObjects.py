@@ -26,13 +26,13 @@ from typing import Dict
 import json
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.activityControls import ActivityController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.sourceControls import SourceController
 from uofi_gui.headerControls import HeaderController
 from uofi_gui.techControls import TechMenuController
-from uofi_gui.systemHardware import SystemStatusController
+from DevelopmentProject.src.modules.project.systemHardware import SystemStatusController
 from uofi_gui.deviceControl import CameraController, DisplayController, AudioController
 from uofi_gui.scheduleControls import AutoScheduleController
 from uofi_gui.keyboardControl import KeyboardController
@@ -49,7 +49,7 @@ class ExUIDevice_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = []
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         return super().setUp()
     
     def init_TP(self) -> None:
@@ -93,7 +93,7 @@ class ExUIDevice_TestClass(unittest.TestCase):
         self.init_TP()
         
         # GUIHost
-        self.assertIsInstance(self.TestUIController.GUIHost, GUIController)
+        self.assertIsInstance(self.TestUIController.GUIHost, SystemController)
         self.assertIs(self.TestUIController.GUIHost, self.TestGUIController)
         
         # ID

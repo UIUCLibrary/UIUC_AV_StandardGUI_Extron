@@ -20,11 +20,11 @@ from extronlib.device import ProcessorDevice
 
 from typing import Dict, Tuple, List, Callable, Union
 
-from utilityFunctions import Log, RunAsync, debug
+from DevelopmentProject.src.modules.helper.UtilityFunctions import Log, RunAsync, debug
 
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.activityControls import ActivityController
-from uofi_gui.systemHardware import (SystemHardwareController,
+from DevelopmentProject.src.modules.project.systemHardware import (SystemHardwareController,
                                      SystemPollingController, 
                                      VirtualDeviceInterface)
 
@@ -33,7 +33,7 @@ class ExProcessorDevice(ProcessorDevice):
         super().__init__(DeviceAlias, PartNumber)
         self.Id = DeviceAlias
 
-class GUIController:
+class SystemController:
     errorMap = \
         {
             'E1': '{} must be a string device alias or a list of string device alaises. {} ({}) provided',

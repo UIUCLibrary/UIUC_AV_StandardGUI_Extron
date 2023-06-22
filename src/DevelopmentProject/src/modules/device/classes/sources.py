@@ -16,29 +16,46 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import SourceController
+    from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 
 from extronlib.system import Timer, Wait
-from utilityFunctions import Log, RunAsync, debug
+from modules.helper.UtilityFunctions import RunAsync, debug
+from variables import PROG, TRACE
 
 class Source:
     def __init__(self,
-                 SCHost: 'SourceController',
-                 id: str,
-                 name: str,
+                 device: 'SystemHardwareController',
                  icon: int,
                  input: int,
-                 alert: str,
+                 id: str=None,
+                 name: str=None,
+                 alert: str='',
                  srcCtl: str=None,
                  advSrcCtl: str=None) -> None:
         
-        self.SourceController = SCHost
-        self.Id = id
-        self.Name = name
-        self.Icon = icon
-        self.Input = input
+        if device is not None:
+            self.Device = device
+            self.Id = device.Id
+            self.Name = device.Name
+        elif id is not None and name is not None:
+            self.Device = None
+            self.Id = id
+            self.Name = name
+        else:
+            raise ValueError('Device or id and name must be provided')
+        
+        if type(icon) is int and icon >= 0:
+            self.Icon = icon
+        else:
+            raise ValueError('Icon must be an integer greater than or equal to 0')
+        
+        if type(input) is int and input >= 0:
+            self.Input = input
+        else:
+            raise ValueError('Input must be an integer greater than or equal to 0')
+        
         self.SourceControlPage = srcCtl
         self.AdvSourceControlPage = advSrcCtl
         

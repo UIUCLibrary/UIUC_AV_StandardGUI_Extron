@@ -19,7 +19,7 @@ TESTING = ('unittest' in sys.modules.keys())
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.device import UIDevice
     from extronlib.ui import Button, Slider
@@ -39,7 +39,7 @@ from math import floor as roundDown
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
+from DevelopmentProject.src.modules.helper.UtilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
 
 #### Extron Global Scripter Modules
 

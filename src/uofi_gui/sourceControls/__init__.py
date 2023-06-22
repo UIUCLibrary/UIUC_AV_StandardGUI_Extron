@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
 
 ## Begin ControlScript Import --------------------------------------------------
@@ -38,8 +38,7 @@ from uofi_gui.sourceControls.matrix import MatrixController, MatrixRow
 
 from hardware.mersive_solstice_pod import PodFeedbackHelper
 
-from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey
-
+from modules.helper.UtilityFunctions import Log, RunAsync, debug, DictValueSearchByKey
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
@@ -65,7 +64,7 @@ class SourceController:
             #     src['srcObj'] = {}
             # src['srcObj'][self.UIHost.Id] = srcObj
         
-        self.BlankSource = Source(self, 'none', 'None', 0, 0, None, None)
+        # self.BlankSource = Source(self, 'none', 'None', 0, 0, None, None)
             
         self.Destinations = []
         for dest in self.GUIHost.Destinations:
@@ -425,83 +424,85 @@ class SourceController:
         
         return "Source-Control-Adv_{}".format(",".join(str(r) for r in rows))
     
-    def GetDestination(self, id: str=None, name: str=None) -> Destination:
-        if id == None and name == None:
-            raise ValueError("Either Id or Name must be provided")
-        if id != None:
-            for dest in self.Destinations:
-                if dest.Id == id:
-                    return dest
-        if name != None:
-            for dest in self.Destinations:
-                if dest.Name == name:
-                    return dest
-        raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
+    # def GetDestination(self, id: str=None, name: str=None) -> Destination:
+    #     if id == None and name == None:
+    #         raise ValueError("Either Id or Name must be provided")
+    #     if id != None:
+    #         for dest in self.Destinations:
+    #             if dest.Id == id:
+    #                 return dest
+    #     if name != None:
+    #         for dest in self.Destinations:
+    #             if dest.Name == name:
+    #                 return dest
+    #     raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
                 
-    def GetDestinationByOutput(self, outputNum: int) -> Destination:
-        for dest in self.Destinations:
-            if dest.Output == outputNum:
-                return dest
-        raise LookupError("Provided Output ({}) is not configured to a destination".format(outputNum))
+    # def GetDestinationByOutput(self, outputNum: int) -> Destination:
+    #     for dest in self.Destinations:
+    #         if dest.Output == outputNum:
+    #             return dest
+    #     raise LookupError("Provided Output ({}) is not configured to a destination".format(outputNum))
     
-    def GetDestinationIndexByID(self, id: str) -> int:
-        """Get Destination Index from ID.
+    # Not replacing
+    # def GetDestinationIndexByID(self, id: str) -> int:
+    #     """Get Destination Index from ID.
 
-        Args:
-            id (str): Destination ID string
+    #     Args:
+    #         id (str): Destination ID string
         
-        Raises:
-            LookupError: raised if ID is not found in list
+    #     Raises:
+    #         LookupError: raised if ID is not found in list
 
-        Returns:
-            int: Returns destination dict index
-        """    
-        for dest in self.Destinations:
-            if id == dest.Id:
-                return self.Destinations.index(dest)
-        ## if we get here then there was no valid index for the id
-        raise LookupError("Provided ID ({}) not found".format(id))
+    #     Returns:
+    #         int: Returns destination dict index
+    #     """    
+    #     for dest in self.Destinations:
+    #         if id == dest.Id:
+    #             return self.Destinations.index(dest)
+    #     ## if we get here then there was no valid index for the id
+    #     raise LookupError("Provided ID ({}) not found".format(id))
                 
-    def GetSource(self, id: str=None, name: str=None) -> Source:
-        if id == None and name == None:
-            raise ValueError("Either Id or Name must be provided")
-        if id != None:
-            for src in self.Sources:
-                if src.Id == id:
-                    return src
-        if name != None:
-            for src in self.Sources:
-                if src.Name == name:
-                    return src
-        raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
+    # def GetSource(self, id: str=None, name: str=None) -> Source:
+    #     if id == None and name == None:
+    #         raise ValueError("Either Id or Name must be provided")
+    #     if id != None:
+    #         for src in self.Sources:
+    #             if src.Id == id:
+    #                 return src
+    #     if name != None:
+    #         for src in self.Sources:
+    #             if src.Name == name:
+    #                 return src
+    #     raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
                 
-    def GetSourceByInput(self, inputNum: int) -> Source:
-        if inputNum == 0:
-            return self.BlankSource
-        for src in self.Sources:
-            if src.Input == inputNum:
-                return src
-        raise LookupError("Provided Input ({}) is not configured to a source".format(inputNum))
+    # def GetSourceByInput(self, inputNum: int) -> Source:
+    #     if inputNum == 0:
+    #         return self.BlankSource
+    #     for src in self.Sources:
+    #         if src.Input == inputNum:
+    #             return src
+    #     raise LookupError("Provided Input ({}) is not configured to a source".format(inputNum))
     
-    def GetSourceIndexByID(self, id: str) -> int:
-        """Get Source Index from ID.
+    # Not replacing
+    # def GetSourceIndexByID(self, id: str) -> int:
+    #     """Get Source Index from ID.
 
-        Args:
-            id (str): Source ID string
+    #     Args:
+    #         id (str): Source ID string
         
-        Raises:
-            LookupError: raised if ID is not found in list
+    #     Raises:
+    #         LookupError: raised if ID is not found in list
 
-        Returns:
-            int: Returns source list index
-        """    
-        i = 0
-        for src in self.__DisplaySrcList:
-            if id == src.Id:
-                return i
-            i += 1
-        ## if we get here then there was no valid index for the id
-        raise LookupError("Provided Id ({}) not found".format(id))
+    #     Returns:
+    #         int: Returns source list index
+    #     """    
+    #     i = 0
+    #     for src in self.__DisplaySrcList:
+    #         if id == src.Id:
+    #             return i
+    #         i += 1
+    #     ## if we get here then there was no valid index for the id
+    #     raise LookupError("Provided Id ({}) not found".format(id))
     
     def SetPrimaryDestination(self, dest: Destination) -> None:
         # Log('Set Primary Destination - {}'.format(dest), stack=True)

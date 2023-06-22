@@ -14,4 +14,4 @@
 # limitations under the License.
 ################################################################################
 
-from uofi_gui.guiControls import GUIController, ExProcessorDevice
+from uofi_gui.guiControls import SystemController, ExProcessorDevice

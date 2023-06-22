@@ -24,13 +24,13 @@ import sys
 sys.path.insert(0, "/var/nortxe/uf/admin/modules/")
 
 # Import GUIController
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 
 # System configuration modules (GS Modules)
 import settings
 
 ## End User Import -------------------------------------------------------------
 
-guiController = GUIController(settings, ['CTL001'], ['TP001'])
+guiController = SystemController(settings, ['CTL001'], ['TP001'])
 
 guiController.Initialize()

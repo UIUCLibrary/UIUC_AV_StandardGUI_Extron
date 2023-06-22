@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from modules.project.Collections import DeviceCollection
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.ui import Button, Knob, Label, Level, Slider
 
@@ -47,7 +47,7 @@ import functools
 #### Custom Code Modules
 
 from ConnectionHandler import GetConnectionHandler
-from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey, SortKeys
+from DevelopmentProject.src.modules.helper.UtilityFunctions import Log, RunAsync, debug, DictValueSearchByKey, SortKeys
 
 #### Extron Global Scripter Modules
 
@@ -55,23 +55,9 @@ from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey, SortKey
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class VirtualDeviceInterface:
-    def __init__(self, VirtualDeviceID, AssignmentAttribute: str, AssignmentDict: Dict) -> None:
-        self.VirtualDeviceID = VirtualDeviceID
-        self.__AssignmentAttribute = AssignmentAttribute
-        self.__AssignmentDict = AssignmentDict
-    
-    def FindAssociatedHardware(self):
-        # iterate through self.GUIHost.Hardware and find devices with matching 'MatrixAssignment'
-        for Hw in self.GUIHost.Hardware.values(): # GUIHost attribute must exist in parent class
-            if hasattr(Hw, self.__AssignmentAttribute) and getattr(Hw, self.__AssignmentAttribute) == self.VirtualDeviceID:
-                for key, value in self.__AssignmentDict.items():
-                    if hasattr(Hw, key):
-                        value[getattr(Hw, key)] = Hw
-
 class SystemHardwareController:
-    def __init__(self, GUIHost: 'GUIController', Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
-        self.GUIHost = GUIHost
+    def __init__(self, DeviceCollection: 'DeviceCollection', Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
+        self.Collection = DeviceCollection
         self.Id = Id
         self.Name = Name
         self.Manufacturer = Manufacturer
@@ -84,86 +70,177 @@ class SystemHardwareController:
                 if not hasattr(self, key):
                     setattr(self, key, Options[key])
         
-        # interface = {
-        #     "module": module_name,
-        #     "interface_class": interface_class,
-        #     "ConnectionHandler": {
-        #         Connection handler configuration items
-        #     }
-        #     "interface_configuration": {
-        #         interface configuration items
-        #     }
-        # }
-        
-        self.__Module = importlib.import_module(Interface['module'])
-        self.__Constructor = getattr(self.__Module,
-                                     Interface['interface_class'])
-        
-        Interface['interface_configuration']['GUIHost'] = self.GUIHost
-        if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
-            self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),
-                                                  **Interface['ConnectionHandler'])
+        if Interface is not None:
+            # interface = {
+            #     "module": module_name,
+            #     "interface_class": interface_class,
+            #     "ConnectionHandler": {
+            #         Connection handler configuration items
+            #     }
+            #     "interface_configuration": {
+            #         interface configuration items
+            #     }
+            # }
             
-            connInfo = self.interface.Connect()
-        else:
-            self.interface = self.__Constructor(**Interface['interface_configuration'])
-        
-        self.interface.SubscribeStatus('ConnectionStatus', None, self.__ConnectionStatus)
-
-        # subscriptions = [
-        #     {
-        #         'command': subscription command,
-        #         'qualifier': qualifier,
-        #         'callback': callback function
-        #     },
-        #     ...
-        # ]
-        
-        for sub in Subscriptions:
-            qualSub = self.GetQualifierList(sub)
+            self.__Module = importlib.import_module('modules.device.{}'.format(Interface['module']))
+            self.__Constructor = getattr(self.__Module,
+                                        Interface['interface_class'])
             
-            for qp in qualSub:
-                # these subscriptions do not poll for updated statuses and appropriate
-                # Update or Set commands must be sent elsewhere in the program
-                # Use these subscriptions to verify changes or to handle control feedback
-                self.AddSubscription(sub, qp)
-        
-        # polling = [
-        #  {
-        #     'command': polling command,
-        #     'qualifier': command qualifier, Optional
-        #     'callback': polling update command, Optional
-        #     'active_int': active polling interval, Optional
-        #     'inactive_int': inactive polling interval, Optional
-        #  },
-        #  ...
-        # ]
-        
-        for poll in Polling:
-            qualPoll = self.GetQualifierList(poll)
-            
-            if 'active_int' in poll:
-                actInt = poll['active_int']
-            else:
-                actInt = None
-            if 'inactive_int' in poll:
-                inactInt = poll['inactive_int']
-            else:
-                inactInt = None
-            
-            for qp in qualPoll:
-                self.GUIHost.PollCtl.AddPolling(self.interface,
-                                                poll['command'],
-                                                qualifier=qp,
-                                                active_duration=actInt,
-                                                inactive_duration=inactInt)
+            Interface['interface_configuration']['GUIHost'] = self.Collection
+            if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
+                self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),
+                                                    **Interface['ConnectionHandler'])
                 
-                # To prevent the need to duplicate polling and subscriptions in settings
-                # if a callback is included in the poll, a subscription will automatically
-                # be created on the interface
-                if 'callback' in poll:
-                    self.AddSubscription(poll, qp)
+                connInfo = self.interface.Connect()
+            else:
+                self.interface = self.__Constructor(**Interface['interface_configuration'])
+            
+            self.interface.SubscribeStatus('ConnectionStatus', None, self.__ConnectionStatus)
+
+            # subscriptions = [
+            #     {
+            #         'command': subscription command,
+            #         'qualifier': qualifier,
+            #         'callback': callback function
+            #     },
+            #     ...
+            # ]
+            
+            for sub in Subscriptions:
+                qualSub = self.GetQualifierList(sub)
+                
+                for qp in qualSub:
+                    # these subscriptions do not poll for updated statuses and appropriate
+                    # Update or Set commands must be sent elsewhere in the program
+                    # Use these subscriptions to verify changes or to handle control feedback
+                    self.AddSubscription(sub, qp)
+            
+            # polling = [
+            #  {
+            #     'command': polling command,
+            #     'qualifier': command qualifier, Optional
+            #     'callback': polling update command, Optional
+            #     'active_int': active polling interval, Optional
+            #     'inactive_int': inactive polling interval, Optional
+            #  },
+            #  ...
+            # ]
+            
+            for poll in Polling:
+                qualPoll = self.GetQualifierList(poll)
+                
+                if 'active_int' in poll:
+                    actInt = poll['active_int']
+                else:
+                    actInt = None
+                if 'inactive_int' in poll:
+                    inactInt = poll['inactive_int']
+                else:
+                    inactInt = None
+                
+                for qp in qualPoll:
+                    self.Collection.PollCtl.AddPolling(self.interface,
+                                                    poll['command'],
+                                                    qualifier=qp,
+                                                    active_duration=actInt,
+                                                    inactive_duration=inactInt)
                     
+                    # To prevent the need to duplicate polling and subscriptions in settings
+                    # if a callback is included in the poll, a subscription will automatically
+                    # be created on the interface
+                    if 'callback' in poll:
+                        self.AddSubscription(poll, qp)
+                        
+        if hasattr(self, 'Destination'):
+            # configure destination
+            pass
+        elif hasattr(self, 'Source'):
+            # configure source
+            pass
+        elif hasattr(self, 'Switch'):
+            # configure switch
+            pass
+        elif hasattr(self, 'Camera'):
+            # configure camera
+            pass
+        elif hasattr(self, 'Microphone'):
+            # configure microphone
+            pass
+        elif hasattr(self, 'Screen'):
+            # configure microphone
+            pass
+        elif hasattr(self, 'Light'):
+            # configure light
+            pass
+        elif hasattr(self, 'Shade'):
+            # configure Shade
+            pass
+    
+    # Collection attributes
+    @property
+    def IsDest(self) -> bool:
+        return hasattr(self, 'Destination')
+    
+    @IsDest.setter
+    def IsDest(self, value) -> None:
+        raise AttributeError('IsDest property cannot be set, only read')
+    
+    @property
+    def IsSrc(self) -> bool:
+        return hasattr(self, 'Source')
+    
+    @IsSrc.setter
+    def IsSrc(self, value) -> None:
+        raise AttributeError('IsSrc property cannot be set, only read')
+    
+    @property
+    def IsSwitch(self) -> bool:
+        return hasattr(self, 'Switch')
+    
+    @IsSwitch.setter
+    def IsSwitch(self, value) -> None:
+        raise AttributeError('IsSwitch property cannot be set, only read')
+    
+    @property
+    def IsCam(self) -> bool:
+        return hasattr(self, 'Camera')
+    
+    @IsCam.setter
+    def IsCam(self, value) -> None:
+        raise AttributeError('IsCam property cannot be set, only read')
+    
+    @property
+    def IsMic(self) -> bool:
+        return hasattr(self, 'Microphone')
+    
+    @IsMic.setter
+    def IsMic(self, value) -> None:
+        raise AttributeError('IsMic property cannot be set, only read')
+    
+    @property
+    def IsScn(self) -> bool:
+        return hasattr(self, 'Screen')
+    
+    @IsScn.setter
+    def IsScn(self, value) -> None:
+        raise AttributeError('IsScn property cannot be set, only read')
+    
+    @property
+    def IsLight(self) -> bool:
+        return hasattr(self, 'Light')
+    
+    @IsLight.setter
+    def IsLight(self, value) -> None:
+        raise AttributeError('IsLight property cannot be set, only read')
+    
+    @property
+    def IsShade(self) -> bool:
+        return hasattr(self, 'Shade')
+    
+    @IsShade.setter
+    def IsShade(self, value) -> None:
+        raise AttributeError('IsShade property cannot be set, only read')
+    
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -208,126 +285,7 @@ class SystemHardwareController:
                                        qualifier,
                                        callbackFn)
     
-class SystemPollingController:
-    def __init__(self, active_duration: int=5, inactive_duration: int=300) -> None:
-        self.Polling = []
-        
-        self.__PollingState = 'stopped'
-        
-        self.__DefaultActiveDur = active_duration
-        self.__DefaultInactiveDur = inactive_duration
-        
-        self.__InactivePolling = Timer(1, self.__InactivePollingHandler)
-        self.__InactivePolling.Stop()
-        self.__ActivePolling = Timer(1, self.__ActivePollingHandler)
-        self.__ActivePolling.Stop()
-    
-    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-    def __ActivePollingHandler(self, timer: 'Timer', count: int):
-        for poll in self.Polling:
-            if (count % poll['active_duration']) == 0:
-                self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
-    
-    def __InactivePollingHandler(self, timer: 'Timer', count: int):
-        for poll in self.Polling:
-            if (count % poll['inactive_duration']) == 0:
-                self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
-    
-    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-    def __PollInterface(self, interface, command, qualifier=None): # pragma: no cover
-        try:
-            interface.Update(command, qualifier=qualifier)
-        except Exception as inst:
-            Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), 'error')
-    
-    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
-    def PollEverything(self):
-        for poll in self.Polling:
-            self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
-            
-    def StartPolling(self, mode: str='inactive'):
-        if mode == 'inactive': 
-            self.__InactivePolling.Restart()
-            self.__ActivePolling.Stop()
-            self.__PollingState = 'inactive'
-        elif mode == 'active':
-            self.__ActivePolling.Restart()
-            self.__InactivePolling.Stop()
-            self.__PollingState = 'active'
-        else:
-            raise ValueError("Mode must be 'inactive' or 'active'")
-            
-    def StopPolling(self):
-        self.__InactivePolling.Stop()
-        self.__ActivePolling.Stop()
-        self.__PollingState = 'stopped'
-        
-    def TogglePollingMode(self):
-        if self.__PollingState == 'inactive':
-            self.__InactivePolling.Stop()
-            self.__ActivePolling.Restart()
-            self.__PollingState = 'active'
-        elif self.__PollingState == 'active':
-            self.__ActivePolling.Stop()
-            self.__InactivePolling.Restart()
-            self.__PollingState = 'inactive'
-            
-    def SetPollingMode(self, mode: str):
-        if mode == 'inactive':
-            if self.__ActivePolling.State == 'Running':
-                self.__InactivePolling.Restart()
-            self.__ActivePolling.Stop()
-            self.__PollingState = 'inactive'
-        elif mode == 'active':
-            if self.__InactivePolling.State == 'Running':
-                self.__ActivePolling.Restart()
-            self.__InactivePolling.Stop()
-            self.__PollingState = 'active'
-        else:
-            raise ValueError("Mode must be 'inactive' or 'active'")
-    
-    def AddPolling(self, interface, command, qualifier=None, active_duration: int=None, inactive_duration: int=None):
-        if active_duration is not None:
-            act_dur = active_duration
-        else:
-            act_dur = self.__DefaultActiveDur
-            
-        if inactive_duration is not None:
-            inact_dur = inactive_duration
-        else:
-            inact_dur = self.__DefaultInactiveDur
-            
-        self.Polling.append({
-            'interface': interface,
-            'command': command,
-            'qualifier': qualifier,
-            'active_duration': act_dur,
-            'inactive_duration': inact_dur
-        })
-        
-    def RemovePolling(self, interface, command):
-        for i in range(len(self.Polling)):
-            if interface is self.Polling[i]['interface'] and command == self.Polling[i]['command']:
-                self.Polling.pop(i)
-                break
-            
-    def UpdatePolling(self, interface, command, qualifier={}, active_duration: int=None, inactive_duration: int=None):
-        for i in range(len(self.Polling)):
-            if interface is self.Polling[i]['interface'] and command == self.Polling[i]['command']:
-                if active_duration is not None and self.Polling[i]['active_duration'] != active_duration:
-                    self.Polling[i]['active_duration'] = active_duration
-                    
-                if inactive_duration is not None and self.Polling[i]['inactive_duration'] != inactive_duration:
-                    self.Polling[i]['inactive_duration'] = inactive_duration
-                
-                if self.Polling[i]['qualifier'] != qualifier and qualifier != {}:
-                    self.Polling[i]['qualifier'] =  qualifier
-                
-                break
-    
+
 class SystemStatusController:
     def __init__(self, UIHost: 'ExUIDevice') -> None:
 

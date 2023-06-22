@@ -25,7 +25,7 @@ sys.path.append(".\\tests\\reqs")
 from typing import Dict, Tuple, List, Callable, Union, cast
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.headerControls import HeaderController
 import test_settings as settings
@@ -40,7 +40,7 @@ class HeaderController_TestClass(unittest.TestCase): # rename for module to be t
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestHeaderController = self.TestUIController.HdrCtl
@@ -56,7 +56,7 @@ class HeaderController_TestClass(unittest.TestCase): # rename for module to be t
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestHeaderController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestHeaderController.GUIHost, SystemController)
     
     def test_HeaderController_PRIV_Properties(self):
         # __CloseBtn

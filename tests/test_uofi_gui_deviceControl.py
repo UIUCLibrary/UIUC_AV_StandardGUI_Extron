@@ -25,9 +25,9 @@ sys.path.append(".\\tests\\reqs")
 
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
-from uofi_gui.systemHardware import SystemHardwareController
+from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 from uofi_gui.deviceControl import AudioController, CameraController, DisplayController
 from uofi_gui.sourceControls import Destination
 import test_settings as settings

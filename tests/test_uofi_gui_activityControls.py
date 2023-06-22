@@ -23,7 +23,7 @@ sys.path.append(".\\tests")
 sys.path.append(".\\tests\\reqs")
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.activityControls import ActivityController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.scheduleControls import AutoScheduleController
@@ -38,7 +38,7 @@ class ActivityController_TestClass(unittest.TestCase): # rename for module to be
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
     
     def init_ActCtl(self):
         self.TestGUIController.Initialize()
@@ -58,7 +58,7 @@ class ActivityController_TestClass(unittest.TestCase): # rename for module to be
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestActivityController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestActivityController.GUIHost, SystemController)
             
         # CurrentActivity
         with self.subTest(param='CurrentActivity'):

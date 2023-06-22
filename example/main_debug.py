@@ -24,8 +24,8 @@ import sys
 sys.path.insert(0, "/var/nortxe/uf/admin/modules/")
 
 # Import GUIController
-from uofi_gui import GUIController
-from utilityFunctions import debug
+from uofi_gui import SystemController
+from DevelopmentProject.src.modules.helper.UtilityFunctions import debug
 
 # System configuration modules (GS Modules)
 import settings
@@ -34,7 +34,7 @@ import settings
 
 @debug
 def init():
-    guiController = GUIController(settings, ['CTL001'], ['TP001'])
+    guiController = SystemController(settings, ['CTL001'], ['TP001'])
 
     guiController.Initialize()
     

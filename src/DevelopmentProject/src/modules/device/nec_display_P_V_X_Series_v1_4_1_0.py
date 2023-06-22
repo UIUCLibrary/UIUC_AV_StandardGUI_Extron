@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
 
 from extronlib.interface import SerialInterface, EthernetClientInterface
 from struct import pack
 from binascii import hexlify
 
-import utilityFunctions
+import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
 
 class DeviceEthernetClass:
 
@@ -74,17 +74,17 @@ class DeviceEthernetClass:
 ## -----------------------------------------------------------------------------
 
     def AudioMuteStatusHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
         for TP in self.GUIHost.TPs:
             TP.DispCtl.DisplayMuteFeedback(hardware.Id, value)
         
     def PowerStatusHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
         for TP in self.GUIHost.TPs:
             TP.DispCtl.DisplayPowerFeedback(hardware.Id, value)
         
     def VolumeStatusHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
         for TP in self.GUIHost.TPs:
             TP.DispCtl.DisplayVolumeFeedback(hardware.Id, value)
 
@@ -2876,7 +2876,7 @@ class SerialOverEthernetClass(EthernetClientInterface, DeviceSerialClass):
 
 class EthernetClass(EthernetClientInterface, DeviceEthernetClass):
 
-    def __init__(self, GUIHost: 'GUIController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, GUIHost: 'SystemController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Ethernet'
         self.GUIHost = GUIHost

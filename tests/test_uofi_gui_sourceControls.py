@@ -26,17 +26,17 @@ from typing import Dict, Tuple, List, Callable, Union, cast
 import random
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.activityControls import ActivityController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.sourceControls import SourceController, Source, Destination, MatrixController, MatrixRow, LayoutTuple, RelayTuple, MatrixTuple
-from uofi_gui.systemHardware import SystemHardwareController
+from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 import test_settings as settings
 
 from extronlib.ui import Button, Label
 from extronlib.system import MESet, Timer
 
-from utilityFunctions import Log
+from DevelopmentProject.src.modules.helper.UtilityFunctions import Log
 ## -----------------------------------------------------------------------------
  
 class SourceController_TestClass(unittest.TestCase): # rename for module to be tested
@@ -44,7 +44,7 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl
@@ -59,7 +59,7 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
     
     def test_SourceController_Init_BadDest(self):
         settings.destinations[0].pop('advLayout')
-        guiCtl = GUIController(settings, self.TestCtls, self.TestTPs)
+        guiCtl = SystemController(settings, self.TestCtls, self.TestTPs)
         with self.assertRaises(ValueError):
             SourceController(guiCtl.TP_Main)
     
@@ -73,7 +73,7 @@ class SourceController_TestClass(unittest.TestCase): # rename for module to be t
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestSourceController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestSourceController.GUIHost, SystemController)
         
         # Sources
         with self.subTest(param='Sources'):
@@ -720,7 +720,7 @@ class Source_TestClass(unittest.TestCase): # rename for module to be tested
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl
@@ -1013,7 +1013,7 @@ class Destination_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl
@@ -1483,7 +1483,7 @@ class MatrixController_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl
@@ -1576,7 +1576,7 @@ class MatrixRow_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestSourceController = self.TestUIController.SrcCtl

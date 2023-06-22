@@ -25,9 +25,9 @@ sys.path.append(".\\tests\\reqs")
 
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
-from uofi_gui.systemHardware import SystemHardwareController
+from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 from uofi_gui.deviceControl import AudioController, CameraController, DisplayController
 from uofi_gui.sourceControls import Destination
 import test_settings as settings
@@ -42,7 +42,7 @@ class CameraController_TestClass(unittest.TestCase): # rename for module to be t
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestCamController = self.TestUIController.CamCtl
@@ -56,7 +56,7 @@ class CameraController_TestClass(unittest.TestCase): # rename for module to be t
         importlib.reload(settings)
         settings.cameras.append({'Id':'CAM003', 'Name':'Bad Camera', 'Input': 3})
         with self.assertRaises(KeyError):
-            BadGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+            BadGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
             BadGUIController.Initialize()
         settings.cameras.pop()
     
@@ -70,7 +70,7 @@ class CameraController_TestClass(unittest.TestCase): # rename for module to be t
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestCamController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestCamController.GUIHost, SystemController)
         
         # Cameras
         with self.subTest(param='Cameras'):

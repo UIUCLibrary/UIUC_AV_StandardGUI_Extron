@@ -26,9 +26,9 @@ sys.path.append(".\\tests\\reqs")
 
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
-from uofi_gui.systemHardware import SystemHardwareController
+from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 from uofi_gui.deviceControl import AudioController, CameraController, DisplayController
 from uofi_gui.sourceControls import Destination
 import test_settings as settings
@@ -43,7 +43,7 @@ class AudioController_TestClass(unittest.TestCase): # rename for module to be te
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestAudController = self.TestUIController.AudioCtl
@@ -59,7 +59,7 @@ class AudioController_TestClass(unittest.TestCase): # rename for module to be te
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestAudController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestAudController.GUIHost, SystemController)
         
         # DSP
         with self.subTest(param='DSP'):

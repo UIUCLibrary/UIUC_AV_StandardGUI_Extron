@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import SourceController, Source, Destination, LayoutTuple, RelayTuple, MatrixTuple
     from extronlib.ui import Knob, Label, Level, Slider
@@ -28,7 +28,7 @@ from extronlib.ui import Button
 
 import re
 
-from utilityFunctions import Log
+from DevelopmentProject.src.modules.helper.UtilityFunctions import Log
 
 class MatrixController:
     def __init__(self,

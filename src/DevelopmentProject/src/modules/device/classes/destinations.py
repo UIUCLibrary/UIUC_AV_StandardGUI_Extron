@@ -16,44 +16,53 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import SourceController, MatrixRow, LayoutTuple, RelayTuple
     from extronlib.ui import Button, Knob, Label, Level, Slider
 
 from collections import namedtuple
 from extronlib import event
-from uofi_gui.sourceControls.sources import Source
+from modules.device.classes.sources import Source
+from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
 from hardware.mersive_solstice_pod import PodFeedbackHelper
-from utilityFunctions import Log
+from modules.helper.UtilityFunctions import Log
+from devices import Devices
+from variables import BLANK_SOURCE
 
 MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
 class Destination:
     def __init__(self,
-                 SrcCtl: 'SourceController',
-                 id: str,
-                 name: str,
+                 device: 'SystemHardwareController',
                  output: int,
-                 type: str,
+                 destType: str,
                  rly: 'RelayTuple',
                  groupWrkSrc: str,
                  advLayout: 'LayoutTuple',
                  confFollow: str=None) -> None:
         
-        self.SourceController = SrcCtl
-        self.Id = id
-        self.Name = name
-        self.Output = output
+        if type(device) is SystemHardwareController:
+            self.Device = device
+            self.Id = device.Id
+            self.Name = device.Name
+        else:
+            raise ValueError('Device must be a SystemHardwareController object')
+        
+        if type(output) is int and output >= 0:
+            self.Output = output
+        else:
+            raise ValueError('Output must be an integer greater than or equal to 0')
+        
         self.AdvLayoutPosition = advLayout
-        self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
-        self.Type = type
+        self.GroupWorkSource = Devices.GetSource(id = groupWrkSrc)
+        self.Type = destType
         self.ConfFollow = confFollow
         
         self.__Mute = False
         self.__Relay = rly
-        self.__AssignedVidSource = self.SourceController.BlankSource
-        self.__AssignedAudSource = self.SourceController.BlankSource
+        self.__AssignedVidSource = BLANK_SOURCE
+        self.__AssignedAudSource = BLANK_SOURCE
         self.__AdvSelectBtn = None
         self.__AdvCtlBtn = None
         self.__AdvAudBtn = None

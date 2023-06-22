@@ -24,9 +24,9 @@ sys.path.append(".\\tests\\reqs")
 
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
-from uofi_gui.systemHardware import SystemHardwareController, VirtualDeviceInterface, SystemPollingController, SystemStatusController
+from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController, VirtualDeviceInterface, SystemPollingController, SystemStatusController
 import test_settings as settings
 from ConnectionHandler import ConnectionHandler
 
@@ -44,7 +44,7 @@ class VirtualDeviceInterface_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         
         self.VirtDevDict = \
@@ -132,7 +132,7 @@ class SystemHardwareController_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         return super().setUp()
@@ -219,7 +219,7 @@ class SystemHardwareController_TestClass(unittest.TestCase):
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestHardware.GUIHost, GUIController)
+            self.assertIsInstance(self.TestHardware.Collection, SystemController)
         
         # Id
         with self.subTest(param='Id'):
@@ -436,7 +436,7 @@ class SystemPollingController_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestPollController = self.TestGUIController.PollCtl
@@ -645,7 +645,7 @@ class SystemStatusController_TestClass(unittest.TestCase):
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestStatusController = self.TestUIController.StatusCtl
@@ -661,7 +661,7 @@ class SystemStatusController_TestClass(unittest.TestCase):
         
         # GUIHost
         with self.subTest(param='GUIHost'):
-            self.assertIsInstance(self.TestStatusController.GUIHost, GUIController)
+            self.assertIsInstance(self.TestStatusController.GUIHost, SystemController)
         
         # Hardware
         with self.subTest(param='Hardware'):

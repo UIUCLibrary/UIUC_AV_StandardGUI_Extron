@@ -25,7 +25,7 @@ sys.path.append(".\\tests\\reqs")
 from typing import Dict, Tuple, List, Callable, Union, cast
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController
+from uofi_gui import SystemController
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.pinControl import PINController
 import test_settings as settings
@@ -40,7 +40,7 @@ class PINController_TestClass(unittest.TestCase): # rename for module to be test
         self.TestCtls = ['CTL001']
         self.TestTPs = ['TP001']
         importlib.reload(settings)
-        self.TestGUIController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestGUIController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestGUIController.Initialize()
         self.TestUIController = self.TestGUIController.TP_Main
         self.TestPINController = self.TestUIController.TechPINCtl

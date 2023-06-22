@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
 
 from extronlib.system import Wait, ProgramLog
 import base64
@@ -348,7 +348,7 @@ class DeviceClass:
     #                .format(__name__, credential_type, port_info), 'warning') 
 
 class HTTPClass(DeviceClass):
-    def __init__(self, GUIHost: 'GUIController', ipAddress, port, deviceUsername=None, devicePassword=None, Model=None):
+    def __init__(self, GUIHost: 'SystemController', ipAddress, port, deviceUsername=None, devicePassword=None, Model=None):
         self.ConnectionType = 'HTTP'
         self.GUIHost = GUIHost
         DeviceClass.__init__(self, ipAddress, port, deviceUsername, devicePassword)

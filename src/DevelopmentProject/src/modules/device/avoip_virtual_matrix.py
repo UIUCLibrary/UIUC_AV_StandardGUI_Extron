@@ -18,12 +18,12 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
 
 from extronlib.system import ProgramLog
 
-from uofi_gui.systemHardware import VirtualDeviceInterface
-import utilityFunctions
+from DevelopmentProject.src.modules.project.systemHardware import VirtualDeviceInterface
+import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):
@@ -100,7 +100,7 @@ class DeviceClass:
             # utilityFunctions.Log('Output {} ({}) StreamTuple = {}'.format(OutputHw.MatrixOutput, OutputHw.Name, StreamTuple), 'info')
             # If elements 0 & 1 of StreamTuple match, tie type must be Audio/Video
             # if StreamTuple[1] == 0 audio follows video and tie type must be Audio/Video
-            if StreamTuple == (None, None):
+            if StreamTuple != (None, None):
                 if StreamTuple[0] == StreamTuple[1] or StreamTuple[1] == 0: # Audio/Video
                     mInput = 0
                     for InputHw in self.VirtualInputDevices.values():
@@ -113,7 +113,7 @@ class DeviceClass:
                             else:
                                 self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                         else:
-                            utilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
+                            UtilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
@@ -133,12 +133,12 @@ class DeviceClass:
                             else:
                                 self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                         else:
-                            utilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
+                            UtilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
                     self.WriteStatus('OutputTieStatus', 0, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
                     self.WriteStatus('OutputTieStatus', mInputV, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInputA, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
             else:
-                utilityFunctions.Log('Stream info for {} is undefined'.format(OutputHw.Name))
+                UtilityFunctions.Log('Stream info for {} is undefined'.format(OutputHw.Name))
                 
         self.__ConnectHelper()
 
@@ -157,7 +157,7 @@ class DeviceClass:
             self.__ConnectHelper()
             
     def FeedbackInputSignalStatusHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
         for TP in self.GUIHost.TPs:
             srcObj = TP.SrcCtl.GetSourceByInput(qualifier['Input'])
             if value == 'Active':
@@ -281,8 +281,8 @@ class DeviceClass:
         self.__ConnectHelper()
     
     def FeedbackOutputTieStatusHandler(self, command, value, qualifier, hardware=None):
-        utilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        utilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
+        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
+        UtilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
     
 ## -----------------------------------------------------------------------------
 ## End Command & Callback Functions
@@ -420,7 +420,7 @@ class DeviceClass:
 
 class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
 
-    def __init__(self, GUIHost: 'GUIController', VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
+    def __init__(self, GUIHost: 'SystemController', VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
         DeviceClass.__init__(self) 
         VirtualDeviceInterface.__init__(self,
                                         VirtualDeviceID,
@@ -442,10 +442,10 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
     def Error(self, message):
         portInfo = 'VirtualDeviceClass - Virtual Matrix Interface'
         print('Module: {}'.format(__name__), portInfo, 'Error Message: {}'.format(message[0]), sep='\r\n')
-        utilityFunctions.Log('Error Message: {}'.format(message[0]))
+        UtilityFunctions.Log('Error Message: {}'.format(message[0]))
   
     def Discard(self, message):
-        utilityFunctions.Log('Discarding Command')
+        UtilityFunctions.Log('Discarding Command')
         self.Error([message])
 
     def Disconnect(self):

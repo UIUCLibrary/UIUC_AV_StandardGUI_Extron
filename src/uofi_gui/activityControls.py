@@ -16,7 +16,7 @@
 
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
+    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import MatrixTuple, Destination
 
@@ -33,7 +33,7 @@ from extronlib.system import Timer
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from utilityFunctions import Log, RunAsync, TimeIntToStr, debug
+from DevelopmentProject.src.modules.helper.UtilityFunctions import Log, RunAsync, TimeIntToStr, debug
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
@@ -49,7 +49,7 @@ class ActivityController:
             "adv_share": "Adv. Sharing",
             "group_work": "Group Work"
         }
-    def __init__(self, GUIHost: 'GUIController') -> None:
+    def __init__(self, GUIHost: 'SystemController') -> None:
         
         self.GUIHost = GUIHost
         self.CurrentActivity = 'off'

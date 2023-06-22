@@ -23,9 +23,9 @@ sys.path.append(".\\tests")
 sys.path.append(".\\tests\\reqs")
 
 ## test imports ----------------------------------------------------------------
-from uofi_gui import GUIController, ExProcessorDevice
+from uofi_gui import SystemController, ExProcessorDevice
 from uofi_gui.uiObjects import ExUIDevice
-from uofi_gui.systemHardware import SystemPollingController, SystemHardwareController
+from DevelopmentProject.src.modules.project.systemHardware import SystemPollingController, SystemHardwareController
 
 import test_settings as settings
 import test_settings as settings_no_primary
@@ -68,65 +68,65 @@ class GUIController_TestClass(unittest.TestCase):
     
     def InitializeController(self):
         importlib.reload(settings)
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestController = SystemController(settings, self.TestCtls, self.TestTPs)
         self.TestController.Initialize()
     
     def test_GUIController_Init_Lists(self):
         for i in range(len(self.settingsList)):
             with self.subTest(i=i):
                 try:
-                    TestController = GUIController(self.settingsList[i], self.TestCtls, self.TestTPs)
+                    TestController = SystemController(self.settingsList[i], self.TestCtls, self.TestTPs)
                 except Exception as inst:
                     self.fail("Creating GUICOntroller raised {} unexpectedly!".format(type(inst)))
         
-                self.assertIsInstance(TestController, GUIController)
+                self.assertIsInstance(TestController, SystemController)
     
     def test_GUIController_Init_Strings(self):        
         for i in range(len(self.settingsList)):
             with self.subTest(i=i):
                 try:
-                    TestController = GUIController(self.settingsList[i], self.TestCtls[0], self.TestTPs[0])
+                    TestController = SystemController(self.settingsList[i], self.TestCtls[0], self.TestTPs[0])
                 except Exception as inst:
                     self.fail("Creating GUICOntroller raised {} unexpectedly!".format(type(inst)))
         
-                self.assertIsInstance(TestController, GUIController)
+                self.assertIsInstance(TestController, SystemController)
                 
     def test_GUIController_Init_NoTPs(self):
         try:
-            TestController = GUIController(settings, self.TestCtls, [])
+            TestController = SystemController(settings, self.TestCtls, [])
         except Exception as inst:
             self.fail("Creating GUICOntroller raised {} unexpectedly!".format(type(inst)))
 
-        self.assertIsInstance(TestController, GUIController)
+        self.assertIsInstance(TestController, SystemController)
     
     def test_GUIController_Init_Failure_EmptyCtlList(self):
         importlib.reload(settings)
         with self.assertRaises(ValueError):
-            GUIController(settings, [], self.TestTPs[0])
+            SystemController(settings, [], self.TestTPs[0])
             
     def test_GUIController_Init_Failure_BadTypeCtl(self):
         importlib.reload(settings)
         with self.assertRaises(TypeError):
-            GUIController(settings, 1, self.TestTPs[0])
+            SystemController(settings, 1, self.TestTPs[0])
             
     def test_GUIController_Init_Failure_BadTypeCtlList(self):
         importlib.reload(settings)
         with self.assertRaises(TypeError):
-            GUIController(settings, [1], self.TestTPs[0])
+            SystemController(settings, [1], self.TestTPs[0])
             
     def test_GUIController_Init_Failure_BadTypeTP(self):
         importlib.reload(settings)
         with self.assertRaises(TypeError):
-            GUIController(settings, self.TestCtls[0], 1)
+            SystemController(settings, self.TestCtls[0], 1)
             
     def test_GUIController_Init_Failure_BadTypeTPList(self):
         importlib.reload(settings)
         with self.assertRaises(TypeError):
-            GUIController(settings, self.TestCtls[0], [1])
+            SystemController(settings, self.TestCtls[0], [1])
             
     def test_GUIController_Properties(self):
         importlib.reload(settings)
-        self.TestController = GUIController(settings, self.TestCtls, self.TestTPs)
+        self.TestController = SystemController(settings, self.TestCtls, self.TestTPs)
         
         # CtlJSON
         self.assertIsInstance(self.TestController.CtlJSON, str)
