@@ -32,8 +32,8 @@ import traceback
 
 ## End Python Imports ----------------------------------------------------------
 ##
-## Begin User Import -----------------------------------------------------------
-from variables import PROG, TRACE
+## Begin Project Import -----------------------------------------------------------
+from modules.helper.ModuleSupport import ProgramLogLogger, TraceLogger
 
 ## End User Import -------------------------------------------------------------
 ##
@@ -77,6 +77,17 @@ class SortKeys:
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+
+
+class Logger():
+    # def __init__(self) -> None:
+    Prog = ProgramLogLogger()
+    Trace = TraceLogger()
+
+    @classmethod
+    def Log(cls, *recordobjs, sep=' ', severity='info') -> None:
+        cls.Prog.Log(*recordobjs, sep=' ', severity='info')
+        cls.Trace.Log(*recordobjs, sep=' ', severity='info')
 
 # def Log(content, level: str='info', stack: bool=False) -> None:
 #     """Logs data with Extron ProgramLog. Included helpful troubleshooting log header.
@@ -263,17 +274,15 @@ def debug(func): # pragma: no cover
         kwargs_repr = ["{}={!r}".format(k, v) for k, v in kwargs.items()]
         signature = ", ".join(args_repr + kwargs_repr)
         callStr = "Calling {}({})".format(func.__name__, signature)
-        TRACE.Log(callStr)
+        Logger.Trace.Log(callStr)
         try:
             value = func(*args, **kwargs)
             rtnStr = "{!r} returned {!r}".format(func.__name__, value)
-            TRACE.Log(callStr, rtnStr, sep='\n')
-            PROG.Log(callStr, rtnStr, sep='\n')
+            Logger.Log(callStr, rtnStr, sep='\n')
             return value
         except Exception as inst:
             tb = traceback.format_exc()
-            TRACE.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), severity='error')
-            PROG.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), severity='error')
+            Logger.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), severity='error')
     return wrapper_debug
 
 def RunAsync(func, callback: callable=None):

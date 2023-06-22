@@ -36,7 +36,7 @@ from modules.project.Collections import DictObj
 from modules.project.ExtendedClasses import ExUIDevice, ExSPDevice
 from control.PollController import PollingController
 
-from variables import PROG, TRACE
+from modules.helper.UtilityFunctions import Logger
 
 
 from uofi_gui.activityControls import ActivityController
@@ -62,8 +62,7 @@ class SystemController:
                  expansionDevices: Union[str, List[str]]=None) -> None:
         
         
-        TRACE.Log('Processors: {}'.format(processors), 'UI Devices: {}'.format(uiDevices), 'Expansion Devices: {}'.format(expansionDevices), sep=' - ')
-        PROG.Log('Processors: {}'.format(processors), 'UI Devices: {}'.format(uiDevices), 'Expansion Devices: {}'.format(expansionDevices), sep=' - ')
+        Logger.Log('Processors: {}'.format(processors), 'UI Devices: {}'.format(uiDevices), 'Expansion Devices: {}'.format(expansionDevices), sep=' - ')
         
         ## Begin Settings Properties -------------------------------------------
         
@@ -260,8 +259,7 @@ class SystemController:
         self.PollCtl.PollEverything()
         self.PollCtl.StartPolling()
         
-        TRACE.Log('System Initialized')
-        PROG.Log('System Initialized')
+        Logger.Log('System Initialized')
         for tp in self.UIDevices:
             tp.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
             tp.Click(5, 0.2)

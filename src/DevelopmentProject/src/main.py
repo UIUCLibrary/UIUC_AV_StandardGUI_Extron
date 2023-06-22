@@ -11,10 +11,9 @@ The main program entrance file.  The contents of this should be:
 from extronlib import Platform, Version
 
 # Project imports
-from variables import TRACE, PROG
 import system
+from modules.helper.UtilityFunctions import Logger
 
-TRACE.Log('ControlScript', Platform(), Version(), sep=' - ')
-PROG.Log('ControlScript', Platform(), Version(), sep=' - ')
+Logger.Log('ControlScript', Platform(), Version(), sep=' - ')
 
 system.Initialize()

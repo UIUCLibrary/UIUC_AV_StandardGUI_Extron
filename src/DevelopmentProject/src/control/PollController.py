@@ -19,7 +19,7 @@ if TYPE_CHECKING: # pragma: no cover
     from modules.project.Collections import DeviceCollection
 
 from extronlib.system import Timer
-from variables import PROG, TRACE
+from modules.helper.UtilityFunctions import Logger
 
 class PollingController:
     def __init__(self, devices: 'DeviceCollection') -> None:
@@ -51,8 +51,7 @@ class PollingController:
         try:
             interface.Update(command, qualifier=qualifier)
         except Exception as inst:
-            TRACE.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), severity='error')
-            PROG.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), severity='error')
+            Logger.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), severity='error')
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     

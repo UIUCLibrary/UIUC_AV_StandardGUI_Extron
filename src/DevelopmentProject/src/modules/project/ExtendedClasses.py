@@ -31,7 +31,7 @@ from extronlib.device import ProcessorDevice, UIDevice, SPDevice
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 from modules.helper.UtilityFunctions import DictValueSearchByKey, RunAsync, debug
-from variables import PROG, TRACE
+from modules.helper.UtilityFunctions import Logger
 
 ## End User Import -------------------------------------------------------------
 ##
