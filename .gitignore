@@ -2,7 +2,6 @@
 .vscode/
 __pycache__/
 secrets*
-ConnectionHandler.py
 hardware/*.pdf
 eup/*
 .coverage

@@ -14,35 +14,28 @@
 # limitations under the License.
 ################################################################################
 
+## Begin Imports ---------------------------------------------------------------
+
+#### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
     from modules.project.Collections import DeviceCollection
 
-## Begin ControlScript Import --------------------------------------------------
+#### Python imports
+from os.path import splitext
 
-## End ControlScript Import ----------------------------------------------------
-##
-## Begin Python Imports --------------------------------------------------------
+#### Extron Library Imports
 
-## End Python Imports ----------------------------------------------------------
-##
-## Begin User Import -----------------------------------------------------------
-#### Custom Code Modules
-from modules.helper.UtilityFunctions import DictValueSearchByKey, RunAsync, debug
-from modules.project.ExtendedClasses import ExProcessorDevice
+#### Project imports
+from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
+from modules.project.ExtendedClasses import ExProcessorDevice, ExUIDevice, ExSPDevice
 from modules.project.Collections import DictObj
-from modules.project.ExtendedClasses import ExUIDevice, ExSPDevice
 from control.PollController import PollingController
+import Variables
 
-from modules.helper.UtilityFunctions import Logger
-
-
-from uofi_gui.activityControls import ActivityController
-from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController, VirtualDeviceInterface
-
-## End User Import -------------------------------------------------------------
+## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
@@ -55,106 +48,104 @@ class SystemController:
         }
     
     def __init__(self, 
-                 settings: object,
+                #  settings: object,
+                 controlDevices: list,
                  systemDevices: 'DeviceCollection',
-                 processors: Union[str, List[str]], 
-                 uiDevices: Union[Tuple[str, ...], List[Tuple[str, ...]]]=None,
-                 expansionDevices: Union[str, List[str]]=None) -> None:
+                #  expansionDevices: Union[str, List[str]]=None
+                 ) -> None:
         
+        # separate processor devices from UI devices for instantiating later
+        processors = []
+        uiDevices = []
+        for dev in controlDevices:
+            if dev.part_number in ExProcessorDevice.validation_part_list:
+                processors.append(dev)
+            elif dev.part_number in ExUIDevice.validation_part_list:
+                uiDevices.append(dev)
+            else:
+                Logger.Log('Control Device part number not validated.', dev, separator='\n', logSeverity='warning')
         
-        Logger.Log('Processors: {}'.format(processors), 'UI Devices: {}'.format(uiDevices), 'Expansion Devices: {}'.format(expansionDevices), sep=' - ')
+        Logger.Log('Processors: {}'.format(processors), 
+                   'UI Devices: {}'.format(uiDevices), 
+                   # 'Expansion Devices: {}'.format(expansionDevices), 
+                   separator=' - ')
+        Logger.Log(systemDevices)
         
         ## Begin Settings Properties -------------------------------------------
         
-        self.RoomName = settings.ROOM_NAME
-        self.ActivityMode = settings.ACTIVITY_MODE
-        self.Timers = DictObj({'startup': settings.START_UP_TIMER_DUR,
-                                'switch': settings.SWITCH_TIMER_DUR,
-                                'shutdown': settings.SHUTDOWN_TIMER_DUR,
-                                'shutdownConf': settings.SHUTDOWN_CONF_TIMER_DUR,
-                                'activityTip': settings.TIP_TIMER_DUR,
-                                'initPage': settings.SPLASH_INACTIVITY_TIMER_DUR
-                             })
+        self.RoomName = Variables.ROOM_NAME
+        self.ActivityModes = Variables.SYSTEM_ACTIVITIES
+        self.Timers = DictObj({'startup': Variables.STARTUP_TIMER_DUR,
+                               'switch': Variables.SWITCH_TIMER_DUR,
+                               'shutdown': Variables.SHUTDOWN_TIMER_DUR,
+                               'shutdownConf': Variables.SHUTDOWN_CONF_TIMER_DUR,
+                               'activityTip': Variables.TIP_TIMER_DUR,
+                               'initPage': Variables.SPLASH_INACTIVITY_TIMER_DUR
+                              })
         
-        self.SystemPIN = settings.PIN_SYSTEM
-        self.TechPIN = settings.PIN_TECH
+        self.SystemPIN = Variables.PIN_SYSTEM
+        self.TechPIN = Variables.PIN_TECH
         
         self.Devices = systemDevices
         
-        self.DefaultSourceId = settings.DEFAULT_SOURCE
-        self.DefaultCameraId = settings.DEFAULT_CAMERA
+        self.DefaultSourceId = Variables.DEFAULT_SOURCE
+        self.DefaultCameraId = Variables.DEFAULT_CAMERA
         
-        self.PrimaryDestinationId = settings.PRIMARY_DEST
-        self.PrimarySwitcherId = settings.PRIMARY_SW
-        self.PrimaryDSPId = settings.PRIMARY_DSP
+        self.PrimaryDestinationId = Variables.PRIMARY_DEST
+        self.PrimarySwitcherId = Variables.PRIMARY_SW
+        self.PrimaryDSPId = Variables.PRIMARY_DSP
         
-        self.CameraSwitcherId = settings.CAMERA_SW
+        self.CameraSwitcherId = Variables.CAMERA_SW
         
         # System Properties
         self.SystemActivity = 'off'
 
         ## Processor Definition ------------------------------------------------
-        if type(processors) is str:
-            self.Processors = [ExProcessorDevice(processors)]
-        elif type(processors) is list:
-            self.Processors = []
-            for p in processors:
-                if type(p) is str:
-                    self.Processors.append(ExProcessorDevice(p))
-                else:
-                    raise TypeError(type(self).GetErrorStr('E1','processors', p, type(p)))
-        else: 
-            raise TypeError(type(self).GetErrorStr('E1',
-                                                   'processors', 
-                                                   processors, 
-                                                   type(processors)))
+        self.Processors = []
+        for p in processors:
+            self.Processors.append(ExProcessorDevice(p.alias, p.part_number))
 
         if len(self.Processors) == 0:
             raise ValueError(type(self).GetErrorStr('E2'))
-        elif hasattr(settings, 'PRIMARY_PROC') and settings.PRIMARY_PROC is not None:
-            self.Proc_Main = [proc for proc in self.Processors if proc.Id == settings.PRIMARY_PROC][0]
+        elif hasattr(Variables, 'PRIMARY_PROC') and Variables.PRIMARY_PROC is not None:
+            self.Proc_Main = [proc for proc in self.Processors if proc.Id == Variables.PRIMARY_PROC][0]
         else:
             self.Proc_Main = self.Processors[0]
         
         ## UI Device Definition ----------------------------------------------
-        
-        if type(uiDevices) is tuple:
-            self.UIDevices = [ExUIDevice(self, **uiDevices)]
-        elif type(uiDevices) is list:
-            self.UIDevices = []
-            for ui in uiDevices:
-                if type(ui) is tuple:
-                    self.UIDevices.append(ExUIDevice(self, **uiDevices))
-                else:
-                    raise TypeError(type(self).GetErrorStr('E3','uiDevices', ui, type(ui)))
-        else:
-            raise TypeError(type(self).GetErrorStr('E3','uiDevices', uiDevices, type(uiDevices)))
+        self.UIDevices = []
+        for ui in uiDevices:
+            self.UIDevices.append(ExUIDevice(ui.alias,
+                                             splitext(ui.ui.layout_file)[0],
+                                             ui.part_number,
+                                             ui.name,
+                                             ui.extron_control_web_id))
         
         # TODO: Assign UI Controller to UI devices
         
         if len(self.UIDevices) == 0:
             self.UI_Main = None
-        elif hasattr(settings, 'PRIMARY_UI') and settings.PRIMARY_UI is not None:
-            self.UI_Main = [panel for panel in self.UIDevices if panel.Id == settings.PRIMARY_UI][0]
+        elif hasattr(Variables, 'PRIMARY_UI') and Variables.PRIMARY_UI is not None:
+            self.UI_Main = [panel for panel in self.UIDevices if panel.Id == Variables.PRIMARY_UI][0]
         else:
             self.UI_Main = self.UIDevices[0]
         
         ## Expansion Device Definition -----------------------------------------
         
-        if type(expansionDevices) is str:
-            self.ExpansionDevices = [ExSPDevice(self, expansionDevices)]
-        elif type(expansionDevices) is list:
-            self.ExpansionDevices = []
-            for exp in expansionDevices:
-                if type(exp) is str:
-                    self.ExpansionDevices.append(ExSPDevice(self, exp))
-                else:
-                    raise TypeError(type(self).GetErrorStr('E1', 'epansionDevices', exp, type(exp)))
-        else:
-            raise TypeError(type(self).GetErrorStr('E1', 'expansionDevices', expansionDevices, type(expansionDevices)))
+        # if type(expansionDevices) is str:
+        #     self.ExpansionDevices = [ExSPDevice(self, expansionDevices)]
+        # elif type(expansionDevices) is list:
+        #     self.ExpansionDevices = []
+        #     for exp in expansionDevices:
+        #         if type(exp) is str:
+        #             self.ExpansionDevices.append(ExSPDevice(self, exp))
+        #         else:
+        #             raise TypeError(type(self).GetErrorStr('E1', 'epansionDevices', exp, type(exp)))
+        # else:
+        #     raise TypeError(type(self).GetErrorStr('E1', 'expansionDevices', expansionDevices, type(expansionDevices)))
             
         ## Create System controllers
-        self.PollCtl = PollingController()
+        self.PollCtl = PollingController(self.Devices)
         
         
         ## End of GUIController Init ___________________________________________
@@ -168,11 +159,11 @@ class SystemController:
             tp.HdrCtl.ConfigSystemOn()
             tp.CamCtl.SelectDefaultCamera()
             
-        if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
+        if self.Devices[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Devices[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
             # Take SVSI ENC endpoints out of standby mode
-            self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'Off', None)
+            self.Devices[self.PrimarySwitcherId].interface.Set('Standby', 'Off', None)
             # Unmute SVSI DEC endpoints
-            self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Off', None)
+            self.Devices[self.PrimarySwitcherId].interface.Set('VideoMute', 'Off', None)
                 
         # power on displays
         for dest in self.Destinations:
@@ -203,11 +194,11 @@ class SystemController:
     def ShutdownActions(self) -> None:
         self.PollCtl.SetPollingMode('inactive')
         
-        if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
+        if self.Devices[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Devices[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
             # Put SVSI ENC endpoints in to standby mode
-            self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
+            self.Devices[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
             # Ensure SVSI DEC endpoints are muted
-            self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
+            self.Devices[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
                 
         # power off displays
         for dest in self.Destinations:
@@ -222,7 +213,7 @@ class SystemController:
         for tp in self.UIDevices:
             tp.HdrCtl.ConfigSystemOff()
         
-        for id, hw in self.Hardware.items():
+        for id, hw in self.Devices.items():
             if id.startswith('WPD'):
                 hw.interface.Set('BootUsers', value=None, qualifier=None)
 
@@ -231,30 +222,32 @@ class SystemController:
 
     def Initialize(self) -> None:
         ## Create Controllers --------------------------------------------------
-        self.ActCtl = ActivityController(self)
+        #self.ActCtl = ActivityController(self)
         
         for tp in self.UIDevices:
-            tp.InitializeUIControllers()
+            # tp.InitializeUIControllers()
+            pass
         
-        self.SrcCtl = self.UI_Main.SrcCtl
+        # self.SrcCtl = self.UI_Main.SrcCtl
         
         # Log('Source List: {}'.format(self.Sources))
         # Log('Destination List: {}'.format(self.Destinations))
         
         ## GUI Display Initialization ------------------------------------------
         self.UI_Main.ShowPage('Splash')
-        self.UI_Main.Btns['Room-Label'].SetText(self.RoomName)
+        # self.UI_Main.Btns['Room-Label'].SetText(self.RoomName)
         for tp in self.UIDevices:
-            tp.SrcCtl.UpdateDisplaySourceList()
+            # tp.SrcCtl.UpdateDisplaySourceList()
+            pass
         
         ## Associate Virtual Hardware ------------------------------------------
         # Log('Looking for Virtual Device Interfaces')
-        for Hw in self.Hardware.values():
+        for Hw in self.Devices.values():
             # Log('Hardware ({}) - Interface Class: {}'.format(id, type(Hw.interface)))
-            if issubclass(type(Hw.interface), VirtualDeviceInterface):
-                Hw.interface.FindAssociatedHardware()
-                # Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
-        
+            # if issubclass(type(Hw.interface), VirtualDeviceInterface):
+            #     Hw.interface.FindAssociatedHardware()
+            #     # Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
+            pass
         #### Start Polling
         self.PollCtl.PollEverything()
         self.PollCtl.StartPolling()

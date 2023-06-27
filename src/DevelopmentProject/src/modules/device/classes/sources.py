@@ -18,11 +18,10 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
-    from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
+    from modules.project.SystemHardware import SystemHardwareController
 
 from extronlib.system import Timer, Wait
-from modules.helper.UtilityFunctions import RunAsync, debug
-from modules.helper.UtilityFunctions import Logger
+from modules.helper.CommonUtilities import Logger, RunAsync, debug
 
 class Source:
     def __init__(self,

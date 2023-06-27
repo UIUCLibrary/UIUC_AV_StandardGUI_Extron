@@ -14,12 +14,67 @@
 # limitations under the License.
 ################################################################################
 
+## Begin Imports ---------------------------------------------------------------
+
+#### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.Collections import DeviceCollection
 
+#### Extron Library Imports
 from extronlib.system import Timer
-from modules.helper.UtilityFunctions import Logger
+
+#### Project Imports
+from modules.helper.CommonUtilities import Logger, debug
+from modules.project.SystemHardware import SystemHardwareController
+
+## End Imports -----------------------------------------------------------------
+##
+## Begin Class Definitions -----------------------------------------------------
+
+class PollObject:
+    DefaultActiveDuration = 5
+    DefaultInactiveDuration = 300
+    
+    def __init__(self, 
+                 Device: 'SystemHardwareController',
+                 Command: str,
+                 Qualifier: dict=None,
+                 ActiveDuration: int=None,
+                 InactiveDuration: int=None) -> None:
+        
+        if type(Device) is SystemHardwareController:
+            self.Device = Device
+        else:
+            raise TypeError('Device ({}) must be of type SystemHardwareController'.format(type(Device)))
+        
+        self.Interface = self.Device.interface
+        
+        if type(Command) is str:
+            self.Command = Command
+        else:
+            raise TypeError('Command ({}) must be of type str'.format(type(Command)))
+        
+        if type(Qualifier) is dict or Qualifier is None:
+            self.Qualifier = Qualifier
+        else:
+            raise TypeError('Qualifier ({}) must be either be of type dict or None'.format(type(Qualifier)))
+        
+        if type(ActiveDuration) is int or ActiveDuration is None:
+            if ActiveDuration is not None:
+                self.ActiveDuration = ActiveDuration
+            else:
+                self.ActiveDuration = self.DefaultActiveDuration
+        else:
+            raise TypeError('ActiveDuration ({}) must be either of type int or None'.format(type(ActiveDuration)))
+        
+        if type(InactiveDuration) is int or InactiveDuration is None:
+            if InactiveDuration is not None:
+                self.InactiveDuration = InactiveDuration
+            else:
+                self.InactiveDuration = self.DefaultInactiveDuration
+        else:
+            raise TypeError('InactiveDuration ({}) must be either of type int or None'.format(type(InactiveDuration)))
 
 class PollingController:
     def __init__(self, devices: 'DeviceCollection') -> None:
@@ -46,18 +101,17 @@ class PollingController:
                 self.__PollInterface(poll.Interface, poll.Command, poll.Qualifier)
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    
     def __PollInterface(self, interface, command, qualifier=None): # pragma: no cover
         try:
             interface.Update(command, qualifier=qualifier)
         except Exception as inst:
-            Logger.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), severity='error')
+            Logger.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), logSeverity='error')
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def PollEverything(self):
         for poll in self.Polling:
-            self.__PollInterface(poll['interface'], poll['command'], poll['qualifier'])
+            self.__PollInterface(poll.Interface, poll.Command, poll.Qualifier)
             
     def StartPolling(self, mode: str='inactive'):
         if mode == 'inactive': 
@@ -100,3 +154,4 @@ class PollingController:
         else:
             raise ValueError("Mode must be 'inactive' or 'active'")
     
+## End Class Definitions -------------------------------------------------------

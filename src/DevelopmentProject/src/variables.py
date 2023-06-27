@@ -9,7 +9,7 @@ from enum import Enum
 # Extron Library imports
 
 # Project imports
-from modules.device.classes.sources import Source
+from modules.device.classes.Sources import Source
 
 class ActivityMode(Enum):
     Off = 0
@@ -17,13 +17,14 @@ class ActivityMode(Enum):
     AdvShare = 2
     GroupWork = 3
 
-BLANK_SOURCE = Source(None, 'none', 'None', 0, 0, None, None)
+BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 
 ## PROJECT CONSTANTS -----------------------------------------------------------
 ##     Edit values below to configure the project
 
 #### Common Settings 
 ROOM_NAME = 'Test Room'             # Room Name - update for each project
+PROJECT_FILE = "VSCodeProject.json" # Extron project file name, ex VSCodeProject.json
 SYSTEM_ACTIVITIES = (0, 1, 2, 3)    # Include valid ActivityModes to SYSTEM_ACTIVITIES
                                         # this must include 0 and at least one other mode
 PIN_SYSTEM = '0000'                 # PIN Code to access system, must be a string fewer than 10 characters of 0-9

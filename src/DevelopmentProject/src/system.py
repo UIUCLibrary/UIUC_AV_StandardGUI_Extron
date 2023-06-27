@@ -9,15 +9,21 @@ Examples of items in the system file:
 * Set up of services (e.g. ethernet servers, CLIs, etc.)
 """
 
-# Python imports
+## Begin Imports ---------------------------------------------------------------
 
-# Extron Library imports
+#### Type Checking
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING: # pragma: no cover
+    pass
 
-# Project imports
+#### Python imports
+
+#### Extron Library Imports
+
+#### Project imports
 from modules.project.SystemHost import SystemController
-import variables
-import devices
+import Devices
 
-DeviceCollection = SystemController(variables, devices, ['CTL001'], ['TP001'])
+## End Imports -----------------------------------------------------------------
 
-Initialize = DeviceCollection.Initialize
+SystemControlObject = SystemController(Devices.ControlDevices, Devices.SystemDevices)

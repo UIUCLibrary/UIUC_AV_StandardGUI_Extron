@@ -26,11 +26,15 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.UtilityFunctions import Logger
+from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
+
+class TouchPanelObjects():
+    def __init__(self) -> None:
+        pass
 
 ## End Class Definitions -------------------------------------------------------
 ##

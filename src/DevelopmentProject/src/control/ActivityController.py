@@ -17,16 +17,21 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
-    pass
+    from uofi_gui import SystemController
+    from uofi_gui.uiObjects import ExUIDevice
+    from uofi_gui.sourceControls import MatrixTuple, Destination
 
 #### Python imports
 
 #### Extron Library Imports
+from extronlib import event
+from extronlib.ui import Button
+from extronlib.system import Timer
 
 #### Project imports
-from modules.helper.UtilityFunctions import Logger
+from modules.helper.CommonUtilities import Logger, TimeIntToStr
 
 ## End Imports -----------------------------------------------------------------
 ##

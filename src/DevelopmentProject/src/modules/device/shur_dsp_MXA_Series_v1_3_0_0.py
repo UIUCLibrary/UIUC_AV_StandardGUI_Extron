@@ -6,7 +6,7 @@ from extronlib.interface import SerialInterface, EthernetClientInterface
 import re
 from extronlib.system import Wait, ProgramLog
 
-import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
+import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):

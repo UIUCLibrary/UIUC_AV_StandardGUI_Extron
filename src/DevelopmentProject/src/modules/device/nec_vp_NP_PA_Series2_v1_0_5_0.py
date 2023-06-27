@@ -1,3 +1,7 @@
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING: # pragma: no cover
+    from uofi_gui import SystemController
+
 from extronlib.interface import SerialInterface, EthernetClientInterface
 from re import compile
 from struct import pack, unpack
@@ -622,7 +626,7 @@ class SerialOverEthernetClass(EthernetClientInterface, DeviceClass):
 
 class EthernetClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, GUIHost: 'SystemController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Ethernet'
         DeviceClass.__init__(self) 

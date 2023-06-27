@@ -6,7 +6,7 @@ from extronlib.interface import SerialInterface, EthernetClientInterface
 from struct import pack
 from binascii import hexlify
 
-import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
+import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceEthernetClass:
 

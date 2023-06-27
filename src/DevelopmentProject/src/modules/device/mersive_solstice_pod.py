@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
-    from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
+    from modules.project.SystemHardware import SystemHardwareController
 
 from urllib import request, error, parse
 import ssl
@@ -30,7 +30,7 @@ import json
 from extronlib.system import Wait, ProgramLog
 import traceback
 
-import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
+import modules.helper.CommonUtilities as UtilityFunctions
 
 @UtilityFunctions.debug
 def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = True) -> None:

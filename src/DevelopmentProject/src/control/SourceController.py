@@ -26,7 +26,7 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.UtilityFunctions import Logger
+from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------
 ##

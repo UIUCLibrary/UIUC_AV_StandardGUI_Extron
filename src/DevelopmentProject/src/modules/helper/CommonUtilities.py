@@ -14,10 +14,10 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.ui import Button, Label
-    from DevelopmentProject.src.modules.project.systemHardware import SystemHardwareController
+    from modules.project.SystemHardware import SystemHardwareController
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib.system import Wait
@@ -59,20 +59,25 @@ class SortKeys:
     
     @classmethod
     def SortDaysOfWeek(cls, sortItem: str) -> int:
-        if sortItem == 'Monday':
+        if type(sortItem) is not str:
+            raise TypeError("sortItem must be a string")
+        test = sortItem.lower()
+        if test in ['monday', 'mon', 'm']:
             return 0
-        elif sortItem == 'Tuesday':
+        elif test in ['tuesday', 'tues', 'tue', 'tu', 't']:
             return 1
-        elif sortItem == 'Wednesday':
+        elif test in ['wednesday', 'wednes', 'wed', 'we', 'w']:
             return 2
-        elif sortItem == 'Thursday':
+        elif test in ['thursday', 'thurs', 'thu', 'th', 'r']:
             return 3
-        elif sortItem == 'Friday':
+        elif test in ['friday', 'fri', 'fr', 'f']:
             return 4
-        elif sortItem == 'Saturday':
+        elif test in ['saturday', 'sat', 'sa', 's']:
             return 5
-        elif sortItem == 'Sunday':
+        elif test in ['sunday', 'sun', 'su', 'u']:
             return 6
+        else:
+            raise ValueError("sortItem must be a valid day of the week")
 
 ## End Class Definitions -------------------------------------------------------
 ##
@@ -84,9 +89,9 @@ class Logger():
     Trace = TraceLogger()
 
     @classmethod
-    def Log(cls, *recordobjs, sep=' ', severity='info') -> None:
-        cls.Prog.Log(*recordobjs, sep=' ', severity='info')
-        cls.Trace.Log(*recordobjs, sep=' ', severity='info')
+    def Log(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
+        cls.Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
+        cls.Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string
@@ -164,7 +169,7 @@ def TimeIntToStr(time: int, units: bool = True) -> str:
 
     return returnStr
 
-def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, capture_dict: bool=False) -> List:
+def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, capture_dict: bool=False) -> Union[List, Dict]:
     """Searches dictionary keys which match the search term (either partial match or regex match)
     Returns a list of matching values.
 
@@ -213,14 +218,14 @@ def debug(func): # pragma: no cover
         try:
             value = func(*args, **kwargs)
             rtnStr = "{!r} returned {!r}".format(func.__name__, value)
-            Logger.Log(callStr, rtnStr, sep='\n')
+            Logger.Log(callStr, rtnStr, separator='\n')
             return value
         except Exception as inst:
             tb = traceback.format_exc()
-            Logger.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), severity='error')
+            Logger.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), logSeverity='error')
     return wrapper_debug
 
-def RunAsync(func, callback: callable=None):
+def RunAsync(func, callback: Callable=print):
     """Run this function asynchronously"""
     @functools.wraps(func)
     def wrapper_async(*args, **kwargs):
@@ -233,10 +238,3 @@ def RunAsync(func, callback: callable=None):
     return wrapper_async
 
 ## End Function Definitions ----------------------------------------------------
-##
-## Begin Script Definition -----------------------------------------------------
-if __name__ == "__main__": ## this module does not run as a script
-    pass
-## End Script Definition -------------------------------------------------------
-
-

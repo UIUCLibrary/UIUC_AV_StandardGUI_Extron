@@ -19,24 +19,34 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    pass
+    from modules.project.ExtendedClasses import ExUIDevice
+    from extronlib.device import UIDevice
 
 #### Python imports
 
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.UtilityFunctions import Logger
+from modules.helper.CommonUtilities import Logger
+from ui.interface.ButtonPanel.Objects import ButtonPanelObjects
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
+
+class ButtonPanelInterface():
+    def __init__(self, device: Union['ExUIDevice', 'UIDevice'], interface: str) -> None:
+        ButtonPanelObjects.__init__(self)
+        
+        self.Device = device
+        self.Interface = interface
+        
+    
+
+
 
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
 
 ## End Function Definitions ----------------------------------------------------
-
-
-

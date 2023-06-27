@@ -5,15 +5,11 @@ The main program entrance file.  The contents of this should be:
 * Call to initialize the system
 """
 
-# Python imports
-
-# Extron Library Imports
 from extronlib import Platform, Version
+from modules.helper.CommonUtilities import Logger
 
-# Project imports
-import system
-from modules.helper.UtilityFunctions import Logger
+Logger.Log('ControlScript', Platform(), Version(), separator=' - ')
 
-Logger.Log('ControlScript', Platform(), Version(), sep=' - ')
+from System import SystemControlObject as System
 
-system.Initialize()
+System.Initialize()

@@ -14,39 +14,38 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+## Begin Imports ---------------------------------------------------------------
+
+#### Type Checking
+from typing import (TYPE_CHECKING, Dict, Tuple, List, Union, Callable, TypeVar,
+                    ValuesView, ItemsView, KeysView)
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
-    from uofi_gui.uiObjects import ExUIDevice
-    from modules.device.classes.destinations import Destination
-    from modules.device.classes.sources import Source
+    from modules.device.classes.Destinations import Destination
+    from modules.device.classes.Sources import Source
+    _KT = TypeVar('_KT')
 
+#### Python imports
+from collections import UserDict
+import json
 
-## Begin ControlScript Import --------------------------------------------------
+#### Extron Library Imports
+from extronlib.ui import Button, Level, Label
 
-## End ControlScript Import ----------------------------------------------------
-##
-## Begin Python Imports --------------------------------------------------------
-
-from collections import UserDict, ValuesView, ItemsView, KeysView, _KT
-
-## End Python Imports ----------------------------------------------------------
-##
-## Begin User Import -----------------------------------------------------------
-#### Custom Code Modules
+#### Project imports
 from modules.helper.ModuleSupport import WatchVariable
-from modules.helper.UtilityFunctions import DictValueSearchByKey, RunAsync, debug
-from modules.project.systemHardware import SystemHardwareController
-from modules.helper.UtilityFunctions import Logger, BLANK_SOURCE
+from modules.helper.CommonUtilities import DictValueSearchByKey, RunAsync, debug, Logger
+from modules.project.SystemHardware import SystemHardwareController
+from control.PollController import PollObject
+from Variables import BLANK_SOURCE
 
 
 
-## End User Import -------------------------------------------------------------
+## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
 class DictObj:
-    def __init__(self, src_dict: dict) -> None:
+    def __init__(self, src_dict: dict):
         if type(src_dict) is not dict:
             raise TypeError('DictObj src_dict must be of type dict')
         
@@ -55,6 +54,9 @@ class DictObj:
                setattr(self, key, [DictObj(x) if isinstance(x, dict) else x for x in val])
             else:
                setattr(self, key, DictObj(val) if isinstance(val, dict) else val)
+               
+    def __repr__(self) -> str:
+        return str(self.__dict__)
 
 class DeviceCollection(UserDict):
     # override __init__ to add properties to the device collection
@@ -63,8 +65,10 @@ class DeviceCollection(UserDict):
         self.DevicesChanged = WatchVariable('Devices Changed Event')
         self.Polling = []
         self.PollingChanged = WatchVariable('Polling Changed Event')
-        self.DefaultActiveDuration = 5
-        self.DefaultInactiveDuration = 300
+    
+    def __repr__(self) -> str:
+        sep = ', '
+        return "[{}]".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, and keys
     def values(self) -> ValuesView['SystemHardwareController']:
@@ -78,7 +82,7 @@ class DeviceCollection(UserDict):
     
     # Overwrite __setitem__
     # TODO: test this for being able to set a value with a blank index, ie Devices[] = SystemHardwareControllerObject
-    def __setitem__(self, key: _KT, item: 'SystemHardwareController') -> None:
+    def __setitem__(self, key: '_KT', item: 'SystemHardwareController') -> None:
         if type(item) is not SystemHardwareController:
             raise ValueError('DeviceCollection items must be of type SystemHardwareController')
         
@@ -91,7 +95,7 @@ class DeviceCollection(UserDict):
         
         self.data[item.Id] = item
         
-        Logger.Trace.Log('Devices Changed')
+        # Logger.Trace.Log('Devices Changed')
         self.DevicesChanged.Change(self.data)
     
     # Typecasts __getitem__
@@ -135,6 +139,7 @@ class DeviceCollection(UserDict):
     def AddNewDevice(self, **kwargs) -> None:
         device = SystemHardwareController(self, **kwargs)
         self.__setitem__(None, device)
+        device.InitializeDevice()
         
     # Search Methods
     def GetDestination(self, id: str=None, name: str=None) -> 'Destination':
@@ -187,26 +192,16 @@ class DeviceCollection(UserDict):
         
     # Polling
     def AddPolling(self, device, command, qualifier=None, active_duration: int=None, inactive_duration: int=None):
-        if device not in self.data:
+        # Logger.Log(device, self.data.values(), sep='\n')
+        if device not in self.data.values():
             raise LookupError('device must be in DeviceCollection')
-        
-        if active_duration is not None:
-            act_dur = active_duration
-        else:
-            act_dur = self.DefaultActiveDur
             
-        if inactive_duration is not None:
-            inact_dur = inactive_duration
-        else:
-            inact_dur = self.DefaultInactiveDur
-            
-        self.Polling.append(DictObj({
+        self.Polling.append(PollObject(**{
             'Device': device,
-            'Interface': device.interface,
             'Command': command,
             'Qualifier': qualifier,
-            'ActiveDuration': act_dur,
-            'InactiveDuration': inact_dur
+            'ActiveDuration': active_duration,
+            'InactiveDuration': inactive_duration
         }))
         
         self.PollingChanged.Change(self.Polling)
@@ -255,6 +250,56 @@ class DeviceCollection(UserDict):
                 raise ValueError('No polling exists to update for provided device ({}) and command ({})'.format(device.Id, command))
             else: # matched but not changed
                 raise ValueError('No valid update to polling provided')
+
+class VolumeControlSet:
+    def __init__(self,
+                 Name: str,
+                 VolUp: Button,
+                 VolDown: Button,
+                 Mute: Button,
+                 Feedback: Level,
+                 ControlLabel: Label=None,
+                 DisplayName: str=None,
+                 Range: Tuple[int, int, int]=(0, 100, 1)
+                 ) -> None:
+        self.Name = Name
+        
+        if type(VolUp) is Button:
+            self.VolUpBtn = VolUp
+        else:
+            raise TypeError("VolUp must be an Extron Button object")
+        
+        if type(VolDown) is Button:
+            self.VolDownBtn = VolDown
+        else:
+            raise TypeError("VolDown must be an Extron Button object")
+        
+        if type(Mute) is Button:
+            self.MuteBtn = VolUp
+        else:
+            raise TypeError("Mute must be an Extron Button object")
+        
+        if type(Feedback) is Level:
+            self.FeedbackLvl = Feedback
+        else:
+            raise TypeError("Feedback must be an Extron Level object")
+        
+        if type(ControlLabel) is Label or ControlLabel is None:
+            self.ControlLbl = ControlLabel
+        else:
+            raise TypeError("ControlLabel must either be an Extron Label object or None (default)")
+        
+        if DisplayName is not None:
+            self.DisplayName = DisplayName
+        else:
+            self.DisplayName = Name
+            
+        if type(Range) is tuple and len(Range) == 3:
+            for i in Range:
+                if type(i) is not int:
+                    raise TypeError("Range tuple may only consist of int values")
+            self.__Range = Range
+            self.FeedbackLvl.SetRange(*Range)
 
 ## End Class Definitions -------------------------------------------------------
 ##

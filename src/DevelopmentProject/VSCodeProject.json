@@ -2,7 +2,7 @@
     "system": {
         "name": "VSCodeProject",
         "code_folder_path": "src",
-        "code_entry_file": "main.py",
+        "code_entry_file": "Main.py",
         "layout_folder_path": "layout",
         "sound_folder_path": "sound",
         "rfile_folder_path": "rfile",
@@ -17,28 +17,28 @@
     },
     "devices": [
         {
-            "name": "CTL001 : LIBAVSSYS02",
+            "name": "CTL001 : LIBAVSSYS05",
             "part_number": "60-1911-01",
             "alias": "CTL001",
             "network": {
                 "host_network_type": "LAN",
                 "interfaces": [
                     {
-                        "address": "192.168.254.250",
+                        "address": "172.22.93.243",
                         "type": "LAN"
                     }
                 ]
             }
         },
         {
-            "name": "TLP Pro 1025M with LinkLicense : 192.168.254.251",
-            "part_number": "60-1566-02C",
-            "alias": "ProcessorAlias",
+            "name": "TP001 : LIBAVSSYS04",
+            "part_number": "60-1566-02",
+            "alias": "TP001",
             "network": {
                 "host_network_type": "LAN",
                 "interfaces": [
                     {
-                        "address": "192.168.254.251",
+                        "address": "172.22.93.242",
                         "type": "LAN"
                     }
                 ]

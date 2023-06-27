@@ -22,8 +22,8 @@ if TYPE_CHECKING: # pragma: no cover
 
 from extronlib.system import ProgramLog
 
-from DevelopmentProject.src.modules.project.systemHardware import VirtualDeviceInterface
-import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
+from modules.device.mixins.VirtualDevice import VirtualDeviceInterface
+import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):

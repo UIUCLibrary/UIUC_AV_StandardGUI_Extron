@@ -46,8 +46,8 @@ import functools
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 
-from ConnectionHandler import GetConnectionHandler
-from DevelopmentProject.src.modules.helper.UtilityFunctions import Log, RunAsync, debug, DictValueSearchByKey, SortKeys
+from modules.helper.ConnectionHandler import GetConnectionHandler
+from modules.helper.CommonUtilities import Logger, RunAsync, debug, DictValueSearchByKey, SortKeys
 
 #### Extron Global Scripter Modules
 
@@ -64,6 +64,9 @@ class SystemHardwareController:
         self.Model = Model
         self.ConnectionStatus = 'Not Connected'
         self.LastStatusChange = None
+        
+        self.__Subscriptions = Subscriptions
+        self.__Polling = Polling
         
         if Options is not None:
             for key in Options:
@@ -96,17 +99,22 @@ class SystemHardwareController:
                 self.interface = self.__Constructor(**Interface['interface_configuration'])
             
             self.interface.SubscribeStatus('ConnectionStatus', None, self.__ConnectionStatus)
-
-            # subscriptions = [
-            #     {
-            #         'command': subscription command,
-            #         'qualifier': qualifier,
-            #         'callback': callback function
-            #     },
-            #     ...
-            # ]
-            
-            for sub in Subscriptions:
+    
+    def __repr__(self) -> str:
+        return 'Device: {} ({}|{})'.format(self.Name, self.Id, self.ConnectionStatus)
+    
+    def InitializeDevice(self):
+        # subscriptions = [
+        #     {
+        #         'command': subscription command,
+        #         'qualifier': qualifier,
+        #         'callback': callback function
+        #     },
+        #     ...
+        # ]
+        
+        if self.__Subscriptions is not None:
+            for sub in self.__Subscriptions:
                 qualSub = self.GetQualifierList(sub)
                 
                 for qp in qualSub:
@@ -114,19 +122,20 @@ class SystemHardwareController:
                     # Update or Set commands must be sent elsewhere in the program
                     # Use these subscriptions to verify changes or to handle control feedback
                     self.AddSubscription(sub, qp)
-            
-            # polling = [
-            #  {
-            #     'command': polling command,
-            #     'qualifier': command qualifier, Optional
-            #     'callback': polling update command, Optional
-            #     'active_int': active polling interval, Optional
-            #     'inactive_int': inactive polling interval, Optional
-            #  },
-            #  ...
-            # ]
-            
-            for poll in Polling:
+        
+        # polling = [
+        #  {
+        #     'command': polling command,
+        #     'qualifier': command qualifier, Optional
+        #     'callback': polling update command, Optional
+        #     'active_int': active polling interval, Optional
+        #     'inactive_int': inactive polling interval, Optional
+        #  },
+        #  ...
+        # ]
+        
+        if self.__Polling is not None:
+            for poll in self.__Polling:
                 qualPoll = self.GetQualifierList(poll)
                 
                 if 'active_int' in poll:
@@ -139,11 +148,12 @@ class SystemHardwareController:
                     inactInt = None
                 
                 for qp in qualPoll:
-                    self.Collection.PollCtl.AddPolling(self.interface,
-                                                    poll['command'],
-                                                    qualifier=qp,
-                                                    active_duration=actInt,
-                                                    inactive_duration=inactInt)
+                    self.Collection.AddPolling(self,
+                                                poll['command'],
+                                                qualifier=qp,
+                                                active_duration=actInt,
+                                                inactive_duration=inactInt
+                                                )
                     
                     # To prevent the need to duplicate polling and subscriptions in settings
                     # if a callback is included in the poll, a subscription will automatically
@@ -246,7 +256,7 @@ class SystemHardwareController:
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def __ConnectionStatus(self, command, value, qualifier):
-        Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
+        Logger.Log('{} {} Callback; Value: {}; Qualifier {}'.format(self.Name, command, value, qualifier))
         if value != self.ConnectionStatus:
             self.ConnectionStatus = value
             self.LastStatusChange = datetime.now()

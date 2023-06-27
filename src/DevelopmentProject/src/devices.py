@@ -14,11 +14,35 @@
 # limitations under the License.
 ################################################################################
 
-from modules.project.Collections import DeviceCollection
+## Begin Imports ---------------------------------------------------------------
 
+#### Type Checking
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+if TYPE_CHECKING: # pragma: no cover
+    pass
+
+#### Python imports
+import json
+
+#### Extron Library Imports
+
+#### Project imports
+from modules.helper.CommonUtilities import Logger
+from modules.project.Collections import DeviceCollection, DictObj
+from Variables import PROJECT_FILE
+# TODO: load this in a more secure way
 import secrets_devices
 
-Devices = DeviceCollection()
+## End Imports -----------------------------------------------------------------
+
+# Pull Control System Devices Data from Project File
+__ProjectFile = open('/var/nortxe/.gcp/{}'.format(PROJECT_FILE))
+__ProjectData = json.load(__ProjectFile)
+__ProjectObj= DictObj(__ProjectData)
+ControlDevices = __ProjectObj.devices
+
+# Create empty DeviceCollection to populate with system devices below
+SystemDevices = DeviceCollection()
 
 ################################################################################
 ################################################################################
@@ -71,7 +95,7 @@ Devices = DeviceCollection()
 ## VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV ##
 
 # PC001 - Room PC
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'PC001',
         'Name': 'Room PC',
@@ -99,7 +123,7 @@ Devices.AddNewDevice(
 )
 
 # UI001 - HDMI1
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'UI001',
         'Name': 'HDMI 1',
@@ -121,7 +145,7 @@ Devices.AddNewDevice(
 )
 
 # UI002 - HDMI2
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'UI002',
         'Name': 'HDMI 2',
@@ -143,7 +167,7 @@ Devices.AddNewDevice(
 )
 
 # WPD001 - Mersive Solstice
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'WPD001',
         'Name': 'Inst. Wireless',
@@ -180,7 +204,7 @@ Devices.AddNewDevice(
 )
 
 # WPD002 - Mersive Solstice
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'WPD002',
         'Name': 'North Wireless',
@@ -219,7 +243,7 @@ Devices.AddNewDevice(
 )
 
 # WPD003 - Mersive Solstice
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'WPD003',
         'Name': 'South Wireless',
@@ -259,7 +283,7 @@ Devices.AddNewDevice(
 )
 
 # PRJ001 - Projector
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'PRJ001',
         'Name': 'Projector',
@@ -297,7 +321,7 @@ Devices.AddNewDevice(
 )
 
 # MON001 - North Monitor
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'MON001',
         'Name': 'North Monitor',
@@ -374,7 +398,7 @@ Devices.AddNewDevice(
 )
 
 # MON002 - South Monitor
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'MON002',
         'Name': 'South Monitor',
@@ -451,7 +475,7 @@ Devices.AddNewDevice(
 )
 
 # MON003 - Confidence Monitor
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'MON003',
         'Name': 'Confidence Monitor',
@@ -476,7 +500,7 @@ Devices.AddNewDevice(
 )
 
 # DSP001 - Biamp TesiraFORTE VT4 AVB
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'DSP001',
         'Name': 'DSP',
@@ -634,7 +658,7 @@ Devices.AddNewDevice(
 )
 
 # RF001 - Shure QLXD4
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'RF002',
         'Name': 'Wireless Lav',
@@ -681,7 +705,7 @@ Devices.AddNewDevice(
 )
 
 # MIC002 - Shure MXA920
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'MIC001',
         'Name': 'Overhead Mic',
@@ -742,7 +766,7 @@ Devices.AddNewDevice(
 )
 
 # DEC001 - Magewell Pro Covert for NDI to HDMI
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'DEC001',
         'Name': 'Camera Decoder',
@@ -780,7 +804,7 @@ Devices.AddNewDevice(
 )
 
 # CAM001 - PTZOptics 12X-NDI
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'CAM001',
         'Name': 'North Camera',
@@ -831,7 +855,7 @@ Devices.AddNewDevice(
 )
 
 # CAM002 - PTZOptics 12X-NDI
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'CAM002',
         'Name': 'South Camera',
@@ -882,7 +906,7 @@ Devices.AddNewDevice(
 )
 
 # DEC002 - AMX N2300 Decoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'DEC002',
         'Name': 'Projector Decoder',
@@ -913,7 +937,7 @@ Devices.AddNewDevice(
 )
 
 # DEC003 - AMX N2300 Decoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'DEC003',
         'Name': 'North Monitor Decoder',
@@ -944,7 +968,7 @@ Devices.AddNewDevice(
 )
 
 # DEC004 - AMX N2300 Decoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'DEC004',
         'Name': 'South Monitor Decoder',
@@ -975,7 +999,7 @@ Devices.AddNewDevice(
 )
 
 # DEC005 - AMX N2300 Decoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'DEC005',
         'Name': 'Confidence Monitor Decoder',
@@ -1006,7 +1030,7 @@ Devices.AddNewDevice(
 )
 
 # ENC001 - AMX N2300 Encoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC001',
         'Name': 'HDMI 1 Encoder',
@@ -1037,7 +1061,7 @@ Devices.AddNewDevice(
 )
 
 # ENC002 - AMX N2300 Encoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC002',
         'Name': 'HDMI 2 Encoder',
@@ -1068,7 +1092,7 @@ Devices.AddNewDevice(
 )
 
 # ENC003 - AMX N2300 Encoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC003',
         'Name': 'Room PC Encoder',
@@ -1076,7 +1100,7 @@ Devices.AddNewDevice(
         'Model': 'NMX-ENC-N2312',
         'Interface':
         {
-            'module': 'hardware.amx_avoip_n2300_series',
+            'module': 'amx_avoip_n2300_series',
             'interface_class': 'EthernetClass',
             'ConnectionHandler': {
                 'keepAliveQuery': 'DeviceStatus',
@@ -1099,7 +1123,7 @@ Devices.AddNewDevice(
 )
 
 # ENC004 - AMX N2300 Encoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC004',
         'Name': 'Inst. Pod Encoder',
@@ -1130,7 +1154,7 @@ Devices.AddNewDevice(
 )
 
 # ENC005 - AMX N2300 Encoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC005',
         'Name': 'North Pod Encoder',
@@ -1161,7 +1185,7 @@ Devices.AddNewDevice(
 )
 
 # ENC006 - AMX N2300 Encoder
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC006',
         'Name': 'South Pod Encoder',
@@ -1192,7 +1216,7 @@ Devices.AddNewDevice(
 )
 
 # VMX001 - SVSi Virtual Matrix Switcher
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'VMX001',
         'Name': 'SVSi Matrix',
@@ -1200,7 +1224,7 @@ Devices.AddNewDevice(
         'Model': 'N2300 Virtual Matrix',
         'Interface':
         {
-            'module': 'hardware.avoip_virtual_matrix',
+            'module': 'avoip_virtual_matrix',
             'interface_class': 'VirtualDeviceClass',
             'interface_configuration': {
                 'VirtualDeviceID': 'VMX001',
@@ -1262,13 +1286,20 @@ Devices.AddNewDevice(
 )
 
 # SCN001 - Relay Controlled Screen
-Devices.AddNewDevice(
+SystemDevices.AddNewDevice(
     **{
         'Id': 'SCN001',
         'Name': 'Projector Screen',
         'Manufacturer': 'Da-Lite',
         'Model': '88401L',
-        'Interface': {},
+        'Interface': 
+            {
+                'module': 'generic_prj_screen',
+                'interface_class': 'LVCScreen',
+                'interface_configuration': {
+                    'RelayHost': 'CTL001'
+                }
+            },
         'Subscriptions': None,
         'Polling': None,
         'Options': {

@@ -8,7 +8,7 @@ from extronlib.system import ProgramLog, Wait
 from decimal import Decimal, ROUND_HALF_UP
 import copy
 
-import DevelopmentProject.src.modules.helper.UtilityFunctions as UtilityFunctions
+import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):
