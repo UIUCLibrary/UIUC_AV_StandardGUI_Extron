@@ -7,3 +7,5 @@ eup/*
 .coverage
 htmlcov/*
 *.log
+*-certification.dat
+*-credential.dat
