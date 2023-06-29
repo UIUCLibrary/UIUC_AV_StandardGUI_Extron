@@ -169,21 +169,47 @@ class ExSPDevice(SPDevice):
         self.Id = DeviceAlias
 
 class ExEBUSDevice(eBUSDevice):
-    def __init__(self, Host: Union[ProcessorDevice, ExProcessorDevice], DeviceAlias: str):
+    us_ebus_part_list = ["60-1388-01", # EBP 100
+                         "60-1389-01", # EPB 200
+                         "60-1670-01", # EBP 50
+                        ]
+    decora_ebus_part_list = ["60-1671-01", # EBP 103 D
+                             "60-1084-01", # EBP 106 D
+                             "60-1093-01", # EBP 106P D
+                             "60-1189-01", # EBP 108 D
+                             "60-1190-01", # EBP 110 D
+                             "60-1087-01", # EBP 111 D
+                             "60-1086-01", # EBP NAV D
+                             "60-1184-01", # EBP VC1
+                             ]
+    def __init__(self, Host: Union[ProcessorDevice, ExProcessorDevice], UI: str, DeviceAlias: str, Name: str=None, WebControlId: str=None):
         super().__init__(Host, DeviceAlias)
         # The super object has an ID prop for eBUS ID, unclear how that is populated
         self.Id = DeviceAlias
+        self.eBUSID = Alias('ID')
+        self.WebControlId = WebControlId
+        if type(UI) is str:
+            self.UI = UI
+        else:
+            raise ValueError('Layout must be a string')
+        self.Class = 'ButtonPanel'
+        self.Interface = ButtonPanelInterface(self, self.UI)
+        
+    @classproperty
+    def validation_part_list(cls) -> list:
+        valid_list = []
+        valid_list.extend(cls.us_ebus_part_list)
+        valid_list.extend(cls.decora_ebus_part_list)
+        return valid_list
 
 class ExButton(Button):
     def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice], 
+                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice, ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice], 
                  ID_Name: Union[int, str], 
                  holdTime: float = None, 
                  repeatTime: float = None,
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name, holdTime, repeatTime)
-        
-        self.eBUSID = Alias('ID')
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -191,7 +217,7 @@ class ExButton(Button):
 
 class ExLabel(Label):
     def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice], 
+                 UIHost: Union[UIDevice, ExUIDevice, ProcessorDevice, ExProcessorDevice], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name)
@@ -203,7 +229,7 @@ class ExLabel(Label):
 
 class ExLevel(Level):
     def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice], 
+                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice, ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name)
@@ -215,7 +241,7 @@ class ExLevel(Level):
 
 class ExSlider(Slider):
     def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice], 
+                 UIHost: Union[UIDevice, ProcessorDevice, SPDevice, ExUIDevice, ExProcessorDevice, ExSPDevice], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name)
@@ -227,7 +253,7 @@ class ExSlider(Slider):
 
 class ExKnob(Knob):
     def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice],
+                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, ExUIDevice, ExEBUSDevice, ExProcessorDevice],
                  **kwargs) -> None:
         super().__init__(UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
         

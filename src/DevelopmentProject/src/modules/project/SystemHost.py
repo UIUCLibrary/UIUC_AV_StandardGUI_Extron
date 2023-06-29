@@ -30,7 +30,7 @@ from os.path import splitext
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
-from modules.project.ExtendedClasses import ExProcessorDevice, ExUIDevice, ExSPDevice
+from modules.project.ExtendedClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 from modules.project.Collections import DictObj
 from control.PollController import PollingController
 import Variables
@@ -60,7 +60,7 @@ class SystemController:
         for dev in controlDevices:
             if dev.part_number in ExProcessorDevice.validation_part_list:
                 processors.append(dev)
-            elif dev.part_number in ExUIDevice.validation_part_list:
+            elif dev.part_number in ExUIDevice.validation_part_list or dev.part_number in ExEBUSDevice.validation_part_list:
                 uiDevices.append(dev)
             else:
                 Logger.Log('Control Device part number not validated.', dev, separator='\n', logSeverity='warning')
@@ -115,13 +115,19 @@ class SystemController:
         ## UI Device Definition ----------------------------------------------
         self.UIDevices = []
         for ui in uiDevices:
-            self.UIDevices.append(ExUIDevice(ui.alias,
-                                             splitext(ui.ui.layout_file)[0],
-                                             ui.part_number,
-                                             ui.name,
-                                             ui.extron_control_web_id))
-        
-        # TODO: Assign UI Controller to UI devices
+            if dev.part_number in ExUIDevice.validation_part_list:
+                self.UIDevices.append(ExUIDevice(ui.alias,
+                                                 ui.ui.ui_config,
+                                                 ui.part_number,
+                                                 ui.name,
+                                                 ui.extron_control_web_id))
+            elif dev.part_number in ExEBUSDevice.validation_part_list:
+                host = [proc for proc in self.Processors if proc.Id == ui.host_alias][0]
+                self.UIDevices.append(ExEBUSDevice(host,
+                                                   ui.ui.ui_config,
+                                                   ui.alias,
+                                                   ui.name,
+                                                   ui.extron_control_web_id))
         
         if len(self.UIDevices) == 0:
             self.UI_Main = None

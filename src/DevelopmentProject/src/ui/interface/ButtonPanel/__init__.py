@@ -19,8 +19,8 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses import ExUIDevice
-    from extronlib.device import UIDevice
+    from modules.project.ExtendedClasses import ExUIDevice, ExEBUSDevice
+    from extronlib.device import UIDevice, eBUSDevice
 
 #### Python imports
 
@@ -35,12 +35,16 @@ from ui.interface.ButtonPanel.Objects import ButtonPanelObjects
 ## Begin Class Definitions -----------------------------------------------------
 
 class ButtonPanelInterface():
-    def __init__(self, device: Union['ExUIDevice', 'UIDevice'], interface: str) -> None:
+    def __init__(self, device: Union['ExUIDevice', 'UIDevice', 'ExEBUSDevice', 'eBUSDevice'], interface: str, panelType: str='NBP') -> None:
         ButtonPanelObjects.__init__(self)
         
         self.Device = device
         self.Interface = interface
         
+        if panelType is not None and panelType in ['NBP', 'EBP']:
+            self.Type = panelType
+        else:
+            raise ValueError("PanelTpye must be either NBP or EBP")
     
 
 
