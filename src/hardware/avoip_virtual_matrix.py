@@ -82,7 +82,7 @@ class DeviceClass:
 ## -----------------------------------------------------------------------------
 
     def amx_svsi_n2300(self):
-        self.__Mute_Local_Playlist = 1
+        self.__Mute_Local_Playlist = 2
         self.Model = 'AMX SVSi N2300'
     
 ## -----------------------------------------------------------------------------

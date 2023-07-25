@@ -282,14 +282,14 @@ class DisplayController:
                     control.SetState(0)
             elif control.CtlType == 'Up':
                 # send screen up
-                self.Destinations[control.DestID]['Scn']['up'].Pulse(2)
+                self.Destinations[control.DestID]['Scn']['up'].Pulse(0.2)
                 # Log('Pulse Up Relay')
                 @Wait(3) # pragma: no cover
                 def delayFeedbackHandler():
                     control.SetState(0)
             elif control.CtlType == 'Dn':
                 # send screen down
-                self.Destinations[control.DestID]['Scn']['dn'].Pulse(2)
+                self.Destinations[control.DestID]['Scn']['dn'].Pulse(0.2)
                 # Log('Pulse Down Relay')
                 @Wait(3) # pragma: no cover
                 def delayFeedbackHandler():
@@ -297,8 +297,8 @@ class DisplayController:
             elif control.CtlType == 'Stop':
                 # send screen stop
                 # This assumes that the screen stop command is to close both the up and down contact closures
-                self.Destinations[control.DestID]['Scn']['up'].Pulse(2)
-                self.Destinations[control.DestID]['Scn']['dn'].Pulse(2)
+                self.Destinations[control.DestID]['Scn']['up'].Pulse(0.2)
+                self.Destinations[control.DestID]['Scn']['dn'].Pulse(0.2)
                 # Log('Pulse Up & Down Relays')
                 @Wait(3) # pragma: no cover
                 def delayFeedbackHandler():
@@ -361,10 +361,10 @@ class DisplayController:
         dest = self.Destinations[HwID]
         StateMap = \
             {
-                'On': ['On', 'on', 'Power On'],
-                'Off': ['Off', 'off', 'Power Off', 'Standby (Power Save)', 'Suspend (Power Save)'],
-                'Warming': ['Warming', 'Warming up'],
-                'Cooling': ['Cooling', 'Cooling down']
+                'On': ['On', 'on', 'Power On', 'ON', 'Power on', 'POWER ON'],
+                'Off': ['Off', 'off', 'Power Off', 'Standby (Power Save)', 'Suspend (Power Save)', 'OFF', 'Power off', 'POWER OFF'],
+                'Warming': ['Warming', 'Warming up', 'Warming Up', 'WARMING', 'WARMING UP'],
+                'Cooling': ['Cooling', 'Cooling down', 'Cooling Down', 'COOLING', 'COOLING DOWN']
             }
         if state in StateMap['On']:
             # Log('Show button state On')

@@ -392,6 +392,7 @@ class ActivityController:
             touchPanel.ShowPopup("Audio-Control-{}-privacy".format('mic' if len(self.GUIHost.Microphones) > 0 else 'no_mic'))
             
             touchPanel.SrcCtl.SelectSource(touchPanel.SrcCtl.PrimaryDestination.GroupWorkSource)
+            touchPanel.SrcCtl.UpdateSourceMenu()
             for dest in touchPanel.SrcCtl.Destinations:
                 dest = cast('Destination', dest)
                 touchPanel.SrcCtl.SwitchSources(dest.GroupWorkSource, [dest])

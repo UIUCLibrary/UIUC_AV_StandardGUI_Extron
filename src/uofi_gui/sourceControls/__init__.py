@@ -222,12 +222,14 @@ class SourceController:
                 d = cast('Destination', d)
                 if d.Type != 'conf':
                     d.Mute = 'On'
+                    self.__Matrix.Hardware.interface.Set('VideoMute', 'Video', {'Output': d.Output})
         else:
             privBtn.SetState(0)
             for d in self.Destinations:
                 d = cast('Destination', d)
                 if d.Type != 'conf':
                     d.Mute = 'Off'
+                    self.__Matrix.Hardware.interface.Set('VideoMute', 'Off', {'Output': d.Output})
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -303,11 +305,12 @@ class SourceController:
             button.SetState(1)
         elif action == 'Released':
             self.SelectSource(self.PrimaryDestination.GroupWorkSource)
+            self.UpdateSourceMenu()
             for dest in self.Destinations:
                 self.SwitchSources(dest.GroupWorkSource, [dest])
             
             @Wait(3) # pragma: no cover
-            def SendToAllBtnFeedbackWait():
+            def RtnToGrpBtnFeedbackWait():
                 button.SetState(0)
     
     def __WPDClearPostsHandler(self, button: 'Button', action: str):

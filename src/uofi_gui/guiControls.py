@@ -169,6 +169,14 @@ class GUIController:
             except LookupError:
                 # display does not have hardware to power on or off
                 pass
+            
+        # put screens down
+        for dest in self.Destinations:
+            try:
+                self.TP_Main.DispCtl.Destinations[dest['id']]['Scn']['dn'].Pulse(0.2)
+            except LookupError:
+                # display does not have screen to control
+                pass
 
     def StartupSyncedActions(self, count: int) -> None:
         pass
@@ -204,6 +212,14 @@ class GUIController:
                 self.TP_Main.DispCtl.SetDisplayPower(dest['id'], 'Off')
             except LookupError:
                 # display does not have hardware to power on or off
+                pass
+            
+        # put screens up
+        for dest in self.Destinations:
+            try:
+                self.TP_Main.DispCtl.Destinations[dest['id']]['Scn']['up'].Pulse(0.2)
+            except LookupError:
+                # display does not have screen to control
                 pass
                 
         self.SrcCtl.MatrixSwitch(0, 'All', 'untie')

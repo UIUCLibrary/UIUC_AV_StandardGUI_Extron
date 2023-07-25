@@ -57,7 +57,7 @@ sources = \
          "id": "PC001",
          "name": "Room PC",
          "icon": 2,
-         "input": 1,
+         "input": 3,
          "alert": "Ensure the PC is awake.",
          "srcCtl": "PC",
          "advSrcCtl": None
@@ -93,7 +93,7 @@ sources = \
          "id": "PL001-1",
          "name": "HDMI 1",
          "icon": 1,
-         "input": 2,
+         "input": 1,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
          "srcCtl": "HDMI",
          "advSrcCtl": None
@@ -102,7 +102,7 @@ sources = \
          "id": "PL001-2",
          "name": "HDMI 2",
          "icon": 1,
-         "input": 3,
+         "input": 2,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
          "srcCtl": "HDMI",
          "advSrcCtl": None
@@ -120,7 +120,7 @@ destinations = \
       {
          'id': 'PRJ001',
          'name': 'Projector',
-         'output': 1,
+         'output': 2,
          'type': 'proj+scn',
          'rly': (1,2),
          'groupWrkSrc': 'WPD001',
@@ -132,7 +132,7 @@ destinations = \
       {
          'id': 'MON003',
          'name': 'Confidence Monitor',
-         'output': 2,
+         'output': 1,
          'type': 'conf',
          'rly': None,
          'groupWrkSrc': 'WPD001',
@@ -156,7 +156,7 @@ destinations = \
       },
       {
          "id": "MON002",
-         "name": "Test Monitor",
+         "name": "South Monitor",
          "output": 4,
          "type": "mon",
          "rly": None,
@@ -236,7 +236,7 @@ techPIN = "1867"           # PIN Code to access tech pages, must be a string
 hardware = [
    {
       'Id': 'WPD001',
-      'Name': 'Inst. Wireless',
+      'Name': 'Inst. Pod',
       'Manufacturer': 'Mersive',
       'Model': 'Solstice Pod Gen 3',
       'Interface': 
@@ -244,7 +244,57 @@ hardware = [
             'module': 'hardware.mersive_solstice_pod',
             'interface_class': 'RESTClass',
             'interface_configuration': {
-               'host': 'main314-wpd001.library.illinois.edu',
+               'host': 'mainlib314-wpd001.library.illinois.edu',
+               'devicePassword': secrets_hardware.mersive_password
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'PodStatus',
+               'callback': 'FeedbackStatusHandler',
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ]
+   },
+   {
+      'Id': 'WPD002',
+      'Name': 'North Pod',
+      'Manufacturer': 'Mersive',
+      'Model': 'Solstice Pod Gen 3',
+      'Interface': 
+         {
+            'module': 'hardware.mersive_solstice_pod',
+            'interface_class': 'RESTClass',
+            'interface_configuration': {
+               'host': 'mainlib314-wpd002.library.illinois.edu',
+               'devicePassword': secrets_hardware.mersive_password
+            }
+         },
+      'Subscriptions': [],
+      'Polling':
+         [
+            {
+               'command': 'PodStatus',
+               'callback': 'FeedbackStatusHandler',
+               'active_int': 10,
+               'inactive_int': 600
+            }
+         ]
+   },
+   {
+      'Id': 'WPD003',
+      'Name': 'South Pod',
+      'Manufacturer': 'Mersive',
+      'Model': 'Solstice Pod Gen 3',
+      'Interface': 
+         {
+            'module': 'hardware.mersive_solstice_pod',
+            'interface_class': 'RESTClass',
+            'interface_configuration': {
+               'host': 'mainlib314-wpd003.library.illinois.edu',
                'devicePassword': secrets_hardware.mersive_password
             }
          },
@@ -274,7 +324,7 @@ hardware = [
                'pollFrequency': 20
             },
             'interface_configuration': {
-               'Hostname': 'main314-dsp001.library.illinois.edu',
+               'Hostname': 'mainlib314-dsp001.library.illinois.edu',
                'IPPort': 22,
                'Credentials': ('admin', secrets_hardware.biamp_password)
             }
@@ -494,8 +544,13 @@ hardware = [
          {
             'module': 'hardware.ptz_camera_12X_SDI_USB_G2_20X_SDI_USB_G2_v1_0_0_0',
             'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'Power',
+               'DisconnectLimit': 5,
+               'pollFrequency': 20
+            },
             'interface_configuration': {
-               'Hostname': 'main314-cam001.library.illinois.edu',
+               'Hostname': 'mainlib314-cam001.library.illinois.edu',
                'IPPort': 5678
             }
          },
@@ -540,8 +595,13 @@ hardware = [
          {
             'module': 'hardware.ptz_camera_12X_SDI_USB_G2_20X_SDI_USB_G2_v1_0_0_0',
             'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'Power',
+               'DisconnectLimit': 5,
+               'pollFrequency': 20
+            },
             'interface_configuration': {
-               'Hostname': 'main314-cam002.library.illinois.edu',
+               'Hostname': 'mainlib314-cam002.library.illinois.edu',
                'IPPort': 5678
             }
          },
@@ -587,9 +647,9 @@ hardware = [
             'module': 'hardware.mgwl_sm_Pro_Convert_Series_v1_0_1_0',
             'interface_class': 'HTTPClass',
             'interface_configuration': {
-               'ipAddress': 'main314-dec001.library.illinois.edu',
+               'ipAddress': 'mainlib314-dec001.library.illinois.edu',
                'port': 80,
-               'deviceUserName': 'admin',
+               'deviceUsername': 'Admin',
                'devicePassword': secrets_hardware.magewell_password
             }
          },
@@ -606,7 +666,7 @@ hardware = [
          {
             'SwitchCommand': 
                {
-                  'command': 'SourcePresetsListSelect',
+                  'command': 'SourcePresetCommand',
                   'qualifier': {'NDI Source': 'True'}
                }
          }
@@ -626,7 +686,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-dec002.library.illinois.edu',
+               'Hostname': 'mainlib314-dec002.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -635,7 +695,7 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixOutput': 2
+         'MatrixOutput': 1
       }
    },
    {
@@ -653,7 +713,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-dec003.library.illinois.edu',
+               'Hostname': 'mainlib314-dec003.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -662,7 +722,7 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixOutput': 1
+         'MatrixOutput': 2
       }
    },
    {
@@ -680,7 +740,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-dec004.library.illinois.edu',
+               'Hostname': 'mainlib314-dec004.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -707,7 +767,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-dec005.library.illinois.edu',
+               'Hostname': 'mainlib314-dec005.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -734,7 +794,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-enc001.library.illinois.edu',
+               'Hostname': 'mainlib314-enc001.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -743,7 +803,7 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixInput': 2
+         'MatrixInput': 1
       }
    },
    {
@@ -761,7 +821,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-enc002.library.illinois.edu',
+               'Hostname': 'mainlib314-enc002.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -770,7 +830,7 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixInput': 3
+         'MatrixInput': 2
       }
    },
    {
@@ -788,7 +848,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-enc003.library.illinois.edu',
+               'Hostname': 'mainlib314-enc003.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -797,7 +857,7 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixInput': 1
+         'MatrixInput': 3
       }
    },
    {
@@ -815,7 +875,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-enc004.library.illinois.edu',
+               'Hostname': 'mainlib314-enc004.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -842,7 +902,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-enc005.library.illinois.edu',
+               'Hostname': 'mainlib314-enc005.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -869,7 +929,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-enc006.library.illinois.edu',
+               'Hostname': 'mainlib314-enc006.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -964,7 +1024,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-mon001.library.illinois.edu',
+               'Hostname': 'mainlib314-mon001.library.illinois.edu',
                'IPPort': 7142,
             }
          },
@@ -1014,7 +1074,7 @@ hardware = [
    },
    {
       'Id': 'MON002',
-      'Name': 'North Monitor',
+      'Name': 'South Monitor',
       'Manufacturer': 'SharpNEC',
       'Model': 'C860Q',
       'Interface': 
@@ -1027,7 +1087,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-mon002.library.illinois.edu',
+               'Hostname': 'mainlib314-mon002.library.illinois.edu',
                'IPPort': 7142,
             }
          },
@@ -1090,7 +1150,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-mic001.library.illinois.edu',
+               'Hostname': 'mainlib314-mic001.library.illinois.edu',
                'IPPort': 2202,
                'Model': 'MXA920'
             }
@@ -1124,12 +1184,12 @@ hardware = [
             'module': 'hardware.nec_vp_NPPA_803UL_653UL_v1_1_1_0',
             'interface_class': 'EthernetClass',
             'ConnectionHandler': {
-               'keepAliveQuery': 'AspectRatio',
+               'keepAliveQuery': 'LampUsage',
                'DisconnectLimit': 5,
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'main314-prj001.library.illinois.edu',
+               'Hostname': 'mainlib314-prj001.library.illinois.edu',
                'IPPort': 7142
             }
          },
