@@ -299,6 +299,34 @@ class CameraController:
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
+    def __SendCameraToPreset(self, camera: Union['SystemHardwareController', str]=None, preset: int=0):
+        if type(preset) is not int:
+            raise ValueError('Preset must be an int')
+        elif preset > 254 or preset < 0:
+            raise ValueError('Preset must be between 0 and 254')
+        
+        if camera is None:
+            for cam in self.GUIHost.Cameras:
+                if cam['Id'] in self.GUIHost.Hardware:
+                    camHW = self.GUIHost.Hardware[cam['Id']]
+                    qual = camHW.PresetRecallCommand.get('qualifier', None)
+                    Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(preset), qual))
+                    camHW.interface.Set(camHW.PresetRecallCommand['command'], str(preset), qual)
+        else:
+            if type(camera) is SystemHardwareController:
+                camHW = camera
+            elif type(camera) is str:
+                if camera in self.GUIHost.Hardware:
+                    camHW = self.GUIHost.Hardware[camera]
+                else:
+                    raise KeyError('No hardware item found for Switcher Id ({})'.format(camera))
+            else:
+                raise TypeError('Camera must be a SystemHardwareController object or string camera Id')
+            
+            qual = camHW.PresetRecallCommand.get('qualifier', None)
+            Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(preset), qual))
+            camHW.interface.Set(camHW.PresetRecallCommand['command'], str(preset), qual)
+    
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def SavePresetStates(self):
@@ -395,28 +423,10 @@ class CameraController:
         self.UpdatePresetButtons()
         
     def SendCameraHome(self, camera: Union['SystemHardwareController', str]=None): 
-        if camera is None:
-            for cam in self.GUIHost.Cameras:
-                if cam['Id'] in self.GUIHost.Hardware:
-                    camHW = self.GUIHost.Hardware[cam['Id']]
-                    qual = camHW.PresetRecallCommand.get('qualifier', None)
-                    Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(0), qual))
-                    camHW.interface.Set(camHW.PresetRecallCommand['command'], str(0), qual)
-        else:
-            if type(camera) is SystemHardwareController:
-                camHW = camera
-            elif type(camera) is str:
-                if camera in self.GUIHost.Hardware:
-                    camHW = self.GUIHost.Hardware[camera]
-                else:
-                    raise KeyError('No hardware item found for Switcher Id ({})'.format(camera))
-            else:
-                raise TypeError('Camera must be a SystemHardwareController object or string camera Id')
-            
-            qual = camHW.PresetRecallCommand.get('qualifier', None)
-            Log('Send Command - Command: {}, Value: {}, Qualifier: {}'.format(camHW.PresetRecallCommand['command'], str(0), qual))
-            camHW.interface.Set(camHW.PresetRecallCommand['command'], str(0), qual)
+        self.__SendCameraToPreset(camera, 0)
 
+    def SendCameraPrivate(self, camera: Union['SystemHardwareController', str]=None):
+        self.__SendCameraToPreset(camera, 254)
 
 ## End Class Definitions -------------------------------------------------------
 ##

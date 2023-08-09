@@ -637,6 +637,12 @@
       "repeatTime": null
     },
     {
+      "Name": "Show-Tips",
+      "ID": 11996,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
       "Name": "Activity-Splash-Close",
       "ID": 11997,
       "holdTime": null,

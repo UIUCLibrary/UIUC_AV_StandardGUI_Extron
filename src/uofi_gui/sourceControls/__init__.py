@@ -136,7 +136,7 @@ class SourceController:
         def SourceBtnHandler(button: 'Button', action: str):
             self.__SourceBtnHandler(button, action)
 
-        @event(self.__ArrowBtns, 'Pressed') # pragma: no cover
+        @event(self.__ArrowBtns, ['Pressed','Released']) # pragma: no cover
         def SourcePageHandler(button: 'Button', action: str):
             self.__SourcePageHandler(button, action)
 
@@ -271,17 +271,21 @@ class SourceController:
             self.UIHost.ShowPopup("Source-Control-{}".format(page))
     
     def __SourcePageHandler(self, button: 'Button', action: str):
-        # capture last 4 characters of button.Name
-        btnAction = button.Name[-4:]
-        # determine if we are adding or removing offset
-        if btnAction == "Prev":
-            if self.__Offset > 0:
-                self.__Offset -= 1
-        elif btnAction == "Next":
-            if (self.__Offset + 5) < len(self.__DisplaySrcList):
-                self.__Offset += 1
-        # update the displayed source menu
-        self.UpdateSourceMenu()
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            # capture last 4 characters of button.Name
+            btnAction = button.Name[-4:]
+            # determine if we are adding or removing offset
+            if btnAction == "Prev":
+                if self.__Offset > 0:
+                    self.__Offset -= 1
+            elif btnAction == "Next":
+                if (self.__Offset + 5) < len(self.__DisplaySrcList):
+                    self.__Offset += 1
+            # update the displayed source menu
+            self.UpdateSourceMenu()
             
     def __ModalCloseHandler(self, button: 'Button', action: str):
         self.UIHost.HidePopup('Modal-SrcCtl-WPD')
@@ -308,7 +312,7 @@ class SourceController:
             self.UpdateSourceMenu()
             for dest in self.Destinations:
                 self.SwitchSources(dest.GroupWorkSource, [dest])
-            
+            self.GUIHost.ActCtl.ShowActivityTip()
             @Wait(3) # pragma: no cover
             def RtnToGrpBtnFeedbackWait():
                 button.SetState(0)

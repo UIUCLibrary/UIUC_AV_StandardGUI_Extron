@@ -56,8 +56,10 @@ class GUIController:
         self.Timers = \
             {
                 'startup': Settings.startupTimer,
+                'startupMin': Settings.startupMin,
                 'switch': Settings.switchTimer,
                 'shutdown': Settings.shutdownTimer,
+                'shutdownMin': Settings.shutdownMin,
                 'shutdownConf': Settings.shutdownConfTimer,
                 'activitySplash': Settings.activitySplashTimer,
                 'initPage': Settings.initPageTimer
@@ -178,8 +180,13 @@ class GUIController:
                 # display does not have screen to control
                 pass
 
-    def StartupSyncedActions(self, count: int) -> None:
-        pass
+    def StartupSyncedActions(self, count: int, wrapup: bool=False) -> None:
+        
+        
+        if wrapup == True and count > self.Timers['startupMin']:
+            return True
+        else:
+            return False
 
     def SwitchActions(self) -> None:
         # set display sources
@@ -193,17 +200,9 @@ class GUIController:
         for tp in self.TPs:
             tp.SrcCtl.ShowSelectedSource()
 
-    def SwitchSyncedActions(self, count: int) -> None:
-        pass
-
     def ShutdownActions(self) -> None:
         self.PollCtl.SetPollingMode('inactive')
-        
-        if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
-            # Put SVSI ENC endpoints in to standby mode
-            self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
-            # Ensure SVSI DEC endpoints are muted
-            self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
+        self.TP_Main.CamCtl.SendCameraPrivate()
                 
         # power off displays
         # Log(self.Destinations)
@@ -222,7 +221,6 @@ class GUIController:
                 # display does not have screen to control
                 pass
                 
-        self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
         self.TP_Main.AudioCtl.AudioShutdown()
         for tp in self.TPs:
             tp.HdrCtl.ConfigSystemOff()
@@ -231,8 +229,23 @@ class GUIController:
             if id.startswith('WPD'):
                 hw.interface.Set('BootUsers', value=None, qualifier=None)
 
-    def ShutdownSyncedActions(self, count: int) -> None:
-        pass
+    def ShutdownSyncedActions(self, count: int, wrapup: bool=False) -> None:
+        if count >= (self.Timers['shutdown'] - 5) or (wrapup == True and count > self.Timers['shutdownMin']):
+            if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
+                # Put SVSI ENC endpoints in to standby mode
+                self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
+                # Ensure SVSI DEC endpoints are muted
+                self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
+        
+        if count >= self.Timers['shutdown'] or (wrapup == True and count > self.Timers['shutdownMin']):
+            self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
+        
+        if wrapup == True and count > self.Timers['shutdownMin']:
+            return True
+        else:
+            return False
+                
+                
 
     def Initialize(self) -> None:
         ## Create Controllers --------------------------------------------------

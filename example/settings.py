@@ -27,10 +27,12 @@ activityMode = 3                # Activity mode popup to display
    # 3 - Share, Adv. Share, and Group Work
 
 startupTimer = 30             # Max startup timer duration, seconds
-switchTimer = 5               # Max switch timer duration, seconds
+startupMin = 20               # Minium startup timer duration, seconds
+switchTimer = 3               # Max switch timer duration, seconds
 shutdownTimer = 45            # Max shutdown timer duration, seconds
+shutdownMin = 30              # Minium shutdown timer duration, seconds
 shutdownConfTimer = 30        # Shutdown confirmation duration, seconds
-activitySplashTimer = 15      # Duration to show activity splash pages for, seconds
+activitySplashTimer = 60      # Duration to show activity splash pages for, seconds
 initPageTimer = 600           # Inactivity timeout before showing "Splash" page when Activity is Off
 
 defaultSource = "PC001"       # Default source id on activity switch
@@ -230,7 +232,7 @@ microphones = \
 
 lights = []
 
-techPIN = "1867"           # PIN Code to access tech pages, must be a string
+techPIN = "1408"           # PIN Code to access tech pages, must be a string
                            # fewer than 10 characters of 0-9
 
 hardware = [

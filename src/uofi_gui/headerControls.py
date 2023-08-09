@@ -110,8 +110,7 @@ class HeaderController:
             self.UIHost.ShowPopup(button.PopoverName)
     
     def __PopoverCloseHandler(self, button: 'Button', action: str):
-        for po in self.__AllPopovers:
-            self.UIHost.HidePopup(po)
+        self.ClosePopovers()
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -128,6 +127,10 @@ class HeaderController:
             if btn.Hide == 'off':
                 btn.SetEnable(False)
                 btn.SetVisible(False)
+                
+    def ClosePopovers(self) -> None:
+        for po in self.__AllPopovers:
+            self.UIHost.HidePopup(po)
         
 ## End Class Definitions -------------------------------------------------------
 ##

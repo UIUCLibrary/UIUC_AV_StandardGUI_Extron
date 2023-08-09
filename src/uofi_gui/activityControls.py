@@ -34,6 +34,7 @@ from extronlib.system import Timer
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 from utilityFunctions import Log, RunAsync, TimeIntToStr, debug
+from hardware.mersive_solstice_pod import PodFeedbackHelper
 #### Extron Global Scripter Modules
 
 ## End User Import -------------------------------------------------------------
@@ -89,8 +90,7 @@ class ActivityController:
                     "sync": self.GUIHost.StartupSyncedActions
                 },
                 "switch": {
-                    "init": self.GUIHost.SwitchActions,
-                    "sync": self.GUIHost.SwitchSyncedActions
+                    "init": self.GUIHost.SwitchActions
                 },
                 "shutdown": {
                     "init": self.GUIHost.ShutdownActions,
@@ -101,6 +101,10 @@ class ActivityController:
         self.__AllSplashCloseBtns = [tp.Btns['Activity-Splash-Close'] for tp in self.GUIHost.TPs]
         for i in range(len(self.__AllSplashCloseBtns)):
             self.__AllSplashCloseBtns[i].TPIndex = i
+            
+        self.__AllShowTipsBtns = [tp.Btns['Show-Tips'] for tp in self.GUIHost.TPs]
+        for i in range(len(self.__AllShowTipsBtns)):
+            self.__AllShowTipsBtns[i].TPIndex = i
             
         self.__AllSplashBtns = [tp.Btns['Splash'] for tp in self.GUIHost.TPs]
         
@@ -139,15 +143,15 @@ class ActivityController:
         self.__StatusTimer.Stop()
         
         for set in self.__ActivityBtns['select']:
-            @event(set.Objects, 'Pressed') # pragma: no cover
+            @event(set.Objects, ['Pressed', 'Released']) # pragma: no cover
             def ActivityButtonHandler(button: 'Button', action: str):
                 self.__ActivityButtonHandler(button, action)
         
-        @event(self.__ActivityBtns['end'], 'Pressed') # pragma: no cover
+        @event(self.__ActivityBtns['end'], ['Pressed', 'Released']) # pragma: no cover
         def EndNow(button: 'Button', action: str):
             self.__EndNow(button, action)
         
-        @event(self.__ActivityBtns['cancel'], 'Pressed') # pragma: no cover
+        @event(self.__ActivityBtns['cancel'], ['Pressed', 'Released']) # pragma: no cover
         def CancelShutdown(button: 'Button', action: str):
             self.__CancelShutdown(button, action)
         
@@ -155,60 +159,94 @@ class ActivityController:
         def SwitchTimerStateHandler(timer: 'Timer', state: str):
             self.__SwitchTimerStateHandler(timer, state)
 
-        @event(self.__AllSplashBtns, 'Pressed') # pragma: no cover
+        @event(self.__AllSplashBtns, ['Pressed', 'Released']) # pragma: no cover
         def SplashScreenHandler(button: 'Button', action: str):
             self.__SplashScreenHandler(button, action)
         
-        @event(self.__AllSplashCloseBtns, 'Pressed') # pragma: no cover
+        @event(self.__AllSplashCloseBtns, ['Pressed', 'Released']) # pragma: no cover
         def CloseTipHandler(button: 'Button', action: str):
             self.__CloseTipHandler(self.__ActivitySplashTimerList[button.TPIndex])
+        
+        @event(self.__AllShowTipsBtns, ['Pressed', 'Released']) # pragma: no cover
+        def ShowTipsHandler(button: 'Button', action: str):
+            self.__ShowTipsHandler(button, action)
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
+    def __ShowTipsHandler(self, button: 'Button', action: str):
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            self.ShowActivityTip()
+            for tp in self.GUIHost.TPs:
+                tp.HdrCtl.ClosePopovers()
+            button.SetState(0)
+            
+    
     def __ActivityButtonHandler(self, button: 'Button', action: str):
-        Log('Activity Select: {} ({})'.format(button.Name, button))
-        if button.Name == "ActivitySelect-Off":
-            # Log('Off mode selected - show confirmation')
-            self.StartShutdownConfirmation()
-        elif button.Name == "ActivitySelect-Share":
-            # Log('Share mode selected')
-            for i in range(len(self.GUIHost.TPs)):
-                self.__ActivityBtns['select'][i].SetCurrent(button)
-                self.__ActivityBtns['indicator'][i].SetCurrent(1)
-            if self.CurrentActivity == 'off':
-                self.SystemStart('share')
-            else:
-                self.SystemSwitch('share')
-            self.CurrentActivity = 'share'
-        elif button.Name == "ActivitySelect-AdvShare":
-            # Log('Adv. Share mode selected')
-            for i in range(len(self.GUIHost.TPs)):
-                self.__ActivityBtns['select'][i].SetCurrent(button)
-                self.__ActivityBtns['indicator'][i].SetCurrent(2)
-            if self.CurrentActivity == 'off':
-                self.SystemStart('adv_share')
-            else:
-                self.SystemSwitch('adv_share')
-            self.CurrentActivity = 'adv_share'
-        elif button.Name == "ActivitySelect-GroupWork":
-            # Log('Group Work mode selected')
-            for i in range(len(self.GUIHost.TPs)):
-                self.__ActivityBtns['select'][i].SetCurrent(button)
-                self.__ActivityBtns['indicator'][i].SetCurrent(3)
-            if self.CurrentActivity == 'off':
-                self.SystemStart('group_work')
-            else:
-                self.SystemSwitch('group_work')
-            self.CurrentActivity = 'group_work'
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            Log('Activity Select: {} ({})'.format(button.Name, button))
+            if button.Name == "ActivitySelect-Off":
+                # Log('Off mode selected - show confirmation')
+                self.StartShutdownConfirmation()
+            elif button.Name == "ActivitySelect-Share":
+                # Log('Share mode selected')
+                for i in range(len(self.GUIHost.TPs)):
+                    self.__ActivityBtns['select'][i].SetCurrent(button)
+                    self.__ActivityBtns['indicator'][i].SetCurrent(1)
+                if self.CurrentActivity == 'off':
+                    self.SystemStart('share')
+                else:
+                    self.SystemSwitch('share')
+                self.CurrentActivity = 'share'
+            elif button.Name == "ActivitySelect-AdvShare":
+                # Log('Adv. Share mode selected')
+                for i in range(len(self.GUIHost.TPs)):
+                    self.__ActivityBtns['select'][i].SetCurrent(button)
+                    self.__ActivityBtns['indicator'][i].SetCurrent(2)
+                if self.CurrentActivity == 'off':
+                    self.SystemStart('adv_share')
+                else:
+                    self.SystemSwitch('adv_share')
+                self.CurrentActivity = 'adv_share'
+            elif button.Name == "ActivitySelect-GroupWork":
+                # Log('Group Work mode selected')
+                for i in range(len(self.GUIHost.TPs)):
+                    self.__ActivityBtns['select'][i].SetCurrent(button)
+                    self.__ActivityBtns['indicator'][i].SetCurrent(3)
+                if self.CurrentActivity == 'off':
+                    self.SystemStart('group_work')
+                else:
+                    self.SystemSwitch('group_work')
+                self.CurrentActivity = 'group_work'
     
     def __EndNow(self, button: 'Button', action: str):
-        self.__ConfirmationTimer.Stop()
-        self.SystemShutdown()
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            self.__ConfirmationTimer.Stop()
+            self.SystemShutdown()
             
     def __CancelShutdown(self, button: 'Button', action: str):
-        self.__ConfirmationTimer.Stop()
-        for tp in self.GUIHost.TPs:
-            tp.HidePopup("Shutdown-Confirmation")
+        if action == 'Pressed':
+            button.SetState(1)
+        elif action == 'Released':
+            button.SetState(0)
+            if self.CurrentActivity == 'share':
+                actIndex = 1
+            elif self.CurrentActivity == 'adv_share':
+                actIndex = 2
+            elif self.CurrentActivity == 'group_work':
+                actIndex = 3
+            for i in range(len(self.GUIHost.TPs)):
+                self.__ActivityBtns['select'][i].SetCurrent(actIndex)
+                self.__ActivityBtns['indicator'][i].SetCurrent(actIndex)
+            self.__ConfirmationTimer.Stop()
+            for tp in self.GUIHost.TPs:
+                tp.HidePopup("Shutdown-Confirmation")
     
     def __SwitchTimerStateHandler(self, timer: 'Timer', state: str):
         if state == 'Stopped':
@@ -225,6 +263,8 @@ class ActivityController:
         page = self.GUIHost.TPs[timer.TPIndex].SrcCtl.SelectedSource.SourceControlPage 
         if page == 'PC':
             page = '{p}_{c}'.format(p=page, c=len(self.GUIHost.Cameras))
+        elif page == 'WPD':
+            PodFeedbackHelper(self.GUIHost.TPs[timer.TPIndex], self.GUIHost.TPs[timer.TPIndex].SrcCtl.SelectedSource.Id, blank_on_fail=True)
         self.GUIHost.TPs[timer.TPIndex].ShowPopup("Source-Control-{}".format(page))
     
     def __StatusTimerHandler(self, timer: Timer, count: int):
@@ -263,12 +303,23 @@ class ActivityController:
             self.__Transition['count'][i].SetText(TimeIntToStr(timeRemaining))
             self.__Transition['level'][i].SetLevel(count)
 
+        destStatus = True
+        for dest in self.GUIHost.Destinations:
+            if dest['type'] not in ['conf']:
+                self.GUIHost.Hardware[dest['id']].interface.Update('Power')
+                curStatus = self.GUIHost.Hardware[dest['id']].interface.ReadStatus('Power')
+                if curStatus not in ['On', 'on', 'Power On', 'ON', 'Power on', 'POWER ON']:
+                    destStatus = False
+        
         # TIME SYNCED SWITCH ITEMS HERE - function in main
-        self.__Transition['start']['sync'](count)
+        if destStatus:
+            destStatus = self.__Transition['start']['sync'](count, wrapup=True)
+        else:
+            self.__Transition['start']['sync'](count)
 
         # feedback can be used here to jump out of the startup process early
 
-        if count >= self.__StartupTime:
+        if count >= self.__StartupTime or destStatus:
             timer.Stop()
             # Log('System started in {} mode'.format(self.CurrentActivity))
             self.SystemSwitch(self.CurrentActivity)
@@ -279,9 +330,6 @@ class ActivityController:
         for i in range(len(self.GUIHost.TPs)):
             self.__Transition['count'][i].SetText(TimeIntToStr(timeRemaining))
             self.__Transition['level'][i].SetLevel(count)
-
-        # TIME SYNCED SWITCH ITEMS HERE - function in Main
-        self.__Transition['switch']['sync'](count)
 
         # feedback can be used here to jump out of the switch process early
 
@@ -298,12 +346,23 @@ class ActivityController:
             self.__Transition['count'][i].SetText(TimeIntToStr(timeRemaining))
             self.__Transition['level'][i].SetLevel(count)
 
+        destStatus = True
+        for dest in self.GUIHost.Destinations:
+            if dest['type'] not in ['conf']:
+                self.GUIHost.Hardware[dest['id']].interface.Update('Power')
+                curStatus = self.GUIHost.Hardware[dest['id']].interface.ReadStatus('Power')
+                if curStatus not in ['Off', 'off', 'Power Off', 'Standby (Power Save)', 'Suspend (Power Save)', 'OFF', 'Power off', 'POWER OFF']:
+                    destStatus = False
+        
         # TIME SYNCED SHUTDOWN ITEMS HERE - function in main
-        self.__Transition['shutdown']['sync'](count)
+        if destStatus:
+            destStatus = self.__Transition['shutdown']['sync'](count, wrapup=True)
+        else:
+            self.__Transition['shutdown']['sync'](count)
 
         # feedback can be used here to jump out of the shutdown process early
 
-        if count >= self.__ShutdownTime:
+        if count >= self.__ShutdownTime or destStatus:
             timer.Stop()
             for tp in self.GUIHost.TPs:
                 tp.HidePopup('Power-Transition')
@@ -406,6 +465,20 @@ class ActivityController:
             touchPanel.ShowPopup("Source-Control-Splash-GrpWrk")
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def ShowActivityTip(self):
+        for touchPanel in self.GUIHost.TPs:
+            # show activity splash screen, will be updated config.activitySplash
+            # seconds after the activity switch timer stops
+            touchPanel.Btns['Activity-Splash-Close'].SetText('Close Tip ({})'.format(self.__SplashTime))
+            
+            if self.CurrentActivity == "share":
+                touchPanel.ShowPopup("Source-Control-Splash-Share")
+            elif self.CurrentActivity == "group_work":
+                touchPanel.ShowPopup("Source-Control-Splash-GrpWrk")
+            
+        for timer in self.__ActivitySplashTimerList:
+            timer.Restart()
     
     def StartShutdownConfirmation(self, click: bool=False):
         if self.CurrentActivity != 'off':
