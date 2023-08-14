@@ -251,7 +251,11 @@ class AudioController:
         hw = self.GUIHost.Hardware[cmd['HwId']]
         hwCmd = getattr(hw, cmd['HwCmd'])
         qual = hwCmd.get('qualifier', None)
-        value = 'On' if setState else 'Off'
+        
+        if hwCmd in ['LogicState', 'LogicInputOutput']:
+            value = 'True' if setState else 'False'
+        else:
+            value = 'On' if setState else 'Off'
         
         mic['mute'] = setState
         

@@ -20,8 +20,8 @@ import secrets_hardware
 ## These are per system configuration variables, modify these as required
 
 ctlJSON = '/user/controls.json' # location of controls json file
-roomName = 'Main Library 314'   # Room Name - update for each project
-activityMode = 3                # Activity mode popup to display
+roomName = 'Main Library 106'   # Room Name - update for each project
+activityMode = 2                # Activity mode popup to display
    # 1 - Share only
    # 2 - Share & Advanced Share
    # 3 - Share, Adv. Share, and Group Work
@@ -37,7 +37,7 @@ initPageTimer = 600           # Inactivity timeout before showing "Splash" page 
 
 defaultSource = "PC001"       # Default source id on activity switch
 defaultCamera = 'CAM001'      # Default camera to show on camera control pages
-primaryDestination = "PRJ001" # Primary destination
+primaryDestination = "MON002" # Primary destination
 primarySwitcher = 'VMX001'    # Primary Matrix Switcher
 primaryTouchPanel = 'TP001'   # Primary Touch Panel
 primaryProcessor = 'CTL001'   # Primary Control Processor
@@ -59,23 +59,14 @@ sources = \
          "id": "PC001",
          "name": "Room PC",
          "icon": 2,
-         "input": 3,
+         "input": 4,
          "alert": "Ensure the PC is awake.",
          "srcCtl": "PC",
          "advSrcCtl": None
       },
       {
          "id": "WPD001",
-         "name": "Inst. Pod",
-         "icon": 3,
-         "input": 4,
-         "alert": "Contact Library IT for Assistance with this Wireless Device",
-         "srcCtl": "WPD",
-         "advSrcCtl": "WPD"
-      },
-      {
-         "id": "WPD002",
-         "name": "North Pod",
+         "name": "Wireless Pod",
          "icon": 3,
          "input": 5,
          "alert": "Contact Library IT for Assistance with this Wireless Device",
@@ -83,17 +74,8 @@ sources = \
          "advSrcCtl": "WPD"
       },
       {
-         "id": "WPD003",
-         "name": "South Pod",
-         "icon": 3,
-         "input": 6,
-         "alert": "Contact Library IT for Assistance with this Wireless Device",
-         "srcCtl": "WPD",
-         "advSrcCtl": "WPD"
-      },
-      {
-         "id": "PL001-1",
-         "name": "HDMI 1",
+         "id": "PL001",
+         "name": "Lectern HDMI",
          "icon": 1,
          "input": 1,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
@@ -101,10 +83,19 @@ sources = \
          "advSrcCtl": None
       },
       {
-         "id": "PL001-2",
-         "name": "HDMI 2",
+         "id": "ENC002",
+         "name": "West HDMI",
          "icon": 1,
          "input": 2,
+         "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
+         "srcCtl": "HDMI",
+         "advSrcCtl": None
+      },
+      {
+         "id": "ENC003",
+         "name": "East HDMI",
+         "icon": 1,
+         "input": 3,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
          "srcCtl": "HDMI",
          "advSrcCtl": None
@@ -120,37 +111,12 @@ sources = \
 destinations = \
    [
       {
-         'id': 'PRJ001',
-         'name': 'Projector',
-         'output': 2,
-         'type': 'proj+scn',
-         'rly': (1,2),
-         'groupWrkSrc': 'WPD001',
-         'advLayout': {
-            'row': 0,
-            'pos': 0
-         }
-      },
-      {
-         'id': 'MON003',
-         'name': 'Confidence Monitor',
-         'output': 1,
-         'type': 'conf',
-         'rly': None,
-         'groupWrkSrc': 'WPD001',
-         'advLayout': {
-            "row": 0,
-            "pos": 1
-         },
-         'confFollow': 'PRJ001'
-      },
-      {
          "id": "MON001",
-         "name": "North Monitor",
-         "output": 3,
+         "name": "West Monitor",
+         "output": 1,
          "type": "mon",
          "rly": None,
-         "groupWrkSrc": "WPD002",
+         "groupWrkSrc": "WPD001",
          "advLayout": {
             "row": 1,
             "pos": 0
@@ -158,28 +124,40 @@ destinations = \
       },
       {
          "id": "MON002",
-         "name": "South Monitor",
-         "output": 4,
+         "name": "North Monitor",
+         "output": 2,
          "type": "mon",
          "rly": None,
-         "groupWrkSrc": "WPD003",
+         "groupWrkSrc": "WPD001",
          "advLayout": {
             "row": 1,
             "pos": 1
          }
-      }
+      },
+      {
+         'id': 'MON003',
+         'name': 'East Monitor',
+         'output': 1,
+         'type': 'mon',
+         'rly': None,
+         'groupWrkSrc': 'WPD001',
+         'advLayout': {
+            "row": 0,
+            "pos": 1
+         }
+      },
    ]
    
 cameras = \
    [
       {
          "Id": "CAM001",
-         "Name": "North Camera",
+         "Name": "Presenter Camera",
          "Input": 1
       },
       {
          'Id': 'CAM002',
-         'Name': 'Sourth Camera',
+         'Name': 'Audience Camera',
          'Input': 2
       }
    ]
@@ -223,8 +201,29 @@ microphones = \
                   },
                'mute':
                   {
-                     'HwId': 'MIC001',
-                     'HwCmd': 'MuteCommand'
+                     'HwId': 'DSP001',
+                     'HwCmd': 'Mic2MuteCommand'
+                  }
+            }
+      },
+      {
+         'Id': 'MIC002',
+         'Name': 'Lectern XLR',
+         'Number': 3,
+         'Control':
+            {
+               'level':
+                  {
+                     'HwId': 'DSP001',
+                     'HwCmd': 'Mic3LevelCommand',
+                     'Range': (-36, 12),
+                     'Step': 1,
+                     'StartUp': 0
+                  },
+               'mute':
+                  {
+                     'HwId': 'DSP001',
+                     'HwCmd': 'Mic3MuteCommand'
                   }
             }
       }
@@ -238,7 +237,7 @@ techPIN = "1408"           # PIN Code to access tech pages, must be a string
 hardware = [
    {
       'Id': 'WPD001',
-      'Name': 'Inst. Pod',
+      'Name': 'Wireless Pod',
       'Manufacturer': 'Mersive',
       'Model': 'Solstice Pod Gen 3',
       'Interface': 
@@ -246,57 +245,7 @@ hardware = [
             'module': 'hardware.mersive_solstice_pod',
             'interface_class': 'RESTClass',
             'interface_configuration': {
-               'host': 'mainlib314-wpd001.library.illinois.edu',
-               'devicePassword': secrets_hardware.mersive_password
-            }
-         },
-      'Subscriptions': [],
-      'Polling':
-         [
-            {
-               'command': 'PodStatus',
-               'callback': 'FeedbackStatusHandler',
-               'active_int': 10,
-               'inactive_int': 600
-            }
-         ]
-   },
-   {
-      'Id': 'WPD002',
-      'Name': 'North Pod',
-      'Manufacturer': 'Mersive',
-      'Model': 'Solstice Pod Gen 3',
-      'Interface': 
-         {
-            'module': 'hardware.mersive_solstice_pod',
-            'interface_class': 'RESTClass',
-            'interface_configuration': {
-               'host': 'mainlib314-wpd002.library.illinois.edu',
-               'devicePassword': secrets_hardware.mersive_password
-            }
-         },
-      'Subscriptions': [],
-      'Polling':
-         [
-            {
-               'command': 'PodStatus',
-               'callback': 'FeedbackStatusHandler',
-               'active_int': 10,
-               'inactive_int': 600
-            }
-         ]
-   },
-   {
-      'Id': 'WPD003',
-      'Name': 'South Pod',
-      'Manufacturer': 'Mersive',
-      'Model': 'Solstice Pod Gen 3',
-      'Interface': 
-         {
-            'module': 'hardware.mersive_solstice_pod',
-            'interface_class': 'RESTClass',
-            'interface_configuration': {
-               'host': 'mainlib314-wpd003.library.illinois.edu',
+               'host': 'mainlib106-wpd001.library.illinois.edu',
                'devicePassword': secrets_hardware.mersive_password
             }
          },
@@ -315,7 +264,7 @@ hardware = [
       'Id': 'DSP001',
       'Name': 'DSP',
       'Manufacturer': 'Biamp',
-      'Model': 'TesiraFORTE AI AVB',
+      'Model': 'TesiraFORTE AVB VT4',
       'Interface':
          {
             'module': 'hardware.biam_dsp_TesiraSeries_uofi',
@@ -326,7 +275,7 @@ hardware = [
                'pollFrequency': 20
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-dsp001.library.illinois.edu',
+               'Hostname': 'mainlib106-dsp001.library.illinois.edu',
                'IPPort': 22,
                'Credentials': ('admin', secrets_hardware.biamp_password)
             }
@@ -352,9 +301,17 @@ hardware = [
             },
             {
                'command': 'LevelControl',
-               'qualifier': {'Instance Tag': 'Mic2Level', 'Channel': '1'},
+               'qualifier': {'Instance Tag': 'CeilingMicLevel', 'Channel': '1'},
                'callback': 'FeedbackLevelHandler',
                'tag': ('mics', '2'),
+               'active_int': 30,
+               'inactive_int': 120,
+            },
+            {
+               'command': 'LevelControl',
+               'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
+               'callback': 'FeedbackLevelHandler',
+               'tag': ('mics', '3'),
                'active_int': 30,
                'inactive_int': 120,
             },
@@ -375,20 +332,28 @@ hardware = [
                'inactive_int': 120,
             },
             {
+               'command': 'MuteControl',
+               'qualifier': {'Instance Tag': 'CeilingMicMute', 'Channel': '1'},
+               'callback': 'FeedbackMuteHandler',
+               'tag': ('mics', '2'),
+               'active_int': 30,
+               'inactive_int': 120,
+            },
+            {
+               'command': 'MuteControl',
+               'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'},
+               'callback': 'FeedbackMuteHandler',
+               'tag': ('mics', '3'),
+               'active_int': 30,
+               'inactive_int': 120,
+            },
+            {
                'command': 'AECGain',
                'qualifier': [
                   {'Instance Tag': 'AecInput1', 'Channel': '1'},
                   {'Instance Tag': 'AecInput1', 'Channel': '2'},
                   {'Instance Tag': 'AecInput1', 'Channel': '3'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '4'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '5'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '6'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '7'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '8'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '9'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '10'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '11'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '12'}
+                  {'Instance Tag': 'AecInput1', 'Channel': '4'}
                ],
                'callback': 'FeedbackGainHandler',
                'active_int': 30,
@@ -400,15 +365,7 @@ hardware = [
                   {'Instance Tag': 'AecInput1', 'Channel': '1'},
                   {'Instance Tag': 'AecInput1', 'Channel': '2'},
                   {'Instance Tag': 'AecInput1', 'Channel': '3'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '4'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '5'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '6'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '7'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '8'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '9'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '10'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '11'},
-                  {'Instance Tag': 'AecInput1', 'Channel': '12'}
+                  {'Instance Tag': 'AecInput1', 'Channel': '4'}
                ],
                'callback': 'FeedbackPhantomHandler',
                'active_int': 60,
@@ -443,10 +400,25 @@ hardware = [
                   'command': 'LevelControl',
                   'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'}
                },
+            'Mic2MuteCommand': 
+               {
+                  'command': 'LogicState',
+                  'qualifier': {'Instance Tag': 'CeilingMicLogic', 'Channel': '1'}
+               },
             'Mic2LevelCommand':
                {
                   'command': 'LevelControl',
-                  'qualifier': {'Instance Tag': 'Mic2Level', 'Channel': '1'}
+                  'qualifier': {'Instance Tag': 'CeilingMicLevel', 'Channel': '1'}
+               },
+            'Mic3MuteCommand': 
+               {
+                  'command': 'MuteControl',
+                  'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'}
+               },
+            'Mic3LevelCommand':
+               {
+                  'command': 'LevelControl',
+                  'qualifier': {'Instance Tag': 'XLRLevel', 'Channel': '1'}
                },
             'InputControls':
                [
@@ -465,72 +437,16 @@ hardware = [
                      'PhantomCommand': 'AECPhantomPower'
                   },
                   {
-                     'Name': 'Mic - RF001',
+                     'Name': 'Mic - MIC002',
                      'Block': 'AecInput1',
                      'Channel': '3',
                      'GainCommand': 'AECGain',
                      'PhantomCommand': 'AECPhantomPower'
                   },
                   {
-                     'Name': 'Unused Input',
+                     'Name': 'Mic - RF001',
                      'Block': 'AecInput1',
                      'Channel': '4',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '5',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '6',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '7',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '8',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '9',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '10',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '11',
-                     'GainCommand': 'AECGain',
-                     'PhantomCommand': 'AECPhantomPower'
-                  },
-                  {
-                     'Name': 'Unused Input',
-                     'Block': 'AecInput1',
-                     'Channel': '12',
                      'GainCommand': 'AECGain',
                      'PhantomCommand': 'AECPhantomPower'
                   }
@@ -539,7 +455,7 @@ hardware = [
    },
    {
       'Id': 'CAM001',
-      'Name': 'North Camera',
+      'Name': 'Presenter Camera',
       'Manufacturer': 'PTZOptics',
       'Model': 'PT12X-NDI',
       'Interface':
@@ -552,7 +468,7 @@ hardware = [
                'pollFrequency': 20
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-cam001.library.illinois.edu',
+               'Hostname': 'mainlib106-cam001.library.illinois.edu',
                'IPPort': 5678
             }
          },
@@ -590,7 +506,7 @@ hardware = [
    },
    {
       'Id': 'CAM002',
-      'Name': 'South Camera',
+      'Name': 'Audience Camera',
       'Manufacturer': 'PTZOptics',
       'Model': 'PT12X-NDI',
       'Interface':
@@ -603,7 +519,7 @@ hardware = [
                'pollFrequency': 20
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-cam002.library.illinois.edu',
+               'Hostname': 'mainlib106-cam002.library.illinois.edu',
                'IPPort': 5678
             }
          },
@@ -649,7 +565,7 @@ hardware = [
             'module': 'hardware.mgwl_sm_Pro_Convert_Series_v1_0_1_0',
             'interface_class': 'HTTPClass',
             'interface_configuration': {
-               'ipAddress': 'mainlib314-dec001.library.illinois.edu',
+               'ipAddress': 'mainlib106-dec001.library.illinois.edu',
                'port': 80,
                'deviceUsername': 'Admin',
                'devicePassword': secrets_hardware.magewell_password
@@ -675,7 +591,7 @@ hardware = [
    },
    {
       'Id': 'DEC002',
-      'Name': 'Confidence Monitor Decoder',
+      'Name': 'West Monitor Decoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-DEC-N2322',
       'Interface':
@@ -688,7 +604,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-dec002.library.illinois.edu',
+               'Hostname': 'mainlib106-dec002.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -702,33 +618,6 @@ hardware = [
    },
    {
       'Id': 'DEC003',
-      'Name': 'Projector Decoder',
-      'Manufacturer': 'AMX',
-      'Model': 'NMX-DEC-N2322',
-      'Interface':
-         {
-            'module': 'hardware.amx_avoip_n2300_series',
-            'interface_class': 'EthernetClass',
-            'ConnectionHandler': {
-               'keepAliveQuery': 'DeviceStatus',
-               'DisconnectLimit': 5,
-               'pollFrequency': 60
-            },
-            'interface_configuration': {
-               'Hostname': 'mainlib314-dec003.library.illinois.edu',
-               'IPPort': 50002,
-               'Model': 'NMX-DEC-N2322'
-            }
-         },
-      'Subscriptions': [],
-      'Polling': [],
-      'Options': {
-         'MatrixAssignment': 'VMX001',
-         'MatrixOutput': 2
-      }
-   },
-   {
-      'Id': 'DEC004',
       'Name': 'North Monitor Decoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-DEC-N2322',
@@ -742,7 +631,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-dec004.library.illinois.edu',
+               'Hostname': 'mainlib106-dec003.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -751,12 +640,12 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixOutput': 3
+         'MatrixOutput': 2
       }
    },
    {
-      'Id': 'DEC005',
-      'Name': 'South Monitor Decoder',
+      'Id': 'DEC004',
+      'Name': 'East Monitor Decoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-DEC-N2322',
       'Interface':
@@ -769,7 +658,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-dec005.library.illinois.edu',
+               'Hostname': 'mainlib106-dec004.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-DEC-N2322'
             }
@@ -778,12 +667,12 @@ hardware = [
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixOutput': 4
+         'MatrixOutput': 3
       }
    },
    {
       'Id': 'ENC001',
-      'Name': 'HDMI 1 Encoder',
+      'Name': 'Lectern HDMI Encoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-ENC-N2312',
       'Interface':
@@ -796,7 +685,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-enc001.library.illinois.edu',
+               'Hostname': 'mainlib106-enc001.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -810,9 +699,9 @@ hardware = [
    },
    {
       'Id': 'ENC002',
-      'Name': 'HDMI 2 Encoder',
+      'Name': 'West HDMI Encoder',
       'Manufacturer': 'AMX',
-      'Model': 'NMX-ENC-N2312',
+      'Model': 'NMX-ENC-N2315-WP',
       'Interface':
          {
             'module': 'hardware.amx_avoip_n2300_series',
@@ -823,7 +712,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-enc002.library.illinois.edu',
+               'Hostname': 'mainlib106-enc002.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -837,9 +726,9 @@ hardware = [
    },
    {
       'Id': 'ENC003',
-      'Name': 'PC Encoder',
+      'Name': 'East HDMI Encoder',
       'Manufacturer': 'AMX',
-      'Model': 'NMX-ENC-N2312',
+      'Model': 'NMX-ENC-N2315-WP',
       'Interface':
          {
             'module': 'hardware.amx_avoip_n2300_series',
@@ -850,7 +739,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-enc003.library.illinois.edu',
+               'Hostname': 'mainlib106-enc003.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -864,7 +753,7 @@ hardware = [
    },
    {
       'Id': 'ENC004',
-      'Name': 'Instr. Pod Encoder',
+      'Name': 'Room PC Encoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-ENC-N2312',
       'Interface':
@@ -877,7 +766,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-enc004.library.illinois.edu',
+               'Hostname': 'mainlib106-enc004.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -891,7 +780,7 @@ hardware = [
    },
    {
       'Id': 'ENC005',
-      'Name': 'North Pod Encoder',
+      'Name': 'Wireless Pod Encoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-ENC-N2312',
       'Interface':
@@ -904,7 +793,7 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-enc005.library.illinois.edu',
+               'Hostname': 'mainlib106-enc005.library.illinois.edu',
                'IPPort': 50002,
                'Model': 'NMX-ENC-N2312'
             }
@@ -917,13 +806,13 @@ hardware = [
       }
    },
    {
-      'Id': 'ENC006',
-      'Name': 'South Pod Encoder',
+      'Id': 'ATC001',
+      'Name': 'Audio Transceiver',
       'Manufacturer': 'AMX',
-      'Model': 'NMX-ENC-N2312',
+      'Model': 'NMX-ATC-N4321',
       'Interface':
          {
-            'module': 'hardware.amx_avoip_n2300_series',
+            'module': 'hardware.amx_avoip_n4321_atc',
             'interface_class': 'EthernetClass',
             'ConnectionHandler': {
                'keepAliveQuery': 'DeviceStatus',
@@ -931,16 +820,17 @@ hardware = [
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-enc006.library.illinois.edu',
+               'Hostname': 'mainlib106-atc001.library.illinois.edu',
                'IPPort': 50002,
-               'Model': 'NMX-ENC-N2312'
+               'Model': 'NMX-ATC-N4321'
             }
          },
       'Subscriptions': [],
       'Polling': [],
       'Options': {
          'MatrixAssignment': 'VMX001',
-         'MatrixInput': 6
+         'MatrixInput': 6,
+         'MatrixOutput': 4
       }
    },
    {
@@ -969,12 +859,7 @@ hardware = [
                   {'Output': 2, 'Tie Type': 'Audio'},
                   {'Output': 3, 'Tie Type': 'Video'},
                   {'Output': 3, 'Tie Type': 'Audio'},
-                  {'Output': 4, 'Tie Type': 'Video'},
                   {'Output': 4, 'Tie Type': 'Audio'},
-                  {'Output': 5, 'Tie Type': 'Video'},
-                  {'Output': 5, 'Tie Type': 'Audio'},
-                  {'Output': 6, 'Tie Type': 'Video'},
-                  {'Output': 6, 'Tie Type': 'Audio'},
                ],
                'callback': 'FeedbackOutputTieStatusHandler',
             },
@@ -985,6 +870,8 @@ hardware = [
                   {'Input': 2},
                   {'Input': 3},
                   {'Input': 4},
+                  {'Input': 5},
+                  {'Input': 6}
                ],
                'callback': 'FeedbackInputSignalStatusHandler'
             }
@@ -1008,26 +895,27 @@ hardware = [
                {
                   'command': 'InputSignalStatus'
                },
-            'SystemAudioOuput': 2
+            'SystemAudioOuput': 4
          }
    },
    {
       'Id': 'MON001',
-      'Name': 'North Monitor',
+      'Name': 'West Monitor',
       'Manufacturer': 'SharpNEC',
-      'Model': 'C860Q',
+      'Model': 'LC-80LE650U',
       'Interface': 
          {
-            'module': 'hardware.nec_display_C750Q_C860Q_v1_2_0_0',
-            'interface_class': 'EthernetClass',
+            'module': 'hardware.shrp_display_LC_60C_xxLExxxU_Series_v1_0_7_0',
+            'interface_class': 'SerialOverEthernetClass',
             'ConnectionHandler': {
                'keepAliveQuery': 'AspectRatio',
                'DisconnectLimit': 5,
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-mon001.library.illinois.edu',
-               'IPPort': 7142,
+               'Hostname': 'mainlib106-dec002.library.illinois.edu',
+               'IPPort': 50004,
+               'Model': 'LC-80LE650U'
             }
          },
       'Subscriptions': [],
@@ -1076,21 +964,22 @@ hardware = [
    },
    {
       'Id': 'MON002',
-      'Name': 'South Monitor',
+      'Name': 'North Monitor',
       'Manufacturer': 'SharpNEC',
-      'Model': 'C860Q',
+      'Model': 'LC-80LE650U',
       'Interface': 
          {
-            'module': 'hardware.nec_display_C750Q_C860Q_v1_2_0_0',
-            'interface_class': 'EthernetClass',
+            'module': 'hardware.shrp_display_LC_60C_xxLExxxU_Series_v1_0_7_0',
+            'interface_class': 'SerialOverEthernetClass',
             'ConnectionHandler': {
                'keepAliveQuery': 'AspectRatio',
                'DisconnectLimit': 5,
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-mon002.library.illinois.edu',
-               'IPPort': 7142,
+               'Hostname': 'mainlib106-dec003.library.illinois.edu',
+               'IPPort': 50004,
+               'Model': 'LC-80LE650U'
             }
          },
       'Subscriptions': [],
@@ -1138,74 +1027,48 @@ hardware = [
          }
    },
    {
-      'Id': 'MIC001',
-      'Name': 'Overhead Mic',
-      'Manufacturer': 'Shure',
-      'Model': 'MXA920',
-      'Interface':
+      'Id': 'MON003',
+      'Name': 'East Monitor',
+      'Manufacturer': 'SharpNEC',
+      'Model': 'LC-80LE650U',
+      'Interface': 
          {
-            'module': 'hardware.shur_dsp_MXA_Series_v1_3_0_0',
-            'interface_class': 'EthernetClass',
+            'module': 'hardware.shrp_display_LC_60C_xxLExxxU_Series_v1_0_7_0',
+            'interface_class': 'SerialOverEthernetClass',
             'ConnectionHandler': {
-               'keepAliveQuery': 'ActiveMicChannels',
+               'keepAliveQuery': 'AspectRatio',
                'DisconnectLimit': 5,
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-mic001.library.illinois.edu',
-               'IPPort': 2202,
-               'Model': 'MXA920'
+               'Hostname': 'mainlib106-dec004.library.illinois.edu',
+               'IPPort': 50004,
+               'Model': 'LC-80LE650U'
             }
          },
       'Subscriptions': [],
       'Polling': 
          [
             {
-               'command': 'DeviceAudioMute',
-               'callback': 'FeedbackMuteHandler',
-               'tag': ('mics', '2'),
-               'active_int': 10,
-               'inactive_int': 30
-            }
-         ],
-      'Options':
-         {
-            'MuteCommand':
-               {
-                  'command': 'DeviceAudioMute'
-               }
-         }
-   },
-   {
-      'Id': 'PRJ001',
-      'Name': 'Projector',
-      'Manufacturer': 'SharpNEC',
-      'Model': 'NP-PV710UL',
-      'Interface':
-         {
-            'module': 'hardware.nec_vp_NPPA_803UL_653UL_v1_1_1_0',
-            'interface_class': 'EthernetClass',
-            'ConnectionHandler': {
-               'keepAliveQuery': 'LampUsage',
-               'DisconnectLimit': 5,
-               'pollFrequency': 60
-            },
-            'interface_configuration': {
-               'Hostname': 'mainlib314-prj001.library.illinois.edu',
-               'IPPort': 7142
-            }
-         },
-      'Subscriptions': [],
-      'Polling':
-         [
-            {
                'command': 'Power',
                'callback': 'PowerStatusHandler',
-               'active_int': 10,
+               'active_int': 11,
                'inactive_int': 30
+            },
+            {
+               'command': 'AudioMute',
+               'callback': 'AudioMuteStatusHandler',
+               'active_int': 22,
+               'inactive_int': 600
+            },
+            {
+               'command': 'Volume',
+               'callback': 'VolumeStatusHandler',
+               'active_int': 33,
+               'inactive_int': 600
             }
          ],
-      'Options':
+      'Options': 
          {
             'PowerCommand': 
                {
@@ -1216,8 +1079,17 @@ hardware = [
                   'command': 'Input',
                   'value': 'HDMI 1'
                },
+            'MuteCommand':
+               {
+                  'command': 'AudioMute',
+               },
+            'VolumeCommand':
+               {
+                  'command': 'Volume'
+               },
+            'VolumeRange': (0, 100)
          }
-   }
+   },
 ]
 
 ##==============================================================================
