@@ -1217,6 +1217,39 @@ hardware = [
                   'value': 'HDMI 1'
                },
          }
+   },
+   {
+      'Id': 'RF001',
+      'Name': 'Lav Mic Receiver',
+      'Manufacturer': 'Shure',
+      'Model': 'QLXD4-G50',
+      'Interface':
+         {
+            'module': 'hardware.shur_other_QLX_D_ULX_D_Series_v1_1_5_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'AntennaStatus',
+               'DisconnectLimit': 5,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'mainlib314-rf001.library.illinois.edu',
+               'IPPort': 2202,
+               'Model': 'QLX-D',
+            }
+         },
+      'Subscriptions': [],
+      'Polling': 
+         [
+            {
+               'command': 'InterferenceDetection',
+               'qualifier': {'Channel': '1'},
+               'callback': 'FeedbackInterferenceHandler',
+               'active_int': 10,
+               'inactive_in': 600,
+            }
+         ],
+      'Options': []
    }
 ]
 
