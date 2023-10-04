@@ -26,34 +26,17 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Extron Library Imports
 from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
-from extronlib.ui import Button, Label, Level, Slider, Knob
 from extronlib.system import Wait
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.ButtonPanel import ButtonPanelInterface
+from modules.project.PrimitiveObjects import Alias, classproperty
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
-
-class classproperty(property):
-    def __get__(self, owner_self, owner_cls):
-        return self.fget(owner_cls)
-
-class Alias:
-    def __init__(self, source_name):
-        self.source_name = source_name
-
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            # Class lookup, return descriptor
-            return self
-        return getattr(obj, self.source_name)
-
-    def __set__(self, obj, value):
-        setattr(obj, self.source_name, value)
 
 class ExProcessorDevice(ProcessorDevice):
     ipcp_pro_xi_part_list = ['60-1911-01', '60-1911-01A', # IPCP Pro 250 xi
@@ -201,66 +184,6 @@ class ExEBUSDevice(eBUSDevice):
         valid_list.extend(cls.us_ebus_part_list)
         valid_list.extend(cls.decora_ebus_part_list)
         return valid_list
-
-class ExButton(Button):
-    def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice, ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice], 
-                 ID_Name: Union[int, str], 
-                 holdTime: float = None, 
-                 repeatTime: float = None,
-                 **kwargs) -> None:
-        super().__init__(UIHost, ID_Name, holdTime, repeatTime)
-        
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
-        
-
-class ExLabel(Label):
-    def __init__(self, 
-                 UIHost: Union[UIDevice, ExUIDevice, ProcessorDevice, ExProcessorDevice], 
-                 ID_Name: Union[int, str],
-                 **kwargs) -> None:
-        super().__init__(UIHost, ID_Name)
-        
-        self.Id = self.ID
-        
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
-
-class ExLevel(Level):
-    def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, SPDevice, ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice], 
-                 ID_Name: Union[int, str],
-                 **kwargs) -> None:
-        super().__init__(UIHost, ID_Name)
-        
-        self.Id = self.ID
-        
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
-
-class ExSlider(Slider):
-    def __init__(self, 
-                 UIHost: Union[UIDevice, ProcessorDevice, SPDevice, ExUIDevice, ExProcessorDevice, ExSPDevice], 
-                 ID_Name: Union[int, str],
-                 **kwargs) -> None:
-        super().__init__(UIHost, ID_Name)
-        
-        self.Id = self.ID
-        
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
-
-class ExKnob(Knob):
-    def __init__(self, 
-                 UIHost: Union[UIDevice, eBUSDevice, ProcessorDevice, ExUIDevice, ExEBUSDevice, ExProcessorDevice],
-                 **kwargs) -> None:
-        super().__init__(UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
-        
-        self.Id = self.ID
-        
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
 
 ## End Class Definitions -------------------------------------------------------
 ##

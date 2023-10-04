@@ -24,7 +24,7 @@ if TYPE_CHECKING: # pragma: no cover
 from collections import namedtuple
 from extronlib import event
 from modules.device.classes.Sources import Source
-from DevelopmentProject.src.modules.project.SystemHardware import SystemHardwareController
+from modules.project.SystemHardware import SystemHardwareController
 from modules.device.mersive_solstice_pod import PodFeedbackHelper
 from modules.helper.CommonUtilities import Log
 from Devices import SystemDevices as Devices

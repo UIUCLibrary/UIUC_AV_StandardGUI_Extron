@@ -1,14 +1,8 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-
 from extronlib.interface import SerialInterface, EthernetClientInterface
 from re import compile, findall, search
 from extronlib.system import ProgramLog, Wait
 from decimal import Decimal, ROUND_HALF_UP
 import copy
-
-import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):
@@ -105,9 +99,9 @@ class DeviceClass:
         self.MatchstringList = []
         self.SUBSCRIPTION_RESPONSE_TIME = 100
         self.VerboseDisabled = True
-        # if 'Serial' not in self.ConnectionType:
-        #     self.deviceUsername = 'default'
-        #     self.devicePassword = None
+        if 'Serial' not in self.ConnectionType:
+            self.deviceUsername = 'default'
+            self.devicePassword = None
 
         if self.Unidirectional == 'False':
             self.AddMatchString(compile(b'\! \"publishToken\":\"([\S ]+?)\" \"value\":([\S ]+?)\r\n'), self.__MatchAllSubscribe, None)
@@ -118,33 +112,6 @@ class DeviceClass:
             self.AddMatchString(compile(b'DEVICE get version\r\n\+OK \"value\":\"([\d+.]+)\"\r\n'), self.__MatchFirmwareVersion, None)
             self.AddMatchString(compile(b'-(ERR .*?|CANNOT_DELIVER|GENERAL_FAILURE)\r\n'), self.__MatchError, None)
             self.AddMatchString(compile(b'OK \"value\":\[{\"id\":(INDICATOR_NONE_IN_DEVICE|INDICATOR_MINOR_IN_DEVICE|INDICATOR_MAJOR_IN_DEVICE) \"name\":\"(No fault in device|Minor Fault in (System|Device)|Major Fault in (System|Device))\" \"faults\"'), self.__MatchDeviceFaultList, None)
-
-## -----------------------------------------------------------------------------
-## Start Feedback Callback Functions
-## -----------------------------------------------------------------------------
-
-    def FeedbackMuteHandler(self, command, value, qualifier, hardware=None, tag=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag: {}'.format(hardware.Name, command, value, qualifier, tag))
-        for TP in self.GUIHost.TPs:
-            TP.AudioCtl.AudioMuteFeedback(tag, value)
-        
-    def FeedbackLevelHandler(self, command, value, qualifier, hardware=None, tag=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
-        for TP in self.GUIHost.TPs:
-            TP.AudioCtl.AudioLevelFeedback(tag, value)
-
-    def FeedbackGainHandler(self, command, value, qualifier, hardware=None, tag=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
-        for TP in self.GUIHost.TPs:
-            TP.AudioCtl.AudioGainFeedback(qualifier, value)
-            
-    def FeedbackPhantomHandler(self, command, value, qualifier, hardware=None, tag=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag {}'.format(hardware.Name, command, value, qualifier, tag))
-        for TP in self.GUIHost.TPs:
-            TP.AudioCtl.AudioPhantomFeedback(qualifier, value)
-## -----------------------------------------------------------------------------
-## End Feedback Callback Functions
-## -----------------------------------------------------------------------------
 
     def __MatchError(self, match, tag):
         self.counter = 0
@@ -2507,10 +2474,9 @@ class SerialOverEthernetClass(EthernetClientInterface, DeviceClass):
 
 class SSHClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, GUIHost: 'SystemController', Hostname, IPPort, Protocol='SSH', ServicePort=0, Credentials=(None), Model=None):
+    def __init__(self, Hostname, IPPort, Protocol='SSH', ServicePort=0, Credentials=(None), Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort, Credentials)
         self.ConnectionType = 'Ethernet'
-        self.GUIHost = GUIHost
         DeviceClass.__init__(self)
         # Check if Model belongs to a subclass
         if len(self.Models) > 0:
@@ -2522,7 +2488,6 @@ class SSHClass(EthernetClientInterface, DeviceClass):
     def Error(self, message):
         portInfo = 'IP Address/Host: {0}:{1}'.format(self.Hostname, self.IPPort)
         print('Module: {}'.format(__name__), portInfo, 'Error Message: {}'.format(message[0]), sep='\r\n')
-        ProgramLog('Module: {}\n{}\nError Message: {}'.format(__name__, portInfo, message[0]))
 
     def Discard(self, message):
         self.Error([message])

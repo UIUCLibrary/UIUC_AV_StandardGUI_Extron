@@ -17,29 +17,23 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import MatrixTuple, Destination
+    pass
 
 #### Python imports
+import ui.Feedback.Activity
+import ui.Feedback.Device
+import ui.Feedback.Source
 
 #### Extron Library Imports
-from extronlib import event
-from extronlib.ui import Button
-from extronlib.system import Timer
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger, TimeIntToStr
+from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
-
-class ActivityController:
-    def __init__(self) -> None:
-        pass
 
 ## End Class Definitions -------------------------------------------------------
 ##
@@ -47,5 +41,4 @@ class ActivityController:
 
 ## End Function Definitions ----------------------------------------------------
 
-
-
+__all__ = ['Device', 'Activity', 'Source']

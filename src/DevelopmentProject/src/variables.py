@@ -18,6 +18,7 @@ class ActivityMode(Enum):
     GroupWork = 3
 
 BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
+TESTING = True
 
 ## PROJECT CONSTANTS -----------------------------------------------------------
 ##     Edit values below to configure the project
@@ -25,6 +26,7 @@ BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 #### Common Settings 
 ROOM_NAME = 'Test Room'             # Room Name - update for each project
 PROJECT_FILE = "VSCodeProject.json" # Extron project file name, ex VSCodeProject.json
+UI_LAYOUT = "UofI_Library"          # The file name used for the layout & button files, do not include a file extension
 SYSTEM_ACTIVITIES = (0, 1, 2, 3)    # Include valid ActivityModes to SYSTEM_ACTIVITIES
                                         # this must include 0 and at least one other mode
 PIN_SYSTEM = '0000'                 # PIN Code to access system, must be a string fewer than 10 characters of 0-9

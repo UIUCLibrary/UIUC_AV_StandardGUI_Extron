@@ -10,6 +10,6 @@ from modules.helper.CommonUtilities import Logger
 
 Logger.Log('ControlScript', Platform(), Version(), separator=' - ')
 
-from System import SystemControlObject as System
+import System
 
-System.Initialize()
+System.CONTROLLER.Initialize()

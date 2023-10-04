@@ -18,18 +18,21 @@
 
 #### Type Checking
 from typing import (TYPE_CHECKING, Dict, Tuple, List, Union, Callable, TypeVar,
-                    ValuesView, ItemsView, KeysView)
+                    ValuesView, ItemsView, KeysView, Any)
+
+import extronlib.interface
 if TYPE_CHECKING: # pragma: no cover
     from modules.device.classes.Destinations import Destination
     from modules.device.classes.Sources import Source
+    from modules.project.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, SelectObject
+    from extronlib.ui import Button, Level, Label
     _KT = TypeVar('_KT')
 
 #### Python imports
 from collections import UserDict
-import json
 
 #### Extron Library Imports
-from extronlib.ui import Button, Level, Label
+from extronlib.system import MESet
 
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
@@ -37,8 +40,6 @@ from modules.helper.CommonUtilities import DictValueSearchByKey, RunAsync, debug
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
 from Variables import BLANK_SOURCE
-
-
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -251,40 +252,348 @@ class DeviceCollection(UserDict):
             else: # matched but not changed
                 raise ValueError('No valid update to polling provided')
 
-class VolumeControlSet:
+class UIObjectCollection(UserDict):
+    def __init__(self, __dict: None = None) -> Dict[str, Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'SelectObject']]:
+        super().__init__(__dict)
+        
+    def __repr__(self) -> str:
+        sep = ', '
+        return "[{}]".format(sep.join([str(val) for val in self.values()]))
+    
+    # Type cast views for values, items, and keys
+    def values(self) -> ValuesView[Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'SelectObject']]:
+        return super().values()
+    
+    def items(self) -> ItemsView[str, Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'SelectObject']]:
+        return super().items()
+    
+    def keys(self) -> KeysView[str]:
+        return super().keys()
+    
+    # Typecasts __getitem__
+    def __getitem__(self, key: Union[str, int]) -> Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'SelectObject']:
+        if (type(key) is str) and not key.isnumeric():
+            return super().__getitem__(key)
+        elif (type(key) is int) or ((type(key) is str) and key.isnumeric()):
+            if type(key) is str:
+                key = int(key)
+                
+            for val in self.values():
+                if val.Id == key:
+                    return val
+        else:
+            raise TypeError("__getitem__ key must be a string or int")
+
+class RadioSet(MESet):
+    def __init__(self, Objects: List[Union['Button', 'ExButton', 'SelectObject']]) -> None:
+        super().__init__(Objects)
+    
+    @property
+    def Objects(self) -> List[Union['Button', 'ExButton', 'SelectObject']]:
+        return super().Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise ValueError('Overriding the Objects property is not allowed')
+    
+    def GetCurrent(self) -> Union['Button', 'ExButton', 'SelectObject']:
+        return super().GetCurrent()
+    
+    def Remove(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'SelectObject']], str, int, 'Button', 'ExButton', 'SelectObject']) -> None:
+        if type(obj) is list:
+            for item in obj:
+                self.Remove(item)
+        elif type(obj) in [int, Button, ExButton, SelectObject]:
+            super().Remove(obj)
+        elif type (obj) is str:
+            i = None
+            for o in self.Objects:
+                if o.Name == obj:
+                    i = self.Objects.index(o)
+                    break
+            if i is not None:
+                super().Remove(i)
+            else:
+                raise ValueError('No object found for name ({}) in radio set'.format(obj))
+        else:
+            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+    def SetCurrent(self, obj: Union[int, str, 'Button', 'ExButton', 'SelectObject']) -> None:
+        if type(obj) in [int, Button, ExButton, SelectObject]:
+            super().SetCurrent(obj)
+        elif obj is None:
+            super().SetCurrent(obj)
+        elif type(obj) is str:
+            i = None
+            for o in self.Objects:
+                if o.Name == obj:
+                    i = self.Objects.index(o)
+                    break
+            if i is not None:
+                super().SetCurrent(i)
+            else:
+                raise ValueError('No object found for name ({}) in radio set'.format(obj))
+        else:
+            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+    def SetStates(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'SelectObject']], str, int, 'Button', 'ExButton', 'SelectObject'], offState: int, onState: int) -> None:
+        if type(obj) is list:
+            for item in obj:
+                self.SetStates(item, offState, onState)
+        elif type(obj) in [int, Button, ExButton, SelectObject]:
+            super().SetStates(obj, offState, onState)
+        elif type(obj) is str:
+            i = None
+            for o in self.Objects:
+                if o.Name == obj:
+                    i = self.Objects.index(o)
+                    break
+            if i is not None:
+                super().SetStates(i, offState, onState)
+            else:
+                raise ValueError('No object found for name ({}) in radio set'.format(obj))
+        else:
+            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+class SelectSet():
+    def __init__(self, Objects: List[Union['Button', 'ExButton', 'SelectObject']]) -> None:
+        self.__StateList = []
+        
+        self.__Objects = Objects
+        
+        for o in self.__Objects:
+            self.__StateList.append({"onState": 0, "offState": 1})
+    
+    @property
+    def Objects(self) -> List[Union['Button', 'ExButton', 'SelectObject']]:
+        return self.__Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise ValueError('Overriding the Objects property is not allowed')
+    
+    def Append(self, obj: Union['Button', 'ExButton', 'SelectObject']) -> None:
+        self.__Objects.append(obj)
+        self.__StateList.append({"onState": 0, "offState": 1})
+        
+    def GetActive(self) -> List[Union['Button', 'ExButton', 'SelectObject']]:
+        activeList = []
+        
+        for o in self.__Objects:
+            if o.State == self.__StateList[self.__Objects.index(o)]['onState']:
+                activeList.append(o)
+        
+        return activeList
+    
+    def Remove(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'SelectObject']], str, int, 'Button', 'ExButton', 'SelectObject']) -> None:
+        if type(obj) is list:
+            for item in obj:
+                self.Remove(item)
+        elif type(obj) is int:
+            self.__Objects.pop(obj)
+            self.__StateList.pop(obj)
+        elif type(obj) in [Button, ExButton, SelectObject]:
+            i = self.__Objects.index(obj)
+            self.__Objects.pop(obj)
+            self.__StateList.pop(obj)
+        elif type(obj) is str:
+            i = None
+            for o in self.__Objects:
+                if o.Name == obj:
+                    i = self.__Objects.index(o)
+                    break
+            if i is not None:
+                self.__Objects.pop(obj)
+                self.__StateList.pop(obj)
+            else:
+                raise ValueError('No object found for name ({}) in select set'.format(obj))
+        else:
+            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+    def SetActive(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'SelectObject']], str, int, 'Button', 'ExButton', 'SelectObject']) -> None:
+        if type(obj) is list:
+            for item in obj:
+                self.SetActive(item)
+        elif obj in ['all', 'All', 'ALL']:
+            for o in self.__Objects:
+                o.SetState(self.__StateList[self.__Objects.index(o)]['onState'])
+        elif obj in ['none', 'None', 'NONE'] or obj is None:
+            for o in self.__Objects:
+                o.SetState(self.__StateList[self.__Objects.index(o)]['offState'])
+        elif type(obj) is int:
+            self.__Objects[obj].SetState(self.__StateList[obj]['onState'])
+        elif type(obj) is str:
+            i = None
+            for o in self.__Objects:
+                if o.Name == obj:
+                    i = self.__Objects.index(o)
+                    break
+            if i is not None:
+                self.__Objects[i].SetState(self.__StateList[i]['onState'])
+            else:
+                raise ValueError('No object found for name ({}) in select set'.format(obj))
+        elif type(obj) in [Button, ExButton, SelectObject]:
+            if obj in self.__Objects:
+                obj.SetState(self.__StateList[self.__Objects.index(obj)]['onState'])
+            else:
+                raise IndexError('Object not found in select list')
+        else:
+            raise TypeError('Object must be an object name, int index, the button object (Button or ExButton class), or List of these')
+
+    def SetStates(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'SelectObject']], str, int, 'Button', 'ExButton', 'SelectObject'], offState: int, onState: int) -> None:
+        if type(obj) is list:
+            for item in obj:
+                self.SetStates(item, offState, onState)
+        elif type(obj) is int:
+            self.__StateList[obj]['onState'] = onState
+            self.__StateList[obj]['offState'] = offState
+        elif type(obj) in [Button, ExButton, SelectObject]:
+            i = self.__Objects.index(obj)
+            self.__StateList[i]['onState'] = onState
+            self.__StateList[i]['offState'] = offState
+        elif type(obj) is str:
+            i = None
+            for o in self.__Objects:
+                if o.Name == obj:
+                    i = self.__Objects.index(o)
+                    break
+            if i is not None:
+                self.__StateList[i]['onState'] = onState
+                self.__StateList[i]['offState'] = offState
+            else:
+                raise ValueError('No object found for name ({}) in select set'.format(obj))
+        else:
+            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+class VariableSelectSet():
+    def __init__(self, 
+                 Objects: List[Union['Button', 'ExButton']], 
+                 PopupDict: Dict[int, str], 
+                 Selects: List['SelectObject']) -> None:
+        
+        self.__ButtonSet = RadioSet(Objects)
+        self.__PopupDict = PopupDict
+        self.__SelectSet = RadioSet(Selects)
+        
+    @property
+    def Objects(self) -> List[Union['Button', 'ExButton']]:
+        return self.__ButtonSet.Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise ValueError('Overriding the Objects property is disallowed')
+    
+    @property
+    def Selects(self) -> List['SelectObject']:
+        return self.__SelectSet.Objects
+    
+    @Selects.setter
+    def Selects(self, val) -> None:
+        raise ValueError('Overriding the Selects property is disallowed')
+    
+    def Append(self, 
+               Object: Union['Button', 'ExButton'] = None, 
+               Popup: Tuple[Union[int, str]] = None, 
+               Select: 'SelectObject' = None) -> None:
+        
+        if Object is not None:
+            self.__ButtonSet.Append(Object)
+            
+        if Popup is not None:
+            self.__PopupDict[Popup[0]] = Popup[1]
+            
+        if Select is not None:
+            self.__SelectSet.append(Select)
+            
+    def GetCurrent(self) -> 'SelectObject':
+        return self.__SelectSet.GetCurrent()
+    
+    def Remove(self, 
+               Object: Union[int, str, 'Button', 'ExButton'] = None, 
+               Popup: Union[int, str] = None, 
+               Select: Union[int, str, 'SelectObject'] = None) -> None:
+        
+        if Object is not None:
+            self.__ButtonSet.Remove(Object)
+            
+        if Popup is not None:
+            if type(Popup) is int:
+                self.__PopupDict.pop(Popup)
+            elif type(Popup) is str:
+                for key, val in self.__PopupDict:
+                    if val == Popup:
+                        self.__PopupDict.pop(key)
+                        break
+            else:
+                raise TypeError('Popup must either by an int or str')
+        
+        if Select is not None:
+            self.__SelectSet.Remove(Select)
+            
+    def SetCurrent(self, obj: Union[int, str, 'Button', 'ExButton', 'SelectObject']) -> None:
+        pass
+        # TODO: check for type
+        # if int, str, or SelectObject, set current through __SelectSet
+        # if Button or ExButton, map Button to Select then set current through __SelectSet
+        
+    def SetStates(self, 
+                  obj: Union[List[Union[int, str, 'Button', 'ExButton']], 
+                             int, 
+                             str, 
+                             'Button', 
+                             'ExButton'], 
+                  offState: int, 
+                  onState: int) -> None:
+        
+        self.__ButtonSet.SetStates(obj, offState, onState)
+        
+    
+class ScollingSelectSet(VariableSelectSet):
+    def __init__(self, 
+                 Objects: List[Union['Button', 'ExButton']], 
+                 PrevBtn: Union['Button', 'ExButton'], 
+                 NextBtn: Union['Button', 'ExButton'], 
+                 PopupDict: Dict[int, str], 
+                 ConfigList: List['SelectObject']) -> None:
+        super().__init__(Objects, PopupDict, ConfigList)
+        self.__Prev = PrevBtn
+        self.__Next = NextBtn
+    
+class VolumeControlGroup():
     def __init__(self,
                  Name: str,
-                 VolUp: Button,
-                 VolDown: Button,
-                 Mute: Button,
-                 Feedback: Level,
-                 ControlLabel: Label=None,
+                 VolUp: Union['Button', 'ExButton'],
+                 VolDown: Union['Button', 'ExButton'],
+                 Mute: Union['Button', 'ExButton'],
+                 Feedback: Union['Level', 'ExLevel'],
+                 ControlLabel: Union['Label', 'ExLabel']=None,
                  DisplayName: str=None,
                  Range: Tuple[int, int, int]=(0, 100, 1)
                  ) -> None:
+        
         self.Name = Name
         
-        if type(VolUp) is Button:
+        if type(VolUp) in [Button, ExButton]:
             self.VolUpBtn = VolUp
         else:
             raise TypeError("VolUp must be an Extron Button object")
         
-        if type(VolDown) is Button:
+        if type(VolDown) in [Button, ExButton]:
             self.VolDownBtn = VolDown
         else:
             raise TypeError("VolDown must be an Extron Button object")
         
-        if type(Mute) is Button:
+        if type(Mute) in [Button, ExButton]:
             self.MuteBtn = VolUp
         else:
             raise TypeError("Mute must be an Extron Button object")
         
-        if type(Feedback) is Level:
+        if type(Feedback) in [Level, ExLevel]:
             self.FeedbackLvl = Feedback
         else:
             raise TypeError("Feedback must be an Extron Level object")
         
-        if type(ControlLabel) is Label or ControlLabel is None:
+        if type(ControlLabel) in [Label, ExLabel] or ControlLabel is None:
             self.ControlLbl = ControlLabel
         else:
             raise TypeError("ControlLabel must either be an Extron Label object or None (default)")

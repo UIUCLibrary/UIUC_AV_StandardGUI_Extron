@@ -172,19 +172,6 @@ class DeviceClass:
     def SetWake(self, value, qualifier):
         api_path = '/api/control/wake'
         self.__SetHelper('Wake', value, qualifier, url=api_path, method='GET', data=None)
-        
-    def FeedbackStatusHandler(self, command, value, qualifier, hardware=None):
-        UtilityFunctions.Log('{} {} Callback - Value: {}; Qualifier: {}'.format(hardware.Name, command, value, qualifier))
-
-        for TP in self.GUIHost.TPs:
-            if self.GUIHost.ActCtl.CurrentActivity != 'adv_share':
-                if TP.SrcCtl.SelectedSource.Id == hardware.Id:
-                    PodFeedbackHelper(TP, hardware, blank_on_fail=False)
-            else:
-                if (TP.SrcCtl.OpenControlPopup is not None and
-                    TP.SrcCtl.OpenControlPopup['page'] == 'Modal-SrcCtl-WPD' and 
-                    TP.SrcCtl.OpenControlPopup['source'].Id == hardware.Id):
-                        PodFeedbackHelper(TP, hardware, blank_on_fail=False)
 
 ## -----------------------------------------------------------------------------
 ## End Command & Callback Functions
@@ -420,9 +407,8 @@ class DeviceClass:
         
 class RESTClass(DeviceClass):
 
-    def __init__(self, GUIHost: 'SystemController', host, protocol='https', port='443', devicePassword=None, Model=None):
+    def __init__(self, host, protocol='https', port='443', devicePassword=None, Model=None):
         self.ConnectionType = 'REST'
-        self.GUIHost = GUIHost
         DeviceClass.__init__(self, host, protocol, port, devicePassword)
         # Check if Model belongs to a subclass      
         if len(self.Models) > 0:

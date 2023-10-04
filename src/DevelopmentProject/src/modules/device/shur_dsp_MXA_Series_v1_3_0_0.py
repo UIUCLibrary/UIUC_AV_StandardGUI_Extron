@@ -1,12 +1,6 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-
 from extronlib.interface import SerialInterface, EthernetClientInterface
 import re
 from extronlib.system import Wait, ProgramLog
-
-import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceClass:
     def __init__(self):
@@ -79,19 +73,6 @@ class DeviceClass:
             self.AddMatchString(re.compile(b'< REP MUTE_BUTTON_LED_STATE (ON|OFF) >'), self.__MatchMuteButtonLEDState, None)
             self.AddMatchString(re.compile(b'< REP MUTE_BUTTON_STATUS (ON|OFF) >'), self.__MatchMuteButtonStatus, None)
             self.AddMatchString(re.compile(b'< REP ERR >'), self.__MatchError, None)
-
-## -----------------------------------------------------------------------------
-## Start Feedback Callback Functions
-## -----------------------------------------------------------------------------
-
-    def FeedbackMuteHandler(self, command, value, qualifier, hardware=None, tag=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}; Tag: {}'.format(hardware.Name, command, value, qualifier, tag))
-        for TP in self.GUIHost.TPs:
-            TP.AudioCtl.AudioMuteFeedback(tag, value)
-
-## -----------------------------------------------------------------------------
-## End Feedback Callback Functions
-## -----------------------------------------------------------------------------
 
     def SetRingLEDPower(self, value, qualifier):
 
@@ -1002,10 +983,9 @@ class DeviceClass:
 
 class EthernetClass(EthernetClientInterface, DeviceClass):
 
-    def __init__(self, GUIHost: 'SystemController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Ethernet'
-        self.GUIHost = GUIHost
         DeviceClass.__init__(self) 
         # Check if Model belongs to a subclass       
         if len(self.Models) > 0:

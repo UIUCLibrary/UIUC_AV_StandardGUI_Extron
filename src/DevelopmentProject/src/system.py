@@ -26,4 +26,4 @@ import Devices
 
 ## End Imports -----------------------------------------------------------------
 
-SystemControlObject = SystemController(Devices.ControlDevices, Devices.SystemDevices)
+CONTROLLER = SystemController(Devices.ControlDevices, Devices.SystemDevices)

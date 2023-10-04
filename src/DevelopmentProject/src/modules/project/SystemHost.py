@@ -19,8 +19,6 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
     from modules.project.Collections import DeviceCollection
 
 #### Python imports
@@ -30,7 +28,7 @@ from os.path import splitext
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
-from modules.project.ExtendedClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
+from modules.project.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 from modules.project.Collections import DictObj
 from control.PollController import PollingController
 import Variables
@@ -256,7 +254,7 @@ class SystemController:
             pass
         #### Start Polling
         self.PollCtl.PollEverything()
-        self.PollCtl.StartPolling()
+        self.PollCtl.SetPollingMode('inactive')
         
         Logger.Log('System Initialized')
         for tp in self.UIDevices:

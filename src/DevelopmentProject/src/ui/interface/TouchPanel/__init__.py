@@ -19,14 +19,17 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses import ExUIDevice
+    from modules.project.ExtendedDeviceClasses import ExUIDevice
     from extronlib.device import UIDevice
 
 #### Python imports
+import json
 
 #### Extron Library Imports
+from extronlib.system import File
 
 #### Project imports
+import Variables
 from modules.helper.CommonUtilities import Logger
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
 
@@ -35,13 +38,37 @@ from ui.interface.TouchPanel.Objects import TouchPanelObjects
 ## Begin Class Definitions -----------------------------------------------------
 
 class TouchPanelInterface():
-    def __init__(self, device: Union['ExUIDevice', 'UIDevice'], interface: str) -> None:
-        TouchPanelObjects.__init__(self)
+    def __init__(self, device: Union['ExUIDevice', 'UIDevice'], interfaceType: str) -> None:
+        self.__LayoutPath = '/var/nortxe/gcp/layout'
+        self.__LayoutGLD = '{}.gdl'.format(Variables.UI_LAYOUT)
+        self.__LayoutJSON = '{}.json'.format(Variables.UI_LAYOUT)
+
+        self.__LayoutDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__LayoutJSON)))
         
         self.Device = device
-        self.Interface = interface
+        self.InterfaceType = interfaceType
         
-    
+        self.Initialized = False
+        self.Objects = None
+        
+        self.Device.HideAllPopups()
+        
+    def Initialize(self) -> None:
+        self.Objects = TouchPanelObjects()
+        
+        self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadLabels(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadLevels(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadSliders(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        
+        self.Objects.LoadButtonGroups(jsonObj=self.__LayoutDict)
+        
+        self.Objects.LoadModalPages(jsonObj=self.__LayoutDict)
+        self.Objects.LoadPopoverPages(jsonObj=self.__LayoutDict)
+        self.Objects.LoadPopupGroups(jsonObj=self.__LayoutDict)
+        
+        self.Initialized = False
 
 
 

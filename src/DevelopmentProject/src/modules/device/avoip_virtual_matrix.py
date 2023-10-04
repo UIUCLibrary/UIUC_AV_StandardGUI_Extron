@@ -155,15 +155,6 @@ class DeviceClass:
                 self.WriteStatus('InputSignalStatus', InputStatus, {'Input': InputHw.MatrixInput})
                 
             self.__ConnectHelper()
-            
-    def FeedbackInputSignalStatusHandler(self, command, value, qualifier, hardware=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        for TP in self.GUIHost.TPs:
-            srcObj = TP.SrcCtl.GetSourceByInput(qualifier['Input'])
-            if value == 'Active':
-                srcObj.ClearAlert()
-            elif value == 'Not Active':
-                srcObj.AppendAlert()
 
     def SetMatrixTieCommand(self, value, qualifier):
         # Value: None
@@ -279,11 +270,7 @@ class DeviceClass:
             elif VideoMuteStatus == 'live' and SyncMuteStatus: # Off
                 self.WriteStatus('VideoMute', 'Off', {'Output': OutputHw.MatrixOutput})
         self.__ConnectHelper()
-    
-    def FeedbackOutputTieStatusHandler(self, command, value, qualifier, hardware=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        UtilityFunctions.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
-    
+
 ## -----------------------------------------------------------------------------
 ## End Command & Callback Functions
 ## -----------------------------------------------------------------------------
@@ -420,7 +407,7 @@ class DeviceClass:
 
 class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
 
-    def __init__(self, GUIHost: 'SystemController', VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
+    def __init__(self, VirtualDeviceID: str, AssignmentAttribute: str, Model: str=None):
         DeviceClass.__init__(self) 
         VirtualDeviceInterface.__init__(self,
                                         VirtualDeviceID,
@@ -429,7 +416,6 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
                                             'MatrixInput': self.VirtualInputDevices,
                                             'MatrixOutput': self.VirtualOutputDevices
                                         })
-        self.GUIHost = GUIHost
         self.ConnectionType = 'Virtual'
         # Check if Model belongs to a subclass       
         if len(self.Models) > 0:

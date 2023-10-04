@@ -17,29 +17,40 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import MatrixTuple, Destination
+    from modules.project.SystemHost import SystemController
+    from modules.project.Collections import DeviceCollection
 
 #### Python imports
 
 #### Extron Library Imports
-from extronlib import event
-from extronlib.ui import Button
-from extronlib.system import Timer
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger, TimeIntToStr
+from modules.helper.CommonUtilities import Logger
+
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class ActivityController:
-    def __init__(self) -> None:
-        pass
+class InterfaceSystemHost(object):
+    def __init__(self, Collection: "DeviceCollection" = None) -> None:
+        __Collection = None
+        
+        if Collection is not None:
+            self.Collection = Collection
+        
+    @property
+    def Collection(self) -> "DeviceCollection":
+        return self.__Collection
+    
+    @Collection.setter
+    def Collection(self, Collection: "DeviceCollection") -> None:
+        if type(Collection).__name__ != 'DeviceCollection':
+            raise TypeError("Collection must be of type DeviceCollection")
+        self.__Collection = Collection
+
 
 ## End Class Definitions -------------------------------------------------------
 ##

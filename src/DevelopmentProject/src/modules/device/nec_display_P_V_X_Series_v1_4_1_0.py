@@ -1,12 +1,6 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-
 from extronlib.interface import SerialInterface, EthernetClientInterface
 from struct import pack
 from binascii import hexlify
-
-import modules.helper.CommonUtilities as UtilityFunctions
 
 class DeviceEthernetClass:
 
@@ -69,28 +63,6 @@ class DeviceEthernetClass:
         else:
             print('Invalid DeviceID parameter, range is from 1 to 100')
 
-## -----------------------------------------------------------------------------
-## Start Feedback Callback Functions
-## -----------------------------------------------------------------------------
-
-    def AudioMuteStatusHandler(self, command, value, qualifier, hardware=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        for TP in self.GUIHost.TPs:
-            TP.DispCtl.DisplayMuteFeedback(hardware.Id, value)
-        
-    def PowerStatusHandler(self, command, value, qualifier, hardware=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        for TP in self.GUIHost.TPs:
-            TP.DispCtl.DisplayPowerFeedback(hardware.Id, value)
-        
-    def VolumeStatusHandler(self, command, value, qualifier, hardware=None):
-        UtilityFunctions.Log('{} {} Callback; Value: {}; Qualifier {}'.format(hardware.Name, command, value, qualifier))
-        for TP in self.GUIHost.TPs:
-            TP.DispCtl.DisplayVolumeFeedback(hardware.Id, value)
-
-## -----------------------------------------------------------------------------
-## End Feedback Callback Functions
-## -----------------------------------------------------------------------------
 
     def SetAmbientBrightness(self, value, qualifier):
 
@@ -199,6 +171,7 @@ class DeviceEthernetClass:
         else:
             self.Discard('Invalid Command')
 
+
     def UpdateAspectRatio(self, value, qualifier):
 
         ValueStateValues = {
@@ -246,6 +219,7 @@ class DeviceEthernetClass:
             self.__SetHelper('AudioInput', AudioInputCmdString, value, qualifier)
         else:
             self.Discard('Invalid Command')
+
 
     def UpdateAudioInput(self, value, qualifier):
 
@@ -326,6 +300,7 @@ class DeviceEthernetClass:
         AutoImageCmdString = b'\x01' + buffer + pack('>B', checksum) + b'\r'
         self.__SetHelper('AutoImage', AutoImageCmdString, value, qualifier)
 
+
     def SetBacklight(self, value, qualifier):
 
         ValueConstraints = {
@@ -345,6 +320,7 @@ class DeviceEthernetClass:
             self.__SetHelper('Backlight', BacklightCmdString, value, qualifier)
         else:
             self.Discard('Invalid Command')
+
 
     def UpdateBacklight(self, value, qualifier):
 
@@ -457,6 +433,7 @@ class DeviceEthernetClass:
         else:
             self.Discard('Invalid Command')
 
+
     def SetContrast(self, value, qualifier):
 
         ValueConstraints = {
@@ -475,6 +452,7 @@ class DeviceEthernetClass:
             self.__SetHelper('Contrast', ContrastCmdString, value, qualifier)
         else:
             self.Discard('Invalid Command')
+
 
     def UpdateContrast(self, value, qualifier):
 
@@ -603,6 +581,7 @@ class DeviceEthernetClass:
             except (KeyError, IndexError):
                 self.Error(['Input: Invalid/unexpected response'])
 
+
     def SetOnScreenDisplay(self, value, qualifier):
 
         ValueStateValues = {
@@ -620,6 +599,7 @@ class DeviceEthernetClass:
             self.__SetHelper('OnScreenDisplay', OnScreenDisplayCmdString, value, qualifier)
         else:
             self.Discard('Invalid Command')
+
 
     def UpdateOnScreenDisplay(self, value, qualifier):
 
@@ -660,6 +640,7 @@ class DeviceEthernetClass:
             self.__SetHelper('Overscan', OverscanCmdString, value, qualifier)
         else:
             self.Discard('Invalid Command')
+
 
     def UpdateOverscan(self, value, qualifier):
 
@@ -1106,6 +1087,7 @@ class DeviceEthernetClass:
             self.__SetHelper('VideoMute', MuteCmdString, value, qualifier)
         else:
             self.Discard('Invalid Command')
+
 
     def UpdateVideoMute(self, value, qualifier):
 
@@ -2876,10 +2858,9 @@ class SerialOverEthernetClass(EthernetClientInterface, DeviceSerialClass):
 
 class EthernetClass(EthernetClientInterface, DeviceEthernetClass):
 
-    def __init__(self, GUIHost: 'SystemController', Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
+    def __init__(self, Hostname, IPPort, Protocol='TCP', ServicePort=0, Model=None):
         EthernetClientInterface.__init__(self, Hostname, IPPort, Protocol, ServicePort)
         self.ConnectionType = 'Ethernet'
-        self.GUIHost = GUIHost
         DeviceEthernetClass.__init__(self)
         # Check if Model belongs to a subclass
         if len(self.Models) > 0:

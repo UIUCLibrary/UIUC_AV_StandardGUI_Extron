@@ -1,7 +1,3 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-
 from extronlib.system import Wait, ProgramLog
 import base64
 import urllib.error
@@ -333,24 +329,27 @@ class DeviceClass:
         else:
             raise KeyError('Invalid command for ReadStatus: ' + command)
 
-
-    # def MissingCredentialsLog(self, credential_type):
-    #     if isinstance(self, EthernetClientInterface):
-    #         port_info = 'IP Address: {0}:{1}'.format(self.IPAddress, self.IPPort)
-    #     elif isinstance(self, SerialInterface):
-    #         port_info = 'Host Alias: {0}\r\nPort: {1}'.format(self.Host.DeviceAlias, self.Port)
-    #     else:
-    #         return 
-    #     ProgramLog("{0} module received a request from the device for a {1}, "
-    #                "but device{1} was not provided.\n Please provide a device{1} "
-    #                "and attempt again.\n Ex: dvInterface.device{1} = '{1}'\n Please "
-    #                "review the communication sheet.\n {2}"
-    #                .format(__name__, credential_type, port_info), 'warning') 
+##### This function through warnings due to the use EthernetClientInterface and 
+    # SerialInterface without properly importing them.
+    # As this class isn't an instance of these the function simply returns
+    # without executing any code, so replacing with `pass`
+    def MissingCredentialsLog(self, credential_type):
+        pass
+        # if isinstance(self, EthernetClientInterface):
+        #     port_info = 'IP Address: {0}:{1}'.format(self.IPAddress, self.IPPort)
+        # elif isinstance(self, SerialInterface):
+        #     port_info = 'Host Alias: {0}\r\nPort: {1}'.format(self.Host.DeviceAlias, self.Port)
+        # else:
+        #     return 
+        # ProgramLog("{0} module received a request from the device for a {1}, "
+        #            "but device{1} was not provided.\n Please provide a device{1} "
+        #            "and attempt again.\n Ex: dvInterface.device{1} = '{1}'\n Please "
+        #            "review the communication sheet.\n {2}"
+        #            .format(__name__, credential_type, port_info), 'warning') 
 
 class HTTPClass(DeviceClass):
-    def __init__(self, GUIHost: 'SystemController', ipAddress, port, deviceUsername=None, devicePassword=None, Model=None):
+    def __init__(self, ipAddress, port, deviceUsername=None, devicePassword=None, Model=None):
         self.ConnectionType = 'HTTP'
-        self.GUIHost = GUIHost
         DeviceClass.__init__(self, ipAddress, port, deviceUsername, devicePassword)
         # Check if Model belongs to a subclass      
         if len(self.Models) > 0:

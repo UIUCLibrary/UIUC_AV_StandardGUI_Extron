@@ -30,6 +30,7 @@ import json
 from modules.helper.CommonUtilities import Logger
 from modules.project.Collections import DeviceCollection, DictObj
 from Variables import PROJECT_FILE
+from ui.Feedback.Device import *
 # TODO: load this in a more secure way
 import secrets_devices
 
@@ -185,7 +186,7 @@ SystemDevices.AddNewDevice(
         'Polling': [
             {
                 'command': 'PodStatus',
-                'callback': 'FeedbackStatusHandler',
+                'callback': WPD_StatusHandler,
                 'active_int': 10,
                 'inactive_int': 600,
             }
@@ -224,7 +225,7 @@ SystemDevices.AddNewDevice(
             [
                 {
                     'command': 'PodStatus',
-                    'callback': 'FeedbackStatusHandler',
+                    'callback': WPD_StatusHandler,
                     'active_int': 10,
                     'inactive_int': 600
                 }
@@ -263,7 +264,7 @@ SystemDevices.AddNewDevice(
             [
                 {
                     'command': 'PodStatus',
-                    'callback': 'FeedbackStatusHandler',
+                    'callback': WPD_StatusHandler,
                     'active_int': 10,
                     'inactive_int': 600
                 }
@@ -347,19 +348,19 @@ SystemDevices.AddNewDevice(
         [
             {
                 'command': 'Power',
-                'callback': 'PowerStatusHandler',
+                'callback': Display_PowerStatusHandler,
                 'active_int': 10,
                 'inactive_int': 30
             },
             {
                 'command': 'AudioMute',
-                'callback': 'AudioMuteStatusHandler',
+                'callback': Display_AudioMuteStatusHandler,
                 'active_int': 10,
                 'inactive_int': 600
             },
             {
                 'command': 'Volume',
-                'callback': 'VolumeStatusHandler',
+                'callback': Display_VolumeStatusHandler,
                 'active_int': 10,
                 'inactive_int': 600
             }
@@ -424,19 +425,19 @@ SystemDevices.AddNewDevice(
         [
             {
                 'command': 'Power',
-                'callback': 'PowerStatusHandler',
+                'callback': Display_PowerStatusHandler,
                 'active_int': 10,
                 'inactive_int': 30
             },
             {
                 'command': 'AudioMute',
-                'callback': 'AudioMuteStatusHandler',
+                'callback': Display_AudioMuteStatusHandler,
                 'active_int': 10,
                 'inactive_int': 600
             },
             {
                 'command': 'Volume',
-                'callback': 'VolumeStatusHandler',
+                'callback': Display_VolumeStatusHandler,
                 'active_int': 10,
                 'inactive_int': 600
             }
@@ -508,7 +509,7 @@ SystemDevices.AddNewDevice(
         'Model': 'TesiraFORTE AI AVB',
         'Interface':
         {
-            'module': 'biam_dsp_TesiraSeries_uofi',
+            'module': 'biam_dsp_TesiraSeries_v1_15_1_0',
             'interface_class': 'SSHClass',
             'ConnectionHandler': {
                 'keepAliveQuery': 'VerboseMode',
@@ -527,7 +528,7 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'LevelControl',
                 'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
-                'callback': 'FeedbackLevelHandler',
+                'callback': DSP_LevelHandler,
                 'tag': ('prog',),
                 'active_int': 30,
                 'inactive_int': 120,
@@ -535,7 +536,7 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'LevelControl',
                 'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'},
-                'callback': 'FeedbackLevelHandler',
+                'callback': DSP_LevelHandler,
                 'tag': ('mics', '1'),
                 'active_int': 30,
                 'inactive_int': 120,
@@ -543,7 +544,7 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'LevelControl',
                 'qualifier': {'Instance Tag': 'Mic2Level', 'Channel': '1'},
-                'callback': 'FeedbackLevelHandler',
+                'callback': DSP_LevelHandler,
                 'tag': ('mics', '2'),
                 'active_int': 30,
                 'inactive_int': 120,
@@ -551,7 +552,7 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'MuteControl',
                 'qualifier': {'Instance Tag': 'ProgLevel', 'Channel': '1'},
-                'callback': 'FeedbackMuteHandler',
+                'callback': DSP_MuteHandler,
                 'tag': ('prog',),
                 'active_int': 30,
                 'inactive_int': 120,
@@ -559,7 +560,7 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'MuteControl',
                 'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'},
-                'callback': 'FeedbackMuteHandler',
+                'callback': DSP_MuteHandler,
                 'tag': ('mics', '1'),
                 'active_int': 30,
                 'inactive_int': 120,
@@ -572,7 +573,7 @@ SystemDevices.AddNewDevice(
                     {'Instance Tag': 'AecInput1', 'Channel': '3'},
                     {'Instance Tag': 'AecInput1', 'Channel': '4'}
                 ],
-                'callback': 'FeedbackGainHandler',
+                'callback': DSP_GainHandler,
                 'active_int': 30,
                 'inactive_int': 120
             },
@@ -584,7 +585,7 @@ SystemDevices.AddNewDevice(
                     {'Instance Tag': 'AecInput1', 'Channel': '3'},
                     {'Instance Tag': 'AecInput1', 'Channel': '4'}
                 ],
-                'callback': 'FeedbackPhantomHandler',
+                'callback': DSP_PhantomHandler,
                 'active_int': 60,
                 'inactive_int': 600
             }
@@ -731,7 +732,7 @@ SystemDevices.AddNewDevice(
         [
             {
                 'command': 'DeviceAudioMute',
-                'callback': 'FeedbackMuteHandler',
+                'callback': Mic_MuteHandler,
                 'tag': ('mics', '2'),
                 'active_int': 10,
                 'inactive_int': 30
@@ -1246,7 +1247,7 @@ SystemDevices.AddNewDevice(
                     {'Output': 4, 'Tie Type': 'Video'},
                     {'Output': 4, 'Tie Type': 'Audio'},
                 ],
-                'callback': 'FeedbackOutputTieStatusHandler',
+                'callback': VMX_OutputHandler,
             },
             {
                 'command': 'InputSignalStatus',
@@ -1258,7 +1259,7 @@ SystemDevices.AddNewDevice(
                     {'Input': 5},
                     {'Input': 6},
                 ],
-                'callback': 'FeedbackInputSignalStatusHandler'
+                'callback': VMX_InputHandler
             }
         ],
         'Polling':

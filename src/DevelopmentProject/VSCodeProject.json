@@ -17,7 +17,7 @@
     },
     "devices": [
         {
-            "name": "CTL001 : LIBAVSSYS05",
+            "name": "CTL001 : LIBAVSTEST05",
             "part_number": "60-1911-01",
             "alias": "CTL001",
             "network": {
@@ -31,7 +31,7 @@
             }
         },
         {
-            "name": "TP001 : LIBAVSSYS04",
+            "name": "TP001 : LIBAVSTEST04",
             "part_number": "60-1566-02",
             "alias": "TP001",
             "network": {
@@ -45,7 +45,7 @@
             },
             "extron_control_web_id": "cd71c6ee-bb56-4eb6-a6a9-e2aa915da2be",
             "ui": {
-                "layout_file": "Project1.gdl",
+                "layout_file": "UofI_Library.gdl",
                 "enable_click_sound": true,
                 "press_feedback": "none",
                 "thumb_change_report_interval": 0.1,

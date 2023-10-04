@@ -25,8 +25,9 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib.system import Timer
 
 #### Project Imports
-from modules.helper.CommonUtilities import Logger, debug
+from modules.helper.CommonUtilities import Logger, FullName
 from modules.project.SystemHardware import SystemHardwareController
+import Variables
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -84,7 +85,6 @@ class PollingController:
         self.__PollingState = 'stopped'
         
         self.__InactivePolling = Timer(1, self.__InactivePollingHandler)
-        self.__InactivePolling.Stop()
         self.__ActivePolling = Timer(1, self.__ActivePollingHandler)
         self.__ActivePolling.Stop()
     
@@ -101,11 +101,51 @@ class PollingController:
                 self.__PollInterface(poll.Interface, poll.Command, poll.Qualifier)
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    def __PollInterface(self, interface, command, qualifier=None): # pragma: no cover
+    def __PollInterface(self, interface, command: str, qualifier: Dict=None): # pragma: no cover
+        if Variables.TESTING:
+            if qualifier is not None:
+                Logger.Log('Test Poll: {} {} on {}'.format(command, qualifier, FullName(interface)))
+            else:
+                Logger.Log('Test Poll: {} on {}'.format(command, FullName(interface)))
+            
+            return
+        
         try:
             interface.Update(command, qualifier=qualifier)
         except Exception as inst:
             Logger.Log('An error occured attempting to poll. {} ({})\n    Exception ({}):\n        {}'.format(command, qualifier, type(inst), inst), logSeverity='error')
+    
+    def __SetPollingActive(self) -> None:
+        self.__ActivePolling.Restart()
+        if self.__InactivePolling.State != 'Stopped':
+            self.__InactivePolling.Stop()
+        lastState = self.__PollingState
+        self.__PollingState = 'active'
+        if lastState == 'stopped':
+            Logger.Log('Polling started, Active')
+        else:
+            Logger.Log('Polling mode switched, Active')
+        
+    def __SetPollingInactive(self) -> None:
+        self.__InactivePolling.Restart()
+        if self.__ActivePolling.State != 'Stopped':
+            self.__ActivePolling.Stop()
+        lastState = self.__PollingState
+        self.__PollingState = 'inactive'
+        if lastState == 'stopped':
+            Logger.Log('Polling started, Inactive')
+        else:
+            Logger.Log('Polling mode switched, Inactive')
+        
+    def __SetPollingStopped(self) -> None:
+        if self.__InactivePolling.State != 'Stopped':
+            self.__InactivePolling.Stop()
+        if self.__ActivePolling.State != 'Stopped':
+            self.__ActivePolling.Stop()
+        lastState = self.__PollingState
+        self.__PollingState = 'stopped'
+        if lastState != 'stopped':
+            Logger.Log('Polling stopped')
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -113,45 +153,25 @@ class PollingController:
         for poll in self.Polling:
             self.__PollInterface(poll.Interface, poll.Command, poll.Qualifier)
             
-    def StartPolling(self, mode: str='inactive'):
+    def SetPollingMode(self, mode: str='inactive'):
         if mode == 'inactive': 
-            self.__InactivePolling.Restart()
-            self.__ActivePolling.Stop()
-            self.__PollingState = 'inactive'
+            self.__SetPollingInactive()
         elif mode == 'active':
-            self.__ActivePolling.Restart()
-            self.__InactivePolling.Stop()
-            self.__PollingState = 'active'
+            self.__SetPollingActive()
+        elif mode == 'stopped':
+            self.__SetPollingStopped()
         else:
-            raise ValueError("Mode must be 'inactive' or 'active'")
+            raise ValueError("Mode must be 'inactive', 'active', or 'stopped'")
             
     def StopPolling(self):
-        self.__InactivePolling.Stop()
-        self.__ActivePolling.Stop()
-        self.__PollingState = 'stopped'
+        self.__SetPollingStopped()
         
     def TogglePollingMode(self):
         if self.__PollingState == 'inactive':
-            self.__InactivePolling.Stop()
-            self.__ActivePolling.Restart()
-            self.__PollingState = 'active'
+            self.__SetPollingActive()
         elif self.__PollingState == 'active':
-            self.__ActivePolling.Stop()
-            self.__InactivePolling.Restart()
-            self.__PollingState = 'inactive'
-            
-    def SetPollingMode(self, mode: str):
-        if mode == 'inactive':
-            if self.__ActivePolling.State == 'Running':
-                self.__InactivePolling.Restart()
-            self.__ActivePolling.Stop()
-            self.__PollingState = 'inactive'
-        elif mode == 'active':
-            if self.__InactivePolling.State == 'Running':
-                self.__ActivePolling.Restart()
-            self.__InactivePolling.Stop()
-            self.__PollingState = 'active'
+            self.__SetPollingInactive()
         else:
-            raise ValueError("Mode must be 'inactive' or 'active'")
+            Logger.Log('Polling stopped. Polling cannot be toggled. Start polling using SetPollingMode.', logSeverity='warning')
     
 ## End Class Definitions -------------------------------------------------------
