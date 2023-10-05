@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice
     from extronlib.device import UIDevice
 
 #### Python imports
@@ -48,29 +48,25 @@ class TouchPanelInterface():
         self.Device = device
         self.InterfaceType = interfaceType
         
+        self.Objects = TouchPanelObjects()
         self.Initialized = False
-        self.Objects = None
         
         self.Device.HideAllPopups()
-        
-    def Initialize(self) -> None:
-        self.Objects = TouchPanelObjects()
-        
+    
+    def InitializeControlObjects(self) -> None:
         self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadLabels(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadLevels(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadSliders(UIHost=self.Device, jsonObj=self.__LayoutDict)
         
-        self.Objects.LoadButtonGroups(jsonObj=self.__LayoutDict)
-        
         self.Objects.LoadModalPages(jsonObj=self.__LayoutDict)
         self.Objects.LoadPopoverPages(jsonObj=self.__LayoutDict)
         self.Objects.LoadPopupGroups(jsonObj=self.__LayoutDict)
         
-        self.Initialized = False
+        self.Objects.LoadButtonGroups(UIHost=self.Device, jsonObj=self.__LayoutDict)
 
-
+        self.Initialized = True
 
 ## End Class Definitions -------------------------------------------------------
 ##

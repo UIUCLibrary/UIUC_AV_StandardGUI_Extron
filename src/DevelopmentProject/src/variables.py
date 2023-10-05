@@ -16,6 +16,11 @@ class ActivityMode(Enum):
     Share = 1
     AdvShare = 2
     GroupWork = 3
+    
+    def GetNameByValue(cls, val) -> str:
+        for data in cls:
+            if data.value == val:
+                return data.name
 
 BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 TESTING = True

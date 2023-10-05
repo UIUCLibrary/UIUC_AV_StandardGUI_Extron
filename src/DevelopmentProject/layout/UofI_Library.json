@@ -298,31 +298,36 @@
       "Name": "Source-1",
       "ID": 7001,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "SourceIndicator-1"
     },
     {
       "Name": "Source-2",
       "ID": 7002,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "SourceIndicator-2"
     },
     {
       "Name": "Source-3",
       "ID": 7003,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "SourceIndicator-3"
     },
     {
       "Name": "Source-4",
       "ID": 7004,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "SourceIndicator-4"
     },
     {
       "Name": "Source-5",
       "ID": 7005,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "SourceIndicator-5"
     },
     {
       "Name": "SourceMenu-Prev",
@@ -592,25 +597,29 @@
       "Name": "ActivitySelect-Off",
       "ID": 11100,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "ActivityIndicator-Off"
     },
     {
       "Name": "ActivitySelect-Share",
       "ID": 11101,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "ActivityIndicator-Share"
     },
     {
       "Name": "ActivitySelect-AdvShare",
       "ID": 11102,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "ActivityIndicator-AdvShare"
     },
     {
       "Name": "ActivitySelect-GroupWork",
       "ID": 11103,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "indicator": "ActivityIndicator-GroupWork"
     },
     {
       "Name": "Privacy-Display-Mute",
@@ -2077,82 +2086,6 @@
       "repeatTime": null
     }
   ],
-  "selects": [
-    {
-      "Name": "Disp-Select-0,0"
-    }
-  ],
-  "buttonGroups": [
-      {
-        "Name":"Camera-Select",
-        "Buttons":[
-          "Ctl-Camera-Select-1",
-          "Ctl-Camera-Select-2"
-        ]
-      },
-      {
-        "Name":"Source-Select",
-        "Buttons":[
-          "Source-1",
-          "Source-2",
-          "Source-3",
-          "Source-4",
-          "Source-5"
-        ]
-      },
-      {
-        "Name":"Source-Indicator",
-        "Buttons":[
-          "SourceIndicator-1",
-          "SourceIndicator-2",
-          "SourceIndicator-3",
-          "SourceIndicator-4",
-          "SourceIndicator-5"
-        ]
-      },
-      {
-        "Name":"Activity-Select",
-        "Buttons":[
-          "ActivitySelect-Off",
-          "ActivitySelect-Share",
-          "ActivitySelect-AdvShare",
-          "ActivitySelect-GroupWork"
-        ]
-      },
-      {
-        "Name":"Activity-Indicator",
-        "Buttons":[
-          "ActivityIndicator-Off",
-          "ActivityIndicator-Share",
-          "ActivityIndicator-AdvShare",
-          "ActivityIndicator-GroupWork"
-        ]
-      },
-      {
-        "Name":"Tech-Matrix-Mode",
-        "Buttons":[
-          "Tech-Matrix-Mode-AV",
-          "Tech-Matrix-Mode-Aud",
-          "Tech-Matrix-Mode-Vid",
-          "Tech-Matrix-Mode-Untie"
-        ]
-      },
-      {
-        "Name": "Schedule-Start-Activity-Mode",
-        "Buttons": [
-          "Schedule-Start-Act-share",
-          "Schedule-Start-Act-adv_share",
-          "Schedule-Start-Act-group_work"
-        ]
-      },
-      {
-        "Name": "Schedule-AMPM",
-        "Buttons": [
-          "Schedule-AM",
-          "Schedule-PM"
-        ]
-      }
-  ],
   "knobs":[],
   "labels":[
     {
@@ -2628,6 +2561,71 @@
       "ID": 12280
     }
   ],
+  "buttonGroups": [
+    {
+      "Name":"Camera-Select",
+      "Class": "RadioSet",
+      "Buttons":[
+        "Ctl-Camera-Select-1",
+        "Ctl-Camera-Select-2"
+      ]
+    },
+    {
+      "Name":"Source-Select",
+      "Class": "ScrollingRadioSet",
+      "Buttons":[
+        "Source-1",
+        "Source-2",
+        "Source-3",
+        "Source-4",
+        "Source-5"
+      ],
+      "Controls":{
+        "PrevBtn": "SourceMenu-Prev",
+        "NextBtn": "SourceMenu-Next"
+      },
+      "PopupCallback": "SourceSelectPopupCallback",
+      "RefCallback": "SourceSelectRefCallback"
+    },
+    {
+      "Name":"Activity-Select",
+      "Class": "VariableRadioSet",
+      "Buttons":[
+        "ActivitySelect-Off",
+        "ActivitySelect-Share",
+        "ActivitySelect-AdvShare",
+        "ActivitySelect-GroupWork"
+      ],
+      "PopupCallback": "ActivitySelectPopupCallback"
+    },
+    {
+      "Name":"Tech-Matrix-Mode",
+      "Class": "RadioSet",
+      "Buttons":[
+        "Tech-Matrix-Mode-AV",
+        "Tech-Matrix-Mode-Aud",
+        "Tech-Matrix-Mode-Vid",
+        "Tech-Matrix-Mode-Untie"
+      ]
+    },
+    {
+      "Name": "Schedule-Start-Activity-Mode",
+      "Class": "RadioSet",
+      "Buttons": [
+        "Schedule-Start-Act-share",
+        "Schedule-Start-Act-adv_share",
+        "Schedule-Start-Act-group_work"
+      ]
+    },
+    {
+      "Name": "Schedule-AMPM",
+      "Class": "RadioSet",
+      "Buttons": [
+        "Schedule-AM",
+        "Schedule-PM"
+      ]
+    }
+  ],
   "modalPages":[
     "Modal-Scheduler",
     "Modal-ScnCtl",
@@ -2645,14 +2643,76 @@
     "Popover-Ctl-Lights_0",
     "Popover-Room"
   ],
-  "popupGroups":[
-    "Tech-Popups",
-    "Tech-Menus",
-    "Activity-Menus",
-    "Activity-Open-Menus",
-    "Source-Menus",
-    "Source-Controls",
-    "Audio-Controls",
-    "Activity-Controls"
-  ]
+  "popupGroups":{
+    "Tech-Popups": [
+      "Tech-About",
+      "Tech-AdvancedVolume_0",
+      "Tech-AdvancedVolume_1",
+      "Tech-AdvancedVolume_2",
+      "Tech-AdvancedVolume_3",
+      "Tech-AudioGain",
+      "Tech-Blank",
+      "Tech-CameraControls_0",
+      "Tech-CameraControls_1",
+      "Tech-CameraControls_2",
+      "Tech-DisplayControls_0,0,3",
+      "Tech-DisplayControls_0,1,2",
+      "Tech-DisplayControls_0,1,3",
+      "Tech-DisplayControls_0,1,4",
+      "Tech-DisplayControls_1,0,3",
+      "Tech-DisplayControls_1,1,2",
+      "Tech-DisplayControls_1,1,3",
+      "Tech-DisplayControls_1,1,4",
+      "Tech-ManualMatrix_12x6",
+      "Tech-ManualMatrix_8x4",
+      "Tech-PanelSetup",
+      "Tech-RoomConfig_0",
+      "Tech-RoomSchedule",
+      "Tech-SystemStatus"
+    ],
+    "Tech-Menus": [
+      "Menu-Tech-1",
+      "Menu-Tech-2"
+    ],
+    "Activity-Menus": [
+      "Menu-Activity-1",
+      "Menu-Activity-2",
+      "Menu-Activity-3"
+    ],
+    "Activity-Menus_start": [
+      "Menu-Activity-1_start",
+      "Menu-Activity-2_start",
+      "Menu-Activity-3_start"
+    ],
+    "Source-Menus": [
+      "Menu-Source-2",
+      "Menu-Source-3",
+      "Menu-Source-4",
+      "Menu-Source-5",
+      "Menu-Source-5+"
+    ],
+    "Source-Controls": [
+      "Source-Control-Adv_2,1",
+      "Source-Control-Adv_2,2",
+      "Source-Control-Adv_3,2",
+      "Source-Control-Adv_4,2",
+      "Source-Control-HDMI",
+      "Source-Control-PC_0",
+      "Source-Control-PC_1",
+      "Source-Control-PC_2",
+      "Source-Control-Splash-GrpWrk",
+      "Source-Control-Splash-Share",
+      "Source-Control-WPD"
+    ],
+    "Audio-Controls": [
+      "Audio-Control-mic",
+      "Audio-Control-mic-privacy",
+      "Audio-Control-no_mic",
+      "Audio-Control-no_mic-privacy"  
+    ],
+    "Activity-Controls": [
+      "Activity-Control-AdvShare",
+      "Activity-Control-Group"
+    ]
+  }
 }

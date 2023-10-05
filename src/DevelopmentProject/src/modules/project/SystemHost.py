@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.Collections import DeviceCollection
+    from modules.helper.Collections import DeviceCollection
 
 #### Python imports
 from os.path import splitext
@@ -28,8 +28,8 @@ from os.path import splitext
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
-from modules.project.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
-from modules.project.Collections import DictObj
+from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
+from modules.helper.Collections import DictObj
 from control.PollController import PollingController
 import Variables
 
@@ -229,8 +229,7 @@ class SystemController:
         #self.ActCtl = ActivityController(self)
         
         for tp in self.UIDevices:
-            # tp.InitializeUIControllers()
-            pass
+            tp.Interface.InitializeControlObjects()
         
         # self.SrcCtl = self.UI_Main.SrcCtl
         

@@ -28,7 +28,7 @@ import json
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
-from modules.project.Collections import DeviceCollection, DictObj
+from modules.helper.Collections import DeviceCollection, DictObj
 from Variables import PROJECT_FILE
 from ui.Feedback.Device import *
 # TODO: load this in a more secure way

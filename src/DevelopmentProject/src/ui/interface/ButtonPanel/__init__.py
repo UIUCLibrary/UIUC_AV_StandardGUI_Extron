@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice
     from extronlib.device import UIDevice, eBUSDevice
 
 #### Python imports

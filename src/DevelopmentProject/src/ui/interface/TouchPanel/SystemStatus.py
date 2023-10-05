@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.Collections import DeviceCollection
+    from modules.helper.Collections import DeviceCollection
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.ui import Button, Knob, Label, Level, Slider
 

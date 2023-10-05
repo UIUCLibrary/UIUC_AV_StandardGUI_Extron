@@ -20,20 +20,22 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
-    from modules.project.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice
 
 #### Python imports
 import json
 
 #### Extron Library Imports
 from extronlib import event
-from extronlib.system import MESet, File
+from extronlib.system import File
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
-from modules.project.ExtendedUIClasses import ExButton, ExLabel, ExLabel, ExLevel, ExSlider, ExKnob
-from modules.project.Collections import UIObjectCollection
-import System
+from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
+import modules.helper.Collections 
+UIObjectCollection = modules.helper.Collections.UIObjectCollection
+import modules.project.callbacks.RefCallbacks
+import modules.project.callbacks.PopupCallbacks
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -49,7 +51,7 @@ class TouchPanelObjects():
         self.Labels = UIObjectCollection()
         self.Levels = UIObjectCollection()
         self.Sliders = UIObjectCollection()
-        self.Selects = UIObjectCollection()
+        self.Refs = UIObjectCollection()
         
         self.ButtonGroups = {}
         
@@ -63,40 +65,26 @@ class TouchPanelObjects():
         
         return select
 
-    def LoadSelects(self,
+    def LoadRefs(self,
                     UIHost: Union['ExUIDevice', 'UIDevice'],
-                    jsonObj: Dict = {},
-                    jsonPath: str = "") -> Dict:
-        
-        ## do not expect both jsonObj and jsonPath
-        ## jsonObj should take priority over jsonPath
-        if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
-            if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
-                jsonFile = File(jsonPath)
-                jsonStr = jsonFile.read()
-                jsonFile.close()
-                jsonObj = json.loads(jsonStr)
-            else: ## jsonPath was invalid, so return none (error)
-                raise ValueError('Specified file does not exist')
-        elif jsonObj == {} and jsonPath == "":
-            raise ValueError('Either jsonObj or jsonPath must be specified')
-        
-        for select in jsonObj['selects']:
+                    refDict: Dict) -> List:
+        RefList = []
+        for ref in refDict:
             # fix attributes for ExButton
-            kwargs = dict(select)
+            kwargs = dict(ref)
             kwargs.pop('Name')
-            kwargs.pop('ID')
             
-            self.Selects[select['Name']] = ExButton(UIHost=UIHost,
-                                                    ID_Name=self.__GetSelectId(),
-                                                    **kwargs)
-            self.Selects[select['Name']].Name = select['Name']
-            self.Selects[select['Name']].SetState(0)
+            self.Refs[ref['Name']] = RefButton(UIHost=UIHost,
+                                               ID_Name=self.__GetSelectId(),
+                                               **kwargs)
+            self.Refs[ref['Name']].SetRefName(ref['Name'])
+            RefList.append(self.Refs[ref['Name']])
+        return RefList
         
     def LoadButtons(self,
                     UIHost: Union['ExUIDevice', 'UIDevice'],
                     jsonObj: Dict = {},
-                    jsonPath: str = "") -> Dict:
+                    jsonPath: str = "") -> None:
         """Builds a dictionary of Extron Buttons from a json object or file
 
         Args (only one json arg required, jsonObj takes precedence over jsonPath):
@@ -134,46 +122,13 @@ class TouchPanelObjects():
                                                     ID_Name=button['ID'],
                                                     **kwargs)
             self.Buttons[button['Name']].SetState(0)
-
-    def LoadButtonGroups(self,
-                         jsonObj: Dict = {},
-                         jsonPath: str = "")-> None:
-        """Builds a dictionary of mutually exclusive button groups from a json
-            object or file
-
-        Args (only one json arg required, jsonObj takes precedence over jsonPath):
-            jsonObj (Dict, optional): The json object containing button group
-                information. Defaults to {}.
-            jsonPath (str, optional): The path to the file containing json formatted
-                button group information. Defaults to "".
-
-        Raises:
-            ValueError: if specified file at jsonPath does not exist
-            ValueError: if neither jsonObj or jsonPath are specified
-        """
-        ## do not expect both jsonObj and jsonPath
-        ## jsonObj should take priority over jsonPath        
-        if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
-            if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
-                jsonFile = File(jsonPath)
-                jsonStr = jsonFile.read()
-                jsonFile.close()
-                jsonObj = json.loads(jsonStr)
-            else: ## jsonPath was invalid, so return none (error)
-                raise ValueError('Specified file does not exist')
-        elif jsonObj == {} and jsonPath == "":
-            raise ValueError('Either jsonObj or jsonPath must be specified')
-
-        ## create MESets and build self.ButtonGroups
-        for group in jsonObj['buttonGroups']:
-            ## reset btnList and populate it from the jsonObj
-            btnList = []
-            for btn in group['Buttons']:
-                ## get button objects from Dict and add to list
-                btnList.append(self.Buttons[btn])
-            self.ButtonGroups[group['Name']] = MESet(btnList)
-            
-        # Logger.Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.ButtonGroups['Activity-Select'].Objects])
+        
+        # link indictators
+        for button in self.Buttons.values():
+            if hasattr(button, 'indicator'):
+                ind = self.Buttons[button.indicator]
+                button.indicator = ind
+                setattr(ind, 'ind-ref', button)
 
     def LoadKnobs(self,
                   UIHost: Union['ExUIDevice', 'UIDevice'],
@@ -391,7 +346,72 @@ class TouchPanelObjects():
             raise ValueError('Either jsonObj or jsonPath must be specified')
         
         self.PopupGroups = jsonObj['popupGroups']
+        
+    def LoadButtonGroups(self,
+                         UIHost: Union['ExUIDevice', 'UIDevice'],
+                         jsonObj: Dict = {},
+                         jsonPath: str = "")-> None:
+        """Builds a dictionary of mutually exclusive button groups from a json
+            object or file
+
+        Args (only one json arg required, jsonObj takes precedence over jsonPath):
+            jsonObj (Dict, optional): The json object containing button group
+                information. Defaults to {}.
+            jsonPath (str, optional): The path to the file containing json formatted
+                button group information. Defaults to "".
+
+        Raises:
+            ValueError: if specified file at jsonPath does not exist
+            ValueError: if neither jsonObj or jsonPath are specified
+        """
+        ## do not expect both jsonObj and jsonPath
+        ## jsonObj should take priority over jsonPath        
+        if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
+            if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
+                jsonFile = File(jsonPath)
+                jsonStr = jsonFile.read()
+                jsonFile.close()
+                jsonObj = json.loads(jsonStr)
+            else: ## jsonPath was invalid, so return none (error)
+                raise ValueError('Specified file does not exist')
+        elif jsonObj == {} and jsonPath == "":
+            raise ValueError('Either jsonObj or jsonPath must be specified')
+
+        ## create MESets and build self.ButtonGroups
+        for group in jsonObj['buttonGroups']:
+            kwargs = {"Name": group['Name']}
+            CollectionModule = modules.helper.Collections
+            Constructor = getattr(CollectionModule, group['Class'])
+            
+            ## reset btnList and populate it from the jsonObj
+            if 'Buttons' in group.keys():
+                kwargs['Objects'] = []
+                for btn in group['Buttons']:
+                    ## get button objects from Dict and add to list
+                    kwargs['Objects'].append(self.Buttons[btn])
+            
+            if 'PopupCallback' in group.keys():
+                PopupCBModule = modules.project.callbacks.PopupCallbacks
+                PopupCB = getattr(PopupCBModule, group['PopupCallback'])
+                kwargs['PopupCallback'] = PopupCB
+                
+            if 'Controls' in group.keys():
+                for key, val in group['Controls'].items():
+                    kwargs[key] = self.Buttons[val]
+                    
+            if 'RefCallback' in group.keys():
+                RefCBModule = modules.project.callbacks.RefCallbacks
+                RefCB = getattr(RefCBModule, group['RefCallback'])
+                refs = self.LoadRefs(UIHost, RefCB())
+                kwargs['RefObjects'] = refs
+            Logger.Log(kwargs)
+            self.ButtonGroups[group['Name']] = Constructor(**kwargs)
     
+    def GetPopupGroupByPage(self, PopupPage: str) -> str:
+        for group, list in self.PopupGroups.items():
+            if PopupPage in list:
+                return group
+        return None
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
