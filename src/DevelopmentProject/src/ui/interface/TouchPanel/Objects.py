@@ -53,11 +53,26 @@ class TouchPanelObjects():
         self.Sliders = UIObjectCollection()
         self.Refs = UIObjectCollection()
         
-        self.ButtonGroups = {}
+        self.ControlGroups = {}
         
         self.ModalPages = []
         self.PopoverPages = []
         self.PopupGroups = []
+
+    def __repr__(self) -> str:
+        output = {
+            "Buttons": self.Buttons,
+            "Knobs": self.Knobs,
+            "Labels": self.Labels,
+            "Levels": self.Levels,
+            "Sliders": self.Sliders,
+            "Refs": self.Refs,
+            "ControlGroups": self.ControlGroups,
+            "ModalPages": self.ModalPages,
+            "PopoverPages": self.PopoverPages,
+            "PopupGroups": self.PopupGroups
+        }
+        return str(output)
 
     def __GetSelectId(self) -> int:
         select = self.__SelectIdCurrent
@@ -347,7 +362,7 @@ class TouchPanelObjects():
         
         self.PopupGroups = jsonObj['popupGroups']
         
-    def LoadButtonGroups(self,
+    def LoadControlGroups(self,
                          UIHost: Union['ExUIDevice', 'UIDevice'],
                          jsonObj: Dict = {},
                          jsonPath: str = "")-> None:
@@ -404,8 +419,8 @@ class TouchPanelObjects():
                 RefCB = getattr(RefCBModule, group['RefCallback'])
                 refs = self.LoadRefs(UIHost, RefCB())
                 kwargs['RefObjects'] = refs
-            Logger.Log(kwargs)
-            self.ButtonGroups[group['Name']] = Constructor(**kwargs)
+
+            self.ControlGroups[group['Name']] = Constructor(**kwargs)
     
     def GetPopupGroupByPage(self, PopupPage: str) -> str:
         for group, list in self.PopupGroups.items():

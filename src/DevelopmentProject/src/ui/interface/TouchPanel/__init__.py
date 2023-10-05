@@ -64,7 +64,9 @@ class TouchPanelInterface():
         self.Objects.LoadPopoverPages(jsonObj=self.__LayoutDict)
         self.Objects.LoadPopupGroups(jsonObj=self.__LayoutDict)
         
-        self.Objects.LoadButtonGroups(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadControlGroups(UIHost=self.Device, jsonObj=self.__LayoutDict)
+
+        Logger.Log(self.Objects)
 
         self.Initialized = True
 
