@@ -91,13 +91,14 @@ def FullName(o) -> str:
     return module + '.' + klass.__qualname__
 
 class Logger():
-    Prog = ProgramLogLogger()
-    Trace = TraceLogger()
+    __Prog = ProgramLogLogger()
+    __Trace = TraceLogger()
+    Trace = __Trace.Log
 
     @classmethod
     def Log(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
-        cls.Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
-        cls.Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
+        cls.__Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
+        cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string
@@ -220,7 +221,7 @@ def debug(func): # pragma: no cover
         kwargs_repr = ["{}={!r}".format(k, v) for k, v in kwargs.items()]
         signature = ", ".join(args_repr + kwargs_repr)
         callStr = "Calling {}({})".format(func.__name__, signature)
-        Logger.Trace.Log(callStr)
+        Logger.__Trace.Log(callStr)
         try:
             value = func(*args, **kwargs)
             rtnStr = "{!r} returned {!r}".format(func.__name__, value)

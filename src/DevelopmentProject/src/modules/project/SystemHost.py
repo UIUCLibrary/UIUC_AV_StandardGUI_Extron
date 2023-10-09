@@ -30,8 +30,10 @@ from os.path import splitext
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 from modules.helper.Collections import DictObj
+from modules.helper.ModuleSupport import WatchVariable
 from control.PollController import PollingController
 import Variables
+import Constants
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -96,7 +98,8 @@ class SystemController:
         self.CameraSwitcherId = Variables.CAMERA_SW
         
         # System Properties
-        self.SystemActivity = 'off'
+        self.SystemActivityWatch = WatchVariable("System Activity Mode")
+        self.__SystemActivity = Constants.ActivityMode.Standby
 
         ## Processor Definition ------------------------------------------------
         self.Processors = []
@@ -151,8 +154,26 @@ class SystemController:
         ## Create System controllers
         self.PollCtl = PollingController(self.Devices)
         
-        
         ## End of GUIController Init ___________________________________________
+
+    @property
+    def SystemActivity(self) -> Constants.ActivityMode:
+        return self.__SystemActivity
+    
+    @SystemActivity.setter
+    def SystemActivity(self, val: Union[Constants.ActivityMode, str, int]) -> None:
+        if type(val) is Constants.ActivityMode:
+            enumVal = val
+        elif type(val) is int:
+            enumVal = Constants.ActivityMode(val)
+        elif type(val) is str:
+            enumVal = Constants.ActivityMode[val]
+        else:
+            raise TypeError('val must be a str, int, or ActivityMode Enum')
+        
+        if enumVal != self.__SystemActivity:
+            self.__SystemActivity = enumVal
+            self.SystemActivityWatch.Change(enumVal)
 
     def StartupActions(self) -> None:
         self.PollCtl.SetPollingMode('active')

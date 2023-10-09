@@ -1,0 +1,18 @@
+[
+    {
+        "ControlObject": "Splash",
+        "PrimaryFunc": "SplashStartHandler",
+        "PressShift": false,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlCollection": "Activity-Select",
+        "PrimaryFunc": "ActivitySelect",
+        "PressShift": true,
+        "Latching": true,
+        "ShiftState": 1,
+        "ActiveState": 1,
+        "InactiveState": 0,
+        "FuncModule": "control.ActivityController"
+    }
+]

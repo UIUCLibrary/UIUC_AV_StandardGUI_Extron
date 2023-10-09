@@ -32,6 +32,7 @@ from extronlib.system import File
 #### Project imports
 from modules.helper.CommonUtilities import Logger
 from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
+from modules.helper.PrimitiveObjects import ControlObject
 import modules.helper.Collections 
 UIObjectCollection = modules.helper.Collections.UIObjectCollection
 import modules.project.callbacks.RefCallbacks
@@ -421,6 +422,45 @@ class TouchPanelObjects():
                 kwargs['RefObjects'] = refs
 
             self.ControlGroups[group['Name']] = Constructor(**kwargs)
+            
+    def LoadControls(self, 
+                     jsonObj: Dict = {},
+                     jsonPath: str = "") -> None:
+        
+        ## do not expect both jsonObj and jsonPath
+        ## jsonObj should take priority over jsonPath        
+        if jsonObj == {} and jsonPath != "": # jsonObj is empty and jsonPath not blank
+            if File.Exists(jsonPath): # jsonPath is valid, so load jsonObj from path
+                jsonFile = File(jsonPath)
+                jsonStr = jsonFile.read()
+                jsonFile.close()
+                jsonObj = json.loads(jsonStr)
+            else: ## jsonPath was invalid, so return none (error)
+                raise ValueError('Specified file does not exist')
+        elif jsonObj == {} and jsonPath == "":
+            raise ValueError('Either jsonObj or jsonPath must be specified')
+        
+        for ctl in jsonObj:
+            kwargs = dict(ctl)
+            if 'ControlObject' in kwargs.keys():
+                kwargs.pop('ControlObject')
+            if 'ControlCollection' in kwargs.keys():
+                kwargs.pop('ControlCollection')
+            
+            Logger.Log('Ctl Dict:', ctl)
+            Logger.Log('KwArgs Dict:', kwargs)
+            
+            ctlObj = ControlObject(**kwargs)
+            
+            if 'ControlObject' in ctl and 'ControlCollection' not in ctl:
+                if ctl['ControlObject'] in self.Buttons.keys():
+                    ctlObj.LinkControlObject(ControlObject=self.Buttons[ctl['ControlObject']])
+            elif 'ControlCollection' in ctl and 'ControlObject' not in ctl:
+                if ctl['ControlCollection'] in self.ControlGroups.keys():
+                    ctlObj.LinkControlObject(ControlCollection=self.ControlGroups[ctl['ControlCollection']])
+            elif 'ControlObject' in ctl and 'ControlCollection' in ctl:
+                if ctl['ControlObject'] in self.Buttons.keys() and ctl['ControlCollection'] in self.ControlGroups.keys():
+                    ctlObj.LinkControlObject(ControlObject=self.Buttons[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
     
     def GetPopupGroupByPage(self, PopupPage: str) -> str:
         for group, list in self.PopupGroups.items():

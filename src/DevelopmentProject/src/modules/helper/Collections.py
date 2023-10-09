@@ -21,11 +21,12 @@ from typing import (TYPE_CHECKING, Dict, Tuple, List, Union, Callable, TypeVar,
                     ValuesView, ItemsView, KeysView, Any)
 
 import extronlib.interface
+import extronlib.ui
 if TYPE_CHECKING: # pragma: no cover
+    from modules.helper.PrimitiveObjects import ControlObject, FeedbackObject
     from modules.device.classes.Destinations import Destination
     from modules.device.classes.Sources import Source
-    from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
-    from extronlib.ui import Button, Level, Label
+
     _KT = TypeVar('_KT')
 
 #### Python imports
@@ -39,8 +40,10 @@ from modules.helper.ModuleSupport import WatchVariable
 from modules.helper.CommonUtilities import DictValueSearchByKey, RunAsync, debug, Logger
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
-from Variables import BLANK_SOURCE
-
+from Constants import BLANK_SOURCE
+from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
+from extronlib.ui import Button, Level, Label
+    
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
@@ -290,6 +293,9 @@ class RadioSet(MESet):
                  Objects: List[Union['Button', 'ExButton', 'RefButton']]) -> None:
         super().__init__(Objects)
         self.__Name = Name
+        
+        for btn in self.Objects:
+            setattr(btn, 'Group', self)
     
     def __repr__(self) -> str:
         sep = ', '
@@ -314,11 +320,19 @@ class RadioSet(MESet):
     def GetCurrent(self) -> Union['Button', 'ExButton', 'RefButton']:
         return super().GetCurrent()
     
+    def Append(self, obj: Union['Button', 'ExButton']) -> None:
+        setattr(obj, 'Group', self)
+        return super().Append(obj)
+    
     def Remove(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'RefButton']], str, int, 'Button', 'ExButton', 'RefButton']) -> None:
         if type(obj) is list:
             for item in obj:
                 self.Remove(item)
         elif type(obj) in [int, Button, ExButton, RefButton]:
+            if type(obj) is int:
+                delattr(self.Objects[obj], 'Group')
+            elif obj in self.Objects:
+                delattr(obj, 'Group')
             super().Remove(obj)
         elif type (obj) is str:
             i = None
@@ -327,10 +341,11 @@ class RadioSet(MESet):
                     i = self.Objects.index(o)
                     break
             if i is not None:
+                delattr(self.Objects[i], 'Group')
                 super().Remove(i)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
-        else:
+        elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
     def SetCurrent(self, obj: Union[int, str, 'Button', 'ExButton', 'RefButton']) -> None:
@@ -367,8 +382,17 @@ class RadioSet(MESet):
                 super().SetStates(i, offState, onState)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
-        else:
+        elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        if type(Control) is ControlObject:
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        # TODO: create button events here
+        Logger.Log('RadioSet ControlObject:', Control)
     
 class SelectSet():
     def __init__(self, 
@@ -381,6 +405,7 @@ class SelectSet():
         
         for o in self.__Objects:
             self.__StateList.append({"onState": 0, "offState": 1})
+            setattr(o, 'Group', self)
     
     def __repr__(self) -> str:
         sep = ', '
@@ -403,6 +428,7 @@ class SelectSet():
         raise AttributeError('Overriding the Objects property is not allowed')
     
     def Append(self, obj: Union['Button', 'ExButton', 'RefButton']) -> None:
+        setattr(obj, 'Group', self)
         self.__Objects.append(obj)
         self.__StateList.append({"onState": 0, "offState": 1})
         
@@ -420,9 +446,11 @@ class SelectSet():
             for item in obj:
                 self.Remove(item)
         elif type(obj) is int:
+            delattr(self.__Objects[obj], 'Group')
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
         elif type(obj) in [Button, ExButton, RefButton]:
+            delattr(obj, 'Group')
             i = self.__Objects.index(obj)
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
@@ -433,11 +461,12 @@ class SelectSet():
                     i = self.__Objects.index(o)
                     break
             if i is not None:
+                delattr(self.__Objects[obj], 'Group')
                 self.__Objects.pop(obj)
                 self.__StateList.pop(obj)
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
-        else:
+        elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
     def SetActive(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'RefButton']], str, int, 'Button', 'ExButton', 'RefButton']) -> None:
@@ -467,7 +496,7 @@ class SelectSet():
                 obj.SetState(self.__StateList[self.__Objects.index(obj)]['onState'])
             else:
                 raise IndexError('Object not found in select list')
-        else:
+        elif obj is not None:
             raise TypeError('Object must be an object name, int index, the button object (Button or ExButton class), or List of these')
 
     def SetStates(self, obj: Union[List[Union[str, int, 'Button', 'ExButton', 'RefButton']], str, int, 'Button', 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
@@ -492,8 +521,17 @@ class SelectSet():
                 self.__StateList[i]['offState'] = offState
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
-        else:
+        elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        if type(Control) is ControlObject:
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        # TODO: create button events here
+        Logger.Log('SelectSet ControlObject:', Control)
     
 class VariableRadioSet():
     def __init__(self, 
@@ -504,6 +542,9 @@ class VariableRadioSet():
         self.__Name = Name
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__PopupCallback = PopupCallback
+        
+        for btn in self.Objects:
+            setattr(btn, 'Group', self)
     
     def __repr__(self) -> str:
         sep = ', '
@@ -533,9 +574,10 @@ class VariableRadioSet():
     def PopupName(self, val) -> None:
         raise AttributeError('Overriding the PopupName property is disallowed')
     
-    def Append(self, Object: Union['Button', 'ExButton'] = None) -> None:
-        if Object is not None:
-            self.__BtnSet.Append(Object)
+    def Append(self, obj: Union['Button', 'ExButton'] = None) -> None:
+        if obj is not None:
+            setattr(obj, 'Group', self)
+            self.__BtnSet.Append(obj)
             
     def GetCurrent(self) -> Union['Button', 'ExButton']:
         return self.__BtnSet.GetCurrent()
@@ -579,6 +621,15 @@ class VariableRadioSet():
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
         else:
             self.__BtnSet.Objects[0].Host.ShowPage('{}_{}'.format(self.PopupName, str(suffix)))
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        if type(Control) is ControlObject:
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        # TODO: create button events here
+        Logger.Log('VariableRadioSet ControlObject:', Control)
         
 class ScrollingRadioSet():
     def __init__(self, 
@@ -591,10 +642,19 @@ class ScrollingRadioSet():
         self.__Name = Name
         self.__Offset = 0
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
+        setattr(self.__BtnSet, 'Group', self)
         self.__PopupCallback = PopupCallback
         self.__RefSet = RadioSet('{}-RefObjects'.format(self.Name), RefObjects)
+        setattr(self.__RefSet, 'Group', self)
         self.__Prev = PrevBtn
+        setattr(self.__Prev, 'Group', self)
         self.__Next = NextBtn
+        setattr(self.__Next, 'Group', self)
+        
+        for btn in self.Objects:
+            btn.Group = self
+        for btn in self.RefObjects:
+            btn.Group = self
 
     def __repr__(self) -> str:
         sep = ', '
@@ -661,9 +721,11 @@ class ScrollingRadioSet():
     
     def AppendButton(self, btn: Union['Button', 'ExButton']) -> None:
         self.__BtnSet.Append(btn)
+        btn.Group = self
     
     def AppendRef(self, ref: 'RefButton') -> None:
         self.__RefSet.Append(ref)
+        ref.Group = self
         
     def RemoveButton(self, btn: Union[List[Union[int, str, 'Button', 'ExButton']], int, str, 'Button', 'ExButton']) -> None:
         self.__BtnSet.Remove(btn)
@@ -700,6 +762,15 @@ class ScrollingRadioSet():
         else:
             self.__BtnSet.Objects[0].Host.ShowPage('{}_{}'.format(self.PopupName, str(suffix)))
     
+    def SetControlObject(self, Control: 'ControlObject'):
+        if type(Control) is ControlObject:
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        # TODO: create button events here
+        Logger.Log('ScrollingRadioSet ControlObject:', Control)
+        
 class VolumeControlGroup():
     def __init__(self,
                  Name: str,
@@ -716,26 +787,31 @@ class VolumeControlGroup():
         
         if type(VolUp) in [Button, ExButton]:
             self.VolUpBtn = VolUp
+            setattr(self.VolUpBtn, 'Group', self)
         else:
             raise TypeError("VolUp must be an Extron Button object")
         
         if type(VolDown) in [Button, ExButton]:
             self.VolDownBtn = VolDown
+            setattr(self.VolDownBtn, 'Group', self)
         else:
             raise TypeError("VolDown must be an Extron Button object")
         
         if type(Mute) in [Button, ExButton]:
-            self.MuteBtn = VolUp
+            self.MuteBtn = Mute
+            setattr(self.MuteBtn, 'Group', self)
         else:
             raise TypeError("Mute must be an Extron Button object")
         
         if type(Feedback) in [Level, ExLevel]:
             self.FeedbackLvl = Feedback
+            setattr(self.FeedbackLvl, 'Group', self)
         else:
             raise TypeError("Feedback must be an Extron Level object")
         
         if type(ControlLabel) in [Label, ExLabel] or ControlLabel is None:
             self.ControlLbl = ControlLabel
+            setattr(self.ControlLbl, 'Group', self)
         else:
             raise TypeError("ControlLabel must either be an Extron Label object or None (default)")
         
@@ -758,6 +834,15 @@ class VolumeControlGroup():
     @Name.setter
     def Name(self, val) -> None:
         raise AttributeError('Overriding the Name property is disallowed')
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        if type(Control) is ControlObject:
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        # TODO: create button events here
+        Logger.Log('VolumeControlGroup ControlObject:', Control)
 
 ## End Class Definitions -------------------------------------------------------
 ##

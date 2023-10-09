@@ -3,26 +3,7 @@ The variables file is for data that will be used throughout the project.  This c
 dynamic data.  After being initial loaded by main.py, it can be imported and used in any module
 throughout the system.
 """
-# Python imports
-from enum import Enum
 
-# Extron Library imports
-
-# Project imports
-from modules.device.classes.Sources import Source
-
-class ActivityMode(Enum):
-    Off = 0
-    Share = 1
-    AdvShare = 2
-    GroupWork = 3
-    
-    def GetNameByValue(cls, val) -> str:
-        for data in cls:
-            if data.value == val:
-                return data.name
-
-BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 TESTING = True
 
 ## PROJECT CONSTANTS -----------------------------------------------------------

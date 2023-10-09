@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
     from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
+    from modules.helper.PrimitiveObjects import ControlObject, FeedbackObject
 
 #### Python imports
 
@@ -31,7 +32,7 @@ from extronlib.system import Wait
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
-from modules.helper.PrimitiveObjects import ControlObject, FeedbackObject
+from modules.helper.ModuleSupport import eventEx
 
 
 ## End Imports -----------------------------------------------------------------
@@ -44,6 +45,7 @@ class RefButton(Button):
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name, None, None)
+        self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
         self.__Control = None
@@ -56,7 +58,7 @@ class RefButton(Button):
                 setattr(self, kw, val)
         
     @property
-    def Control(self) -> ControlObject:
+    def Control(self) -> 'ControlObject':
         return self.__Control
     
     @Control.setter
@@ -85,7 +87,7 @@ class RefButton(Button):
         else:
             raise AttributeError('RefName is already set')
     
-    def SetControlObject(self, Control: ControlObject):
+    def SetControlObject(self, Control: 'ControlObject'):
         if type(Control) is ControlObject:
             self.__Control = Control
         else:
@@ -102,9 +104,12 @@ class ExButton(Button):
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name, holdTime, repeatTime)
         
+        self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
         self.__Control = None
+        self.__HoldTime = holdTime
+        self.__RepeatTime = repeatTime
         
         for kw, val in kwargs.items():
             if kw == 'Text':
@@ -113,7 +118,7 @@ class ExButton(Button):
                 setattr(self, kw, val)
     
     @property
-    def Control(self) -> ControlObject:
+    def Control(self) -> 'ControlObject':
         return self.__Control
     
     @Control.setter
@@ -131,14 +136,54 @@ class ExButton(Button):
             text = ''
         self.Text = text
         super().SetText(text)
+    
+    def HasHold(self) -> bool:
+        return (self.__HoldTime is not None)
+    
+    def HasRepeat(self) -> bool:
+        return (self.__RepeatTime is not None)
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        self.__Control = Control
         
-    def SetControlObject(self, Control: ControlObject):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
-        
-        # TODO: create button events here
+        Logger.Log('Assigning Control Event', self, Control)
+        # TODO: make sure this covers button usage
+        @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        def ButtonHandler(source: 'ExButton', event: str):
+            Logger.Log("Button Event", source, event)
+            initialState = source.State
+            if event is 'Pressed':
+                if source.Control.PressStateShift:
+                    source.SetState(source.Control.States.Shift)
+                
+            elif event is 'Released':
+                if not source.HasHold():
+                    source.Control.Functions.Primary(source, event)
+                    
+                    if source.Control.IsLatching:
+                        source.SetState(source.Control.States.Active)
+                    else:
+                        source.SetState(source.Control.States.Inactive)
+                else:
+                    source.Control.Functions.Hold(source, event)
+                    if source.Control.HoldLatching:
+                        source.SetState(source.Control.States.HoldActive)
+                    else:
+                        source.SetState(initialState)
+            elif event is 'Held':
+                if hasattr(source.Control.States, 'HoldShift'):
+                    source.SetState(source.Control.States.HoldShift)
+            elif event is 'Repeated':
+                source.Control.Functions.Repeat(source, event)
+            elif event is 'Tapped':
+                source.Control.Functions.Primary(source, event)
+                
+                if source.Control.IsLatching:
+                    source.SetState(source.Control.States.Active)
+                else:
+                    source.SetState(source.Control.States.Inactive)
+                        
+                    
 
 class ExLabel(Label):
     def __init__(self, 
@@ -147,6 +192,7 @@ class ExLabel(Label):
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name)
         
+        self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
         
@@ -172,6 +218,7 @@ class ExLevel(Level):
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name)
         
+        self.UIHost = UIHost
         self.Id = self.ID
         
         for kw, val in kwargs.items():
@@ -198,6 +245,7 @@ class ExSlider(Slider):
                  **kwargs) -> None:
         super().__init__(UIHost, ID_Name)
         
+        self.UIHost = UIHost
         self.Id = self.ID
         
         self.__Control = None
@@ -214,7 +262,7 @@ class ExSlider(Slider):
         raise AttributeError('Level property cannot be set, use SetLevel instead')
     
     @property
-    def Control(self) -> ControlObject:
+    def Control(self) -> 'ControlObject':
         return self.__Control
     
     @Control.setter
@@ -227,7 +275,7 @@ class ExSlider(Slider):
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Fill, self.Min, self.Max)
 
-    def SetControlObject(self, Control: ControlObject):
+    def SetControlObject(self, Control: 'ControlObject'):
         if type(Control) is ControlObject:
             self.__Control = Control
         else:
@@ -241,6 +289,7 @@ class ExKnob(Knob):
                  **kwargs) -> None:
         super().__init__(UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
         
+        self.UIHost = UIHost
         self.Id = self.ID
         
         for kw, val in kwargs.items():

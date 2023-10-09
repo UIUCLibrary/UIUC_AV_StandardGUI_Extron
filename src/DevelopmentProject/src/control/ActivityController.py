@@ -21,17 +21,22 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import MatrixTuple, Destination
+    from extronlib.ui import Button
+    from modules.helper.ExtendedUIClasses import ExButton
 
 #### Python imports
 
 #### Extron Library Imports
 from extronlib import event
-from extronlib.ui import Button
 from extronlib.system import Timer
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
+from modules.helper.ModuleSupport import eventEx
+from Constants import STANDBY, SHARE, ADVSHARE, GROUPWORK, ActivityMode
+import System
+from ui.interface.TouchPanel import StartShutdownConfirmation
+
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -39,11 +44,23 @@ from modules.helper.CommonUtilities import Logger, TimeIntToStr
 
 class ActivityController:
     def __init__(self) -> None:
-        pass
+        
+        @eventEx(System.CONTROLLER.SystemActivityWatch, 'Changed')
+        def SystemModeChangeHandler(src, val: ActivityMode) -> None:
+            Logger.Log('New System Mode:', val.name)
 
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+
+def ActivitySelect(button: Union['Button', 'ExButton'], action: str) -> None:
+    if button.activity not in STANDBY:
+        System.CONTROLLER.SystemActivity = ActivityMode[button.activity]
+    else:
+        StartShutdownConfirmation(click=True)
+    
+    Logger.Log("System Activity:", System.CONTROLLER.SystemActivity)
+    # TODO: complete this
 
 ## End Function Definitions ----------------------------------------------------
 
