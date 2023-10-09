@@ -43,11 +43,29 @@ from ui.interface.TouchPanel import StartShutdownConfirmation
 ## Begin Class Definitions -----------------------------------------------------
 
 class ActivityController:
-    def __init__(self) -> None:
+    def __init__(self, SystemHost: SystemController) -> None:
+        self.SystemHost = SystemHost
         
-        @eventEx(System.CONTROLLER.SystemActivityWatch, 'Changed')
+        
+        @eventEx(SystemHost.SystemActivityWatch, 'Changed')
         def SystemModeChangeHandler(src, val: ActivityMode) -> None:
             Logger.Log('New System Mode:', val.name)
+            if val is ActivityMode.Share:
+                pass
+            elif val is ActivityMode.AdvShare:
+                pass
+            elif val is ActivityMode.GroupWork:
+                pass
+            elif val is ActivityMode.Standby:
+                pass
+            
+    @property
+    def CurrentActivity(self) -> ActivityMode:
+        return self.SystemHost.SystemActivity
+    
+    @CurrentActivity.setter
+    def CurrentActivity(self, val) -> None:
+        raise AttributeError('Setting CurrentActivity is disallowed. Use System.CONTROLLER.SystemActivity instead.')
 
 ## End Class Definitions -------------------------------------------------------
 ##
@@ -58,9 +76,6 @@ def ActivitySelect(button: Union['Button', 'ExButton'], action: str) -> None:
         System.CONTROLLER.SystemActivity = ActivityMode[button.activity]
     else:
         StartShutdownConfirmation(click=True)
-    
-    Logger.Log("System Activity:", System.CONTROLLER.SystemActivity)
-    # TODO: complete this
 
 ## End Function Definitions ----------------------------------------------------
 

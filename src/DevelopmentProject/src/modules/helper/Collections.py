@@ -38,6 +38,7 @@ from extronlib.system import MESet
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
 from modules.helper.CommonUtilities import DictValueSearchByKey, RunAsync, debug, Logger
+from modules.helper.ModuleSupport import eventEx
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
 from Constants import BLANK_SOURCE
@@ -542,6 +543,7 @@ class VariableRadioSet():
         self.__Name = Name
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__PopupCallback = PopupCallback
+        self.__Control = None
         
         for btn in self.Objects:
             setattr(btn, 'Group', self)
@@ -573,6 +575,15 @@ class VariableRadioSet():
     @PopupName.setter
     def PopupName(self, val) -> None:
         raise AttributeError('Overriding the PopupName property is disallowed')
+    
+    @property
+    def Control(self) -> 'ControlObject':
+        return self.__Control
+    
+    @Control.setter
+    def Control(self, val) -> None:
+        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
+    
     
     def Append(self, obj: Union['Button', 'ExButton'] = None) -> None:
         if obj is not None:
@@ -620,16 +631,41 @@ class VariableRadioSet():
         if suffix is None:
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
         else:
-            self.__BtnSet.Objects[0].Host.ShowPage('{}_{}'.format(self.PopupName, str(suffix)))
+            self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(suffix)))
     
     def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
+        self.__Control = Control
         
         # TODO: create button events here
-        Logger.Log('VariableRadioSet ControlObject:', Control)
+        Logger.Log('Assigning Control Event', self, Control)
+        
+        @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        def ButtonHandler(source: 'ExButton', event: str):
+            Logger.Log('Button Event', source, event)
+            initialState = source.State
+            
+            if event is 'Pressed':
+                if self.Control.PressStateShift:
+                    source.SetState(self.Control.States.Shift)
+                
+            elif event is 'Released':
+                if not source.HasHold():
+                    self.Control.Functions.Primary(source, event)
+                    self.SetCurrent(source)
+                else:
+                    self.Control.Functions.Hold(source, event)
+                    if self.Control.HoldLatching:
+                        source.SetState(self.Control.States.HoldActive)
+                    else:
+                        source.SetState(initialState)
+            elif event is 'Held':
+                if hasattr(source.Control.States, 'HoldShift'):
+                    source.SetState(source.Control.States.HoldShift)
+            elif event is 'Repeated':
+                source.Control.Functions.Repeat(source, event)
+            elif event is 'Tapped':
+                source.Control.Functions.Primary(source, event)
+                self.SetCurrent(source)
         
 class ScrollingRadioSet():
     def __init__(self, 

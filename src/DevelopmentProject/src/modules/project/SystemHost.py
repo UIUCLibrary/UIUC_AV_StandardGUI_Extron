@@ -31,6 +31,7 @@ from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsyn
 from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 from modules.helper.Collections import DictObj
 from modules.helper.ModuleSupport import WatchVariable
+from control.ActivityController import ActivityController
 from control.PollController import PollingController
 import Variables
 import Constants
@@ -152,6 +153,7 @@ class SystemController:
         #     raise TypeError(type(self).GetErrorStr('E1', 'expansionDevices', expansionDevices, type(expansionDevices)))
             
         ## Create System controllers
+        self.ActCtl = ActivityController(self)
         self.PollCtl = PollingController(self.Devices)
         
         ## End of GUIController Init ___________________________________________
@@ -246,12 +248,16 @@ class SystemController:
         pass
 
     def Initialize(self) -> None:
-        ## Create Controllers --------------------------------------------------
-        #self.ActCtl = ActivityController(self)
-        
         for tp in self.UIDevices:
             tp.Interface.InitializeControlObjects()
-        
+            # TODO: do this in a more automated way
+            for ctlGrp in tp.Interface.Objects.ControlGroups.values():
+                try:
+                    if hasattr(ctlGrp, 'ShowPopup'):
+                        ctlGrp.ShowPopup()
+                        ctlGrp.ShowPopup(suffix='start')
+                except Exception as e:
+                    Logger.Log('Exception raised', e, type(e))
         # self.SrcCtl = self.UI_Main.SrcCtl
         
         # Log('Source List: {}'.format(self.Sources))

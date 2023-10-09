@@ -189,6 +189,8 @@ class ControlObject():
                     
             if self.__LinkedCollection is not None:
                 self.__LinkedCollection.SetStates(self.__LinkedObject, self.States.Inactive, self.States.Active)
+                
+            self.__LinkedCollection.SetControlObject(self)
 
 class FeedbackObject():
     def __init__(self) -> None:

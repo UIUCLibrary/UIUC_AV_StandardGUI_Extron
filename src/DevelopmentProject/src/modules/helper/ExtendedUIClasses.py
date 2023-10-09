@@ -152,6 +152,7 @@ class ExButton(Button):
         def ButtonHandler(source: 'ExButton', event: str):
             Logger.Log("Button Event", source, event)
             initialState = source.State
+            
             if event is 'Pressed':
                 if source.Control.PressStateShift:
                     source.SetState(source.Control.States.Shift)
@@ -170,11 +171,14 @@ class ExButton(Button):
                         source.SetState(source.Control.States.HoldActive)
                     else:
                         source.SetState(initialState)
+                        
             elif event is 'Held':
                 if hasattr(source.Control.States, 'HoldShift'):
                     source.SetState(source.Control.States.HoldShift)
+                    
             elif event is 'Repeated':
                 source.Control.Functions.Repeat(source, event)
+                
             elif event is 'Tapped':
                 source.Control.Functions.Primary(source, event)
                 
