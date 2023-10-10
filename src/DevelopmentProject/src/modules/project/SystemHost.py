@@ -41,13 +41,6 @@ import Constants
 ## Begin Class Definitions -----------------------------------------------------
 
 class SystemController:
-    errorMap = \
-        {
-            'E1': '{} must be a string device alias or a list of string device alaises. {} ({}) provided',
-            'E2': 'No valid control processors provided.',
-            'E3': '{} must be a tuple of device alias and uiLayout name or a list of these tuples. {} ({}) provided'
-        }
-    
     def __init__(self, 
                  controlDevices: list,
                  systemDevices: 'DeviceCollection',
@@ -55,6 +48,7 @@ class SystemController:
                  ) -> None:
         
         self.Initialized = False
+        
         # separate processor devices from UI devices for instantiating later
         processors = []
         uiDevices = []
@@ -65,12 +59,6 @@ class SystemController:
                 uiDevices.append(dev)
             else:
                 Logger.Log('Control Device part number not validated.', dev, separator='\n', logSeverity='warning')
-        
-        # Logger.Log('Processors: {}'.format(processors), 
-        #            'UI Devices: {}'.format(uiDevices), 
-        #            # 'Expansion Devices: {}'.format(expansionDevices), 
-        #            separator=' - ')
-        # Logger.Log(systemDevices)
         
         ## Begin Settings Properties -------------------------------------------
         
@@ -108,7 +96,7 @@ class SystemController:
             self.Processors.append(ExProcessorDevice(p.alias, p.part_number))
 
         if len(self.Processors) == 0:
-            raise ValueError(type(self).GetErrorStr('E2'))
+            raise ValueError('No valid control processors provided.')
         elif hasattr(Variables, 'PRIMARY_PROC') and Variables.PRIMARY_PROC is not None:
             self.Proc_Main = [proc for proc in self.Processors if proc.Id == Variables.PRIMARY_PROC][0]
         else:
@@ -271,7 +259,7 @@ class SystemController:
             uiDev.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
             uiDev.Click(5, 0.2)
         self.Initialized = True
-            
-    @classmethod
-    def GetErrorStr(cls, Error: str, *args, **kwargs):
-        return cls.errorMap[Error].format(*args, **kwargs)
+        
+    def ShowStart(self) -> None:
+        for uiDev in self.UIDevices:
+            uiDev.ShowPage('Start')

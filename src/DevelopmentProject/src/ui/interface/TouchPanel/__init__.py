@@ -60,25 +60,21 @@ class TouchPanelInterface():
         self.Initialized = False
     
     def Initialize(self) -> None:
+        ## Load UI Objects
         self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadLabels(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadLevels(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadSliders(UIHost=self.Device, jsonObj=self.__LayoutDict)
         
+        ## Load Page Lists
         self.Objects.LoadModalPages(jsonObj=self.__LayoutDict)
         self.Objects.LoadPopoverPages(jsonObj=self.__LayoutDict)
         self.Objects.LoadPopupGroups(jsonObj=self.__LayoutDict)
         
+        ## Load Controls
         self.Objects.LoadControlGroups(UIHost=self.Device, jsonObj=self.__LayoutDict)
-
         self.Objects.LoadControls(jsonObj=self.__ControlDict)
-
-        self.Device.HideAllPopups()
-        
-        self.Objects.ControlGroups.ShowPopups()
-        
-        self.Device.ShowPage('Splash')
 
         self.Initialized = True
 
@@ -88,7 +84,13 @@ class TouchPanelInterface():
 
 def SplashStartHandler(button: Union['Button', 'ExButton'], action: str) -> None:
     tp = button.UIHost
-    tp.ShowPage('Start')
+    if System.CONTROLLER.SystemPIN is not None:
+        tp.SecureAccess.System.Open(PIN=System.CONTROLLER.SystemPIN, Callback=SplashPinSuccess)
+    else:
+        System.CONTROLLER.ShowStart()
+        
+def SplashPinSuccess() -> None:
+    System.CONTROLLER.ShowStart()
         
 def StartShutdownConfirmation(click: bool=False) -> None:
     def CountdownHandler(timer: 'ExTimer', count: int):

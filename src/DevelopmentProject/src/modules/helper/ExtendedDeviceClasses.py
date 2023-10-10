@@ -30,9 +30,12 @@ from extronlib.system import Wait
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
+from modules.helper.Collections import DictObj
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.ButtonPanel import ButtonPanelInterface
+from ui.utilties.PinPad import PINController
 from modules.helper.PrimitiveObjects import Alias, classproperty
+import System
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -92,6 +95,7 @@ class ExUIDevice(UIDevice):
         self.Id = DeviceAlias
         self.Name = Name
         self.WebControlId = WebControlId
+        self.Initialized = False
         if type(UI) is str:
             self.UI = UI
         else:
@@ -119,7 +123,31 @@ class ExUIDevice(UIDevice):
         return valid_list
     
     def Initialize(self) -> None:
+        ## Hide any popups from previous program loads
+        self.HideAllPopups()
+        
+        ## initialize interface
         self.Interface.Initialize()
+        
+        ## show control group popups
+        self.Interface.Objects.ControlGroups.ShowPopups()
+        
+        ## initialize PIN Controllers
+        if self.Class == 'TouchPanel':
+            self.SecureAccess = DictObj({
+                    "System": PINController(self),
+                    "Tech": PINController(self)
+                })
+        
+        ## set Room Label to system Room Name
+        RoomLabelBtn = self.Interface.Objects.Buttons['Room-Label']
+        RoomLabelBtn.SetText(System.CONTROLLER.RoomName)
+        RoomLabelBtn.SetEnable(False)
+        
+        ## show initial page
+        self.ShowPage('Splash')
+        
+        self.Initialized = True
     
     def BlinkLights(self, Rate: str='Medium', StateList: List=None, Timeout: Union[int, float]=0):
         if StateList is None:

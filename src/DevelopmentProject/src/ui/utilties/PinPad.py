@@ -19,17 +19,16 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice
+    from modules.helper.ExtendedUIClasses import ExButton
 
 #### Python imports
 
 #### Extron Library Imports
-from extronlib import event
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
+from modules.helper.ModuleSupport import eventEx
+from modules.helper.CommonUtilities import Logger, DictValueSearchByKey
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -47,27 +46,27 @@ class PINController:
         self.__CurrentPIN = ""
         self.__PINPadBtns = \
             {
-                "numPad": DictValueSearchByKey(self.UIHost.Btns, r'PIN-\d', regex=True),
-                "backspace": self.UIHost.Btns['PIN-Del'],
-                "cancel": self.UIHost.Btns['PIN-Cancel']
+                "numPad": DictValueSearchByKey(self.UIHost.Interface.Objects.Buttons, r'PIN-\d', regex=True),
+                "backspace": self.UIHost.Interface.Objects.Buttons['PIN-Del'],
+                "cancel": self.UIHost.Interface.Objects.Buttons['PIN-Cancel']
             }
-        self.__PINLbl = self.UIHost.Lbls['PIN-Label']
+        self.__PINLbl = self.UIHost.Interface.Objects.Labels['PIN-Label']
 
-        @event(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
-        def UpdatePINHandler(button: 'Button', action: str):
+        @eventEx(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
+        def UpdatePINHandler(button: 'ExButton', action: str):
             self.__UpdatePINHandler(button, action)
         
-        @event(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
-        def BackspacePINHandler(button: 'Button', action: str):
+        @eventEx(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
+        def BackspacePINHandler(button: 'ExButton', action: str):
             self.__BackspacePINHandler(button, action)
 
-        @event(self.__PINPadBtns['cancel'], ['Pressed','Released']) # pragma: no cover
-        def CancelBtnHandler(button: 'Button', action: str):
+        @eventEx(self.__PINPadBtns['cancel'], ['Pressed','Released']) # pragma: no cover
+        def CancelBtnHandler(button: 'ExButton', action: str):
             self.__CancelBtnHandler(button, action)
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    def __UpdatePINHandler(self, button: 'Button', action: str):
+    def __UpdatePINHandler(self, button: 'ExButton', action: str):
         if action == 'Pressed':
             button.SetState(1)
         elif action == 'Released':
@@ -85,7 +84,7 @@ class PINController:
                 self.ResetPIN()
             button.SetState(0)
     
-    def __BackspacePINHandler(self, button: 'Button', action: str):
+    def __BackspacePINHandler(self, button: 'ExButton', action: str):
         if action == 'Pressed':
             button.SetState(1)
         elif action == 'Released':
@@ -93,7 +92,7 @@ class PINController:
             self.__MaskPIN()  # remask pin after change
             button.SetState(0)
     
-    def __CancelBtnHandler(self, button: 'Button', action: str):
+    def __CancelBtnHandler(self, button: 'ExButton', action: str):
         if action == 'Pressed':
             button.SetState(1)
         elif action == 'Released':
@@ -126,6 +125,7 @@ class PINController:
             for character in PIN:
                 if not character.isnumeric():
                     raise ValueError('All PIN Characters must be numeric')
+            self.PIN = PIN
         else:
             raise TypeError('PIN must be a string of numeric characters')
         
@@ -134,7 +134,6 @@ class PINController:
         
     def Close(self, success: bool=False) -> None:
         """Hides PIN Modal"""
-        
         if success:
             self.Callback()
         
