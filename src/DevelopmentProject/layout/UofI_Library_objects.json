@@ -299,35 +299,35 @@
       "ID": 7001,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "SourceIndicator-1"
+      "indicatorName": "SourceIndicator-1"
     },
     {
       "Name": "Source-2",
       "ID": 7002,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "SourceIndicator-2"
+      "indicatorName": "SourceIndicator-2"
     },
     {
       "Name": "Source-3",
       "ID": 7003,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "SourceIndicator-3"
+      "indicatorName": "SourceIndicator-3"
     },
     {
       "Name": "Source-4",
       "ID": 7004,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "SourceIndicator-4"
+      "indicatorName": "SourceIndicator-4"
     },
     {
       "Name": "Source-5",
       "ID": 7005,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "SourceIndicator-5"
+      "indicatorName": "SourceIndicator-5"
     },
     {
       "Name": "SourceMenu-Prev",
@@ -598,7 +598,7 @@
       "ID": 11100,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "ActivityIndicator-Off",
+      "indicatorName": "ActivityIndicator-Off",
       "activity": "Standby"
     },
     {
@@ -606,7 +606,7 @@
       "ID": 11101,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "ActivityIndicator-Share",
+      "indicatorName": "ActivityIndicator-Share",
       "activity": "Share"
     },
     {
@@ -614,7 +614,7 @@
       "ID": 11102,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "ActivityIndicator-AdvShare",
+      "indicatorName": "ActivityIndicator-AdvShare",
       "activity": "AdvShare"
     },
     {
@@ -622,7 +622,7 @@
       "ID": 11103,
       "holdTime": null,
       "repeatTime": null,
-      "indicator": "ActivityIndicator-GroupWork",
+      "indicatorName": "ActivityIndicator-GroupWork",
       "activity": "GroupWork"
     },
     {
@@ -2588,6 +2588,12 @@
         "PrevBtn": "SourceMenu-Prev",
         "NextBtn": "SourceMenu-Next"
       },
+      "PopupGroups": [
+        {
+          "Name": "Source-Menus",
+          "Suffix": null
+        }
+      ],
       "PopupCallback": "SourceSelectPopupCallback",
       "RefCallback": "SourceSelectRefCallback"
     },
@@ -2599,6 +2605,16 @@
         "ActivitySelect-Share",
         "ActivitySelect-AdvShare",
         "ActivitySelect-GroupWork"
+      ],
+      "PopupGroups": [
+        {
+          "Name": "Activity-Menus",
+          "Suffix": null
+        },
+        {
+          "Name": "Activity-Menus_start",
+          "Suffix": "start"
+        }
       ],
       "PopupCallback": "ActivitySelectPopupCallback"
     },

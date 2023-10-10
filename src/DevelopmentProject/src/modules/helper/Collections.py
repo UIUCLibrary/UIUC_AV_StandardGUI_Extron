@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import (TYPE_CHECKING, Dict, Tuple, List, Union, Callable, TypeVar,
+from typing import (TYPE_CHECKING, Dict, Iterator, Tuple, List, Union, Callable, TypeVar,
                     ValuesView, ItemsView, KeysView, Any)
 
 import extronlib.interface
@@ -26,11 +26,12 @@ if TYPE_CHECKING: # pragma: no cover
     from modules.helper.PrimitiveObjects import ControlObject, FeedbackObject
     from modules.device.classes.Destinations import Destination
     from modules.device.classes.Sources import Source
-
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice
+    
     _KT = TypeVar('_KT')
 
 #### Python imports
-from collections import UserDict
+from collections import UserDict, UserList
 
 #### Extron Library Imports
 from extronlib.system import MESet
@@ -42,6 +43,7 @@ from modules.helper.ModuleSupport import eventEx
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
 from Constants import BLANK_SOURCE
+
 from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
 from extronlib.ui import Button, Level, Label
     
@@ -287,6 +289,63 @@ class UIObjectCollection(UserDict):
                     return val
         else:
             raise TypeError("__getitem__ key must be a string or int")
+
+class ControlGroupCollection(UserDict):
+    def __init__(self, _dict: None = None) -> Dict[str, Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']]:
+        return super().__init__(_dict)
+    
+    def __repr__(self) -> str:
+        sep = ', '
+        return "[{}]".format(sep.join([str(val) for val in self.values()]))
+    
+    # Type cast views for values, items, keys, and getitem
+    def values(self) -> ValuesView[Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']]:
+        return super().values()
+    
+    def items(self) -> ItemsView[str, Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']]:
+        return super().items()
+    
+    def keys(self) -> KeysView[str]:
+        return super().keys()
+    
+    def __getitem__(self, key: str) -> Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']:
+        return super().__getitem__(key)
+    
+    def ShowPopups(self) -> None:
+        for ctlGrp in self.data.values():
+            if hasattr(ctlGrp, 'ShowPopup'):
+                ctlGrp.ShowPopup()
+
+class UIDeviceCollection(UserList):
+    def __init__(self, __list: None = None) -> List[Union['ExUIDevice', 'ExEBUSDevice']]:
+        return super().__init__(__list)
+        
+    def __repr__(self) -> str:
+        sep = ', '
+        return "[{}]".format(sep.join([str(val) for val in self]))
+    
+    # Type cast getitem & iter
+    def __getitem__(self, index: int) -> Union['ExUIDevice', 'ExEBUSDevice']:
+        return super().__getitem__(index)
+        
+    def __iter__(self) -> Iterator[Union['ExUIDevice', 'ExEBUSDevice']]:
+        return super().__iter__()
+    
+
+class ProcessorCollection(UserList):
+    def __init__(self, __list: None = None) -> List['ExProcessorDevice']:
+        super().__init__(__list)
+        
+    def __repr__(self) -> str:
+        sep = ', '
+        return "[{}]".format(sep.join([str(val) for val in self]))
+    
+    # Type cast getitem & iter
+    def __getitem__(self, index: int) -> 'ExProcessorDevice':
+        return super().__getitem__(index)
+        
+    def __iter__(self) -> Iterator['ExProcessorDevice']:
+        return super().__iter__()
 
 class RadioSet(MESet):
     def __init__(self, 
@@ -538,11 +597,13 @@ class VariableRadioSet():
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['Button', 'ExButton']],
-                 PopupCallback: Callable) -> None:
+                 PopupCallback: Callable,
+                 PopupGroups: List[Dict[str, str]] = None) -> None:
         
         self.__Name = Name
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__PopupCallback = PopupCallback
+        self.__PopupGroups = PopupGroups
         self.__Control = None
         
         for btn in self.Objects:
@@ -627,16 +688,19 @@ class VariableRadioSet():
         
         self.__BtnSet.SetStates(obj, offState, onState)
         
-    def ShowPopup(self, suffix: str=None) -> None:
-        if suffix is None:
-            self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
+    def ShowPopup(self) -> None:
+        if self.__PopupGroups is not None:
+            for pug in self.__PopupGroups:
+                if pug['Suffix'] is None:
+                    self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
+                else:
+                    self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(pug['Suffix'])))
         else:
-            self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(suffix)))
+            self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
     
     def SetControlObject(self, Control: 'ControlObject'):
         self.__Control = Control
         
-        # TODO: create button events here
         Logger.Log('Assigning Control Event', self, Control)
         
         @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
@@ -671,21 +735,24 @@ class ScrollingRadioSet():
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['Button', 'ExButton']], 
+                 RefObjects: List['RefButton'],
                  PrevBtn: Union['Button', 'ExButton'], 
                  NextBtn: Union['Button', 'ExButton'], 
                  PopupCallback: Callable,
-                 RefObjects: List['RefButton']) -> None:
+                 PopupGroups: List[Dict[str, str]] = None) -> None:
         self.__Name = Name
         self.__Offset = 0
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         setattr(self.__BtnSet, 'Group', self)
-        self.__PopupCallback = PopupCallback
         self.__RefSet = RadioSet('{}-RefObjects'.format(self.Name), RefObjects)
         setattr(self.__RefSet, 'Group', self)
         self.__Prev = PrevBtn
         setattr(self.__Prev, 'Group', self)
         self.__Next = NextBtn
         setattr(self.__Next, 'Group', self)
+        
+        self.__PopupCallback = PopupCallback
+        self.__PopupGroups = PopupGroups
         
         for btn in self.Objects:
             btn.Group = self
@@ -793,10 +860,14 @@ class ScrollingRadioSet():
         self.__BtnSet.SetStates(obj, offState, onState)
         
     def ShowPopup(self, suffix: str=None) -> None:
-        if suffix is None:
-            self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
+        if self.__PopupGroups is not None:
+            for pug in self.__PopupGroups:
+                if pug['Suffix'] is None:
+                    self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
+                else:
+                    self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(pug['Suffix'])))
         else:
-            self.__BtnSet.Objects[0].Host.ShowPage('{}_{}'.format(self.PopupName, str(suffix)))
+            self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
     
     def SetControlObject(self, Control: 'ControlObject'):
         if type(Control) is ControlObject:

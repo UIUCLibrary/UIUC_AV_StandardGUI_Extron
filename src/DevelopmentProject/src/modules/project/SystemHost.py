@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import DeviceCollection
 
@@ -29,7 +29,7 @@ from os.path import splitext
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
-from modules.helper.Collections import DictObj
+from modules.helper.Collections import DictObj, UIDeviceCollection, ProcessorCollection
 from modules.helper.ModuleSupport import WatchVariable
 from control.ActivityController import ActivityController
 from control.PollController import PollingController
@@ -49,12 +49,12 @@ class SystemController:
         }
     
     def __init__(self, 
-                #  settings: object,
                  controlDevices: list,
                  systemDevices: 'DeviceCollection',
-                #  expansionDevices: Union[str, List[str]]=None
+                 # expansionDevices: Union[str, List[str]]=None
                  ) -> None:
         
+        self.Initialized = False
         # separate processor devices from UI devices for instantiating later
         processors = []
         uiDevices = []
@@ -66,11 +66,11 @@ class SystemController:
             else:
                 Logger.Log('Control Device part number not validated.', dev, separator='\n', logSeverity='warning')
         
-        Logger.Log('Processors: {}'.format(processors), 
-                   'UI Devices: {}'.format(uiDevices), 
-                   # 'Expansion Devices: {}'.format(expansionDevices), 
-                   separator=' - ')
-        Logger.Log(systemDevices)
+        # Logger.Log('Processors: {}'.format(processors), 
+        #            'UI Devices: {}'.format(uiDevices), 
+        #            # 'Expansion Devices: {}'.format(expansionDevices), 
+        #            separator=' - ')
+        # Logger.Log(systemDevices)
         
         ## Begin Settings Properties -------------------------------------------
         
@@ -115,7 +115,7 @@ class SystemController:
             self.Proc_Main = self.Processors[0]
         
         ## UI Device Definition ----------------------------------------------
-        self.UIDevices = []
+        self.UIDevices = UIDeviceCollection()
         for ui in uiDevices:
             if dev.part_number in ExUIDevice.validation_part_list:
                 self.UIDevices.append(ExUIDevice(ui.alias,
@@ -154,7 +154,7 @@ class SystemController:
             
         ## Create System controllers
         self.ActCtl = ActivityController(self)
-        self.PollCtl = PollingController(self.Devices)
+        self.PollCtl = PollingController(self)
         
         ## End of GUIController Init ___________________________________________
 
@@ -177,98 +177,80 @@ class SystemController:
             self.__SystemActivity = enumVal
             self.SystemActivityWatch.Change(enumVal)
 
-    def StartupActions(self) -> None:
-        self.PollCtl.SetPollingMode('active')
-        self.SrcCtl.Privacy = 'off'
-        self.UI_Main.CamCtl.SendCameraHome()
-        self.UI_Main.AudioCtl.AudioStartUp()
-        for tp in self.UIDevices:
-            tp.HdrCtl.ConfigSystemOn()
-            tp.CamCtl.SelectDefaultCamera()
+    # def StartupActions(self) -> None:
+    #     self.PollCtl.SetPollingMode('active')
+    #     self.SrcCtl.Privacy = 'off'
+    #     self.UI_Main.CamCtl.SendCameraHome()
+    #     self.UI_Main.AudioCtl.AudioStartUp()
+    #     for tp in self.UIDevices:
+    #         tp.HdrCtl.ConfigSystemOn()
+    #         tp.CamCtl.SelectDefaultCamera()
             
-        if self.Devices[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Devices[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
-            # Take SVSI ENC endpoints out of standby mode
-            self.Devices[self.PrimarySwitcherId].interface.Set('Standby', 'Off', None)
-            # Unmute SVSI DEC endpoints
-            self.Devices[self.PrimarySwitcherId].interface.Set('VideoMute', 'Off', None)
+    #     if self.Devices[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Devices[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
+    #         # Take SVSI ENC endpoints out of standby mode
+    #         self.Devices[self.PrimarySwitcherId].interface.Set('Standby', 'Off', None)
+    #         # Unmute SVSI DEC endpoints
+    #         self.Devices[self.PrimarySwitcherId].interface.Set('VideoMute', 'Off', None)
                 
-        # power on displays
-        for dest in self.Destinations:
-            try:
-                self.UI_Main.DispCtl.SetDisplayPower(dest['Id'], 'On')
-            except LookupError:
-                # display does not have hardware to power on or off
-                pass
+    #     # power on displays
+    #     for dest in self.Destinations:
+    #         try:
+    #             self.UI_Main.DispCtl.SetDisplayPower(dest['Id'], 'On')
+    #         except LookupError:
+    #             # display does not have hardware to power on or off
+    #             pass
 
-    def StartupSyncedActions(self, count: int) -> None:
-        pass
+    # def StartupSyncedActions(self, count: int) -> None:
+    #     pass
 
-    def SwitchActions(self) -> None:
-        # set display sources
-        for dest in self.Destinations:
-            try:
-                self.UI_Main.DispCtl.SetDisplaySource(dest['Id'])
-            except LookupError:
-                # display does not have hardware to power on or off
-                pass
+    # def SwitchActions(self) -> None:
+    #     # set display sources
+    #     for dest in self.Destinations:
+    #         try:
+    #             self.UI_Main.DispCtl.SetDisplaySource(dest['Id'])
+    #         except LookupError:
+    #             # display does not have hardware to power on or off
+    #             pass
             
-        for tp in self.UIDevices:
-            tp.SrcCtl.ShowSelectedSource()
+    #     for tp in self.UIDevices:
+    #         tp.SrcCtl.ShowSelectedSource()
 
-    def SwitchSyncedActions(self, count: int) -> None:
-        pass
+    # def SwitchSyncedActions(self, count: int) -> None:
+    #     pass
 
-    def ShutdownActions(self) -> None:
-        self.PollCtl.SetPollingMode('inactive')
+    # def ShutdownActions(self) -> None:
+    #     self.PollCtl.SetPollingMode('inactive')
         
-        if self.Devices[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Devices[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
-            # Put SVSI ENC endpoints in to standby mode
-            self.Devices[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
-            # Ensure SVSI DEC endpoints are muted
-            self.Devices[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
+    #     if self.Devices[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Devices[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
+    #         # Put SVSI ENC endpoints in to standby mode
+    #         self.Devices[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
+    #         # Ensure SVSI DEC endpoints are muted
+    #         self.Devices[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
                 
-        # power off displays
-        for dest in self.Destinations:
-            try:
-                self.UI_Main.DispCtl.SetDisplayPower(dest['Id'], 'Off')
-            except LookupError:
-                # display does not have hardware to power on or off
-                pass
+    #     # power off displays
+    #     for dest in self.Destinations:
+    #         try:
+    #             self.UI_Main.DispCtl.SetDisplayPower(dest['Id'], 'Off')
+    #         except LookupError:
+    #             # display does not have hardware to power on or off
+    #             pass
         
-        self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
-        self.UI_Main.AudioCtl.AudioShutdown()
-        for tp in self.UIDevices:
-            tp.HdrCtl.ConfigSystemOff()
+    #     self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
+    #     self.UI_Main.AudioCtl.AudioShutdown()
+    #     for tp in self.UIDevices:
+    #         tp.HdrCtl.ConfigSystemOff()
         
-        for id, hw in self.Devices.items():
-            if id.startswith('WPD'):
-                hw.interface.Set('BootUsers', value=None, qualifier=None)
+    #     for id, hw in self.Devices.items():
+    #         if id.startswith('WPD'):
+    #             hw.interface.Set('BootUsers', value=None, qualifier=None)
 
-    def ShutdownSyncedActions(self, count: int) -> None:
-        pass
+    # def ShutdownSyncedActions(self, count: int) -> None:
+    #     pass
 
     def Initialize(self) -> None:
-        for tp in self.UIDevices:
-            tp.Interface.InitializeControlObjects()
-            # TODO: do this in a more automated way
-            for ctlGrp in tp.Interface.Objects.ControlGroups.values():
-                try:
-                    if hasattr(ctlGrp, 'ShowPopup'):
-                        ctlGrp.ShowPopup()
-                        ctlGrp.ShowPopup(suffix='start')
-                except Exception as e:
-                    Logger.Log('Exception raised', e, type(e))
-        # self.SrcCtl = self.UI_Main.SrcCtl
-        
-        # Log('Source List: {}'.format(self.Sources))
-        # Log('Destination List: {}'.format(self.Destinations))
-        
         ## GUI Display Initialization ------------------------------------------
-        self.UI_Main.ShowPage('Splash')
-        # self.UI_Main.Btns['Room-Label'].SetText(self.RoomName)
-        for tp in self.UIDevices:
-            # tp.SrcCtl.UpdateDisplaySourceList()
-            pass
+        for uiDev in self.UIDevices:
+            uiDev.Initialize()
         
         ## Associate Virtual Hardware ------------------------------------------
         # Log('Looking for Virtual Device Interfaces')
@@ -278,14 +260,17 @@ class SystemController:
             #     Hw.interface.FindAssociatedHardware()
             #     # Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
             pass
-        #### Start Polling
-        self.PollCtl.PollEverything()
-        self.PollCtl.SetPollingMode('inactive')
+        
+        
+        ## Initialize Controllers ----------------------------------------------
+        self.PollCtl.Initialize()
+        self.ActCtl.Initialize()
         
         Logger.Log('System Initialized')
-        for tp in self.UIDevices:
-            tp.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
-            tp.Click(5, 0.2)
+        for uiDev in self.UIDevices:
+            uiDev.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
+            uiDev.Click(5, 0.2)
+        self.Initialized = True
             
     @classmethod
     def GetErrorStr(cls, Error: str, *args, **kwargs):

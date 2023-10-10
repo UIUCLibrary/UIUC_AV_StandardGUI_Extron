@@ -17,9 +17,10 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import DeviceCollection
+    from uofi_gui import SystemController
 
 #### Extron Library Imports
 from extronlib.system import Timer
@@ -78,9 +79,11 @@ class PollObject:
             raise TypeError('InactiveDuration ({}) must be either of type int or None'.format(type(InactiveDuration)))
 
 class PollingController:
-    def __init__(self, devices: 'DeviceCollection') -> None:
+    def __init__(self, SystemHost: 'SystemController') -> None:
         
-        self.Polling = devices.Polling
+        self.SystemHost = SystemHost
+        self.Polling = self.SystemHost.Devices.Polling
+        self.Initialized = False
         
         self.__PollingState = 'stopped'
         
@@ -148,6 +151,11 @@ class PollingController:
             Logger.Log('Polling stopped')
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    def Initialize(self) -> None:
+        self.PollEverything()
+        self.SetPollingMode('inactive')
+        self.Initialized = True
     
     def PollEverything(self):
         for poll in self.Polling:

@@ -105,6 +105,8 @@ class ExUIDevice(UIDevice):
             self.Interface = ButtonPanelInterface(self, self.UI)
         else:
             self.Class = 'Unknown'
+            
+        self.BlinkLights(Rate='Slow', StateList=['Red'])
     
     def __repr__(self) -> str:
         return 'ExUIDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
@@ -115,6 +117,9 @@ class ExUIDevice(UIDevice):
         valid_list.extend(cls.tp_part_list)
         valid_list.extend(cls.bp_part_list)
         return valid_list
+    
+    def Initialize(self) -> None:
+        self.Interface.Initialize()
     
     def BlinkLights(self, Rate: str='Medium', StateList: List=None, Timeout: Union[int, float]=0):
         if StateList is None:

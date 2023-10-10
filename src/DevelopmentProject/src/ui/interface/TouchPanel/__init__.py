@@ -58,10 +58,8 @@ class TouchPanelInterface():
         
         self.Objects = TouchPanelObjects()
         self.Initialized = False
-        
-        self.Device.HideAllPopups()
     
-    def InitializeControlObjects(self) -> None:
+    def Initialize(self) -> None:
         self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.__LayoutDict)
         self.Objects.LoadLabels(UIHost=self.Device, jsonObj=self.__LayoutDict)
@@ -76,7 +74,11 @@ class TouchPanelInterface():
 
         self.Objects.LoadControls(jsonObj=self.__ControlDict)
 
-        Logger.Log(self.Objects)
+        self.Device.HideAllPopups()
+        
+        self.Objects.ControlGroups.ShowPopups()
+        
+        self.Device.ShowPage('Splash')
 
         self.Initialized = True
 

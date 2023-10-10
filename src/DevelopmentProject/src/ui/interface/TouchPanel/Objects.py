@@ -33,8 +33,9 @@ from extronlib.system import File
 from modules.helper.CommonUtilities import Logger
 from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
 from modules.helper.PrimitiveObjects import ControlObject
-import modules.helper.Collections 
-UIObjectCollection = modules.helper.Collections.UIObjectCollection
+# import modules.helper.Collections 
+# UIObjectCollection = modules.helper.Collections.UIObjectCollection
+from modules.helper.Collections import UIObjectCollection, ControlGroupCollection
 import modules.project.callbacks.RefCallbacks
 import modules.project.callbacks.PopupCallbacks
 
@@ -54,7 +55,7 @@ class TouchPanelObjects():
         self.Sliders = UIObjectCollection()
         self.Refs = UIObjectCollection()
         
-        self.ControlGroups = {}
+        self.ControlGroups = ControlGroupCollection()
         
         self.ModalPages = []
         self.PopoverPages = []
@@ -411,6 +412,9 @@ class TouchPanelObjects():
                 PopupCB = getattr(PopupCBModule, group['PopupCallback'])
                 kwargs['PopupCallback'] = PopupCB
                 
+                if 'PopupGroups' in group.keys():
+                    kwargs['PopupGroups'] = group['PopupGroups']
+                
             if 'Controls' in group.keys():
                 for key, val in group['Controls'].items():
                     kwargs[key] = self.Buttons[val]
@@ -447,8 +451,8 @@ class TouchPanelObjects():
             if 'ControlCollection' in kwargs.keys():
                 kwargs.pop('ControlCollection')
             
-            Logger.Log('Ctl Dict:', ctl)
-            Logger.Log('KwArgs Dict:', kwargs)
+            # Logger.Log('Ctl Dict:', ctl)
+            # Logger.Log('KwArgs Dict:', kwargs)
             
             ctlObj = ControlObject(**kwargs)
             

@@ -71,6 +71,21 @@ class RefButton(Button):
             return self.Name
         else:
             return self.__RefName
+        
+    @property
+    def Indicator(self) -> 'ExButton':
+        if hasattr(self, '__indicator'):
+            try:
+                return self.UIHost.Interface.Objects.Buttons[self.__indicator]
+            except LookupError:
+                Logger.Log('No button found for indicator name: {}'.format(self.__indicator))
+                return None
+        else:
+            return None
+        
+    @Indicator.setter
+    def Indicator(self, val) -> None:
+        raise AttributeError('Overriding Indicator property is disallowed.')
     
     def __repr__(self) -> str:
         return "{} ({})".format(self.Name, self.Id)
@@ -80,6 +95,13 @@ class RefButton(Button):
             text = ''
         self.Text = text
         super().SetText(text)
+        
+    def SetState(self, state: int) -> None:
+        # update indicator state
+        indState = state % 10
+        self.Indicator.SetState(indState)
+        # update state
+        return super().SetState(state)
         
     def SetRefName(self, Name: str) -> None:
         if self.__RefName is None:
@@ -110,6 +132,7 @@ class ExButton(Button):
         self.__Control = None
         self.__HoldTime = holdTime
         self.__RepeatTime = repeatTime
+        self.__Indicator = None
         
         for kw, val in kwargs.items():
             if kw == 'Text':
@@ -125,6 +148,20 @@ class ExButton(Button):
     def Control(self, val) -> None:
         raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
     
+    @property
+    def Indicator(self) -> 'ExButton':
+        if hasattr(self, 'indicatorName') and self.__Indicator is None:
+            try:
+                self.__Indicator = self.UIHost.Interface.Objects.Buttons[self.indicatorName]
+            except LookupError:
+                Logger.Log('No button found for indicator name: {}'.format(self.indicatorName))
+        
+        return self.__Indicator
+        
+    @Indicator.setter
+    def Indicator(self, val) -> None:
+        raise AttributeError('Overriding Indicator property is disallowed.')
+    
     def __repr__(self) -> str:
         return "{} ({}, {} [{}])".format(self.Name, 
                                          self.Id, 
@@ -136,6 +173,14 @@ class ExButton(Button):
             text = ''
         self.Text = text
         super().SetText(text)
+        
+    def SetState(self, state: int) -> None:
+        # update indicator state
+        indBtn = self.Indicator
+        if indBtn is not None:
+            indBtn.SetState(state % 10)
+        # update state
+        return super().SetState(state)
     
     def HasHold(self) -> bool:
         return (self.__HoldTime is not None)
