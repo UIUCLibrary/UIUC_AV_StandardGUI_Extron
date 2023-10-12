@@ -25,6 +25,7 @@ if TYPE_CHECKING: # pragma: no cover
 #### Python imports
 
 #### Extron Library Imports
+from extronlib import event
 from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
 from extronlib.system import Wait
 
@@ -110,7 +111,12 @@ class ExUIDevice(UIDevice):
         else:
             self.Class = 'Unknown'
             
-        self.BlinkLights(Rate='Slow', StateList=['Red'])
+        self.BlinkLights(Rate='Slow', StateList=['Red', 'Off'])
+        
+        self.__InactivityConfig = {
+            180: self.__PopoverInactivityHandler,
+            300: self.__TechPageInactivityHandler
+        }
     
     def __repr__(self) -> str:
         return 'ExUIDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
@@ -123,6 +129,7 @@ class ExUIDevice(UIDevice):
         return valid_list
     
     def Initialize(self) -> None:
+        
         ## Hide any popups from previous program loads
         self.HideAllPopups()
         
@@ -146,6 +153,12 @@ class ExUIDevice(UIDevice):
         
         ## show initial page
         self.ShowPage('Splash')
+        
+        self.SetInactivityTime(list(self.__InactivityConfig.keys()))
+        @event(self, 'InactivityChanged')
+        def InactivityMethodHandler(uiDev: 'ExUIDevice', time: float):
+            if int(time) in self.__InactivityConfig:
+                self.__InactivityConfig[time]() 
         
         self.Initialized = True
     
@@ -178,6 +191,15 @@ class ExUIDevice(UIDevice):
     def LightsOff(self):
         # self.TP_Lights.SetState(self.TP_Lights.StateIds['off'])
         self.SetLEDState(65533, 'Off')
+        
+    def __PopoverInactivityHandler(self) -> None:
+        for popover in self.Interface.Objects.PopoverPages:
+            self.HidePopup(popover)
+            
+    def __TechPageInactivityHandler(self) -> None:
+        # if self.UIHost.TechCtl.TechMenuOpen:
+        #     self.UIHost.TechCtl.CloseTechMenu()
+        pass
 
 class ExSPDevice(SPDevice):
     def __init__(self, DeviceAlias: str, PartNumber: str = None) -> None:

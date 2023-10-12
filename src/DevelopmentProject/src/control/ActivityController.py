@@ -19,21 +19,23 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
+    from modules.project.SystemHost import SystemController
+    from modules.helper.ExtendedUIClasses import ExUIDevice
     from extronlib.ui import Button
     from modules.helper.ExtendedUIClasses import ExButton
 
 #### Python imports
 
 #### Extron Library Imports
-from extronlib import event
-from extronlib.system import Timer
+# from extronlib import event
+# from extronlib.system import Timer
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ModuleSupport import eventEx
-from Constants import STANDBY, SHARE, ADVSHARE, GROUPWORK, ActivityMode
+from modules.helper.ExtendedSystemClasses import ExTimer
+from modules.helper.Collections import DictObj
+from Constants import STANDBY, SHARE, ADVSHARE, GROUPWORK, ACTIVE, ActivityMode, SystemState
 import System
 from ui.interface.TouchPanel import StartShutdownConfirmation
 
@@ -45,6 +47,31 @@ from ui.interface.TouchPanel import StartShutdownConfirmation
 class ActivityController:
     def __init__(self, SystemHost: 'SystemController') -> None:
         self.SystemHost = SystemHost
+        
+        self.Timers = DictObj({
+            'Startup':  ExTimer(1, 
+                                self.SystemHost.SystemActiveTransition, 
+                                self.SystemHost.Timers.Startup, 
+                                self.SystemHost.SystemActiveComplete),
+            'Switch':   ExTimer(1, 
+                                self.ActivitySwitchTransition, 
+                                SystemHost.Timers.Switch, 
+                                self.ActivitySwitchComplete),
+            'Shutdown': ExTimer(1, 
+                                self.SystemHost.SystemStandbyTransition, 
+                                self.SystemHost.Timers.Shutdown, 
+                                self.SystemHost.SystemStandbyComplete),
+            'Splash':   ExTimer(30,
+                                self.SystemHost.SplashChecker,
+                                self.SystemHost.Timers.SplashPage,
+                                self.SystemHost.ShowSplash)
+        })
+        self.Timers.Startup.Stop()
+        self.Timers.Switch.Stop()
+        self.Timers.Shutdown.Stop()
+        self.Timers.Splash.Stop()
+        
+        self.Initialized = False
             
     @property
     def CurrentActivity(self) -> ActivityMode:
@@ -54,18 +81,110 @@ class ActivityController:
     def CurrentActivity(self, val) -> None:
         raise AttributeError('Setting CurrentActivity is disallowed. Use System.CONTROLLER.SystemActivity instead.')
 
-    def Initialize(self) -> None:
-        @eventEx(self.SystemHost.SystemActivityWatch, 'Changed')
-        def SystemModeChangeHandler(src, val: ActivityMode) -> None:
-            Logger.Log('New System Mode:', val.name)
-            if val is ActivityMode.Share:
-                pass
-            elif val is ActivityMode.AdvShare:
-                pass
-            elif val is ActivityMode.GroupWork:
-                pass
-            elif val is ActivityMode.Standby:
-                pass
+    def SystemStateChange(self, state: SystemState) -> None:
+        for uiDev in self.SystemHost.UIDevices:
+            uiDev.Interface.TransitionSystemState(state)
+                
+        if state is SystemState.Active:
+            # for tp in self.GUIHost.TPs:
+            #     index = self.GUIHost.TPs.index(tp)
+            #     tp.TechCtl.CloseTechMenu()
+                
+            #     tp.SrcCtl.SelectSource(self.GUIHost.DefaultSourceId)
+            #     tp.SrcCtl.SwitchSources(tp.SrcCtl.SelectedSource, 'All')
+            
+            # Start System
+            for uiDev in self.SystemHost.UIDevices:
+                uiDev.Interface.Transition.Label.SetText('System is switching on. Please Wait...')
+                uiDev.Interface.Transition.Level.SetRange(0, self.SystemHost.Timers.Startup, 1)
+                uiDev.Interface.Transition.Level.SetLevel(0)
+                uiDev.Interface.Transition.Count.SetText(TimeIntToStr(self.SystemHost.Timers.Startup))
+            
+            self.Timers.Startup.Restart()
+            
+            self.SystemHost.SystemActiveInit()
+                
+        elif state is SystemState.Standby:
+            # self.__StatusTimer.Stop()
+            
+            # for tp in self.GUIHost.TPs:
+            #     index = self.GUIHost.TPs.index(tp)
+            
+            # self.__ShutdownTimer.Restart()        
+            
+            # Shutdown System
+            for uiDev in self.SystemHost.UIDevices:
+                uiDev.Interface.Transition.Label.SetText('System is switching off. Please Wait...')
+                uiDev.Interface.Transition.Level.SetRange(0, self.SystemHost.Timers.Shutdown, 1)
+                uiDev.Interface.Transition.Level.SetLevel(0)
+                uiDev.Interface.Transition.Count.SetText(TimeIntToStr(self.SystemHost.Timers.Shutdown))
+            
+            self.Timers.Shutdown.Restart()
+            
+            self.SystemHost.SystemStandbyInit()
+
+    def SystemActivityChange(self, activity: ActivityMode) -> None:
+        if activity is ActivityMode.Share:
+            TransitionText = 'System is switching to Share mode. Please Wait...'
+        elif activity is ActivityMode.AdvShare:
+            TransitionText = 'System is switching to Advanced Share mode. Please Wait...'
+        elif activity is ActivityMode.GroupWork:
+            TransitionText = 'System is switching to Group Work mode. Please Wait...'
+        
+        for uiDev in self.SystemHost.UIDevices:
+            uiDev.Interface.TransitionActivity(activity)
+            uiDev.Interface.Transition.Label.SetText(TransitionText)
+            uiDev.Interface.Transition.Level.SetRange(0, self.SystemHost.Timers.Switch, 1)
+            uiDev.Interface.Transition.Level.SetLevel(0)
+            uiDev.Interface.Transition.Count.SetText(TimeIntToStr(self.SystemHost.Timers.Switch))
+
+        self.Timers.Switch.Restart()
+        
+        self.ActivitySwitchInit()
+
+    def Initialize(self) -> None:        
+        self.Initialized = True
+        
+    def SystemModeChangeHandler(self, Transition: Tuple[Tuple[bool, SystemState], Tuple[bool, ActivityMode]]) -> None:
+        Logger.Log('System Transition:', Transition)
+        
+        if Transition[0][0] is True:
+            Logger.Log('Changing State ({})'.format(Transition[0][1].name))
+            self.SystemStateChange(Transition[0][1])
+        else:
+            if Transition[1][0] is True:
+                Logger.Log('Changing Activity ({})'.format(Transition[1][1].name))
+                self.SystemActivityChange(Transition[1][1])
+        
+        # if val in ACTIVE:
+        #     Logger.Log(self.SystemHost.TransitionState)
+        #     if self.SystemHost.TransitionState[0][1] is SystemState.Active:
+        #         Logger.Log('Powering On System and Changing Activity')
+        #         # power on system
+        #         self.SystemStateChange(SystemState.Active)
+        #     else:
+        #         Logger.Log('Changing Activity')
+        #         self.SystemActivityChange(val)
+            
+        # elif val in STANDBY:
+        #     Logger.Log('Powering Off System')
+        #     # power off system
+        #     self.SystemStateChange(SystemState.Standby)
+        
+                    
+    def ActivitySwitchInit(self) -> None:
+        pass
+    
+    def ActivitySwitchTransition(self, timer, count) -> None:
+        timeRemaining = self.SystemHost.Timers.Switch - count
+        for uiDev in self.SystemHost.UIDevices:
+            uiDev.Interface.Transition.Count.SetText(TimeIntToStr(timeRemaining))
+            uiDev.Interface.Transition.Level.SetLevel(count)
+    
+    def ActivitySwitchComplete(self, timer, count) -> None:
+        for uiDev in self.SystemHost.UIDevices:
+            uiDev.HidePopup('Power-Transition')
+        self.SystemHost.ActivityTransitionComplete()
 
 ## End Class Definitions -------------------------------------------------------
 ##
@@ -75,7 +194,7 @@ def ActivitySelect(button: Union['Button', 'ExButton'], action: str) -> None:
     if button.activity not in STANDBY:
         System.CONTROLLER.SystemActivity = ActivityMode[button.activity]
     else:
-        StartShutdownConfirmation(click=True)
+        StartShutdownConfirmation(System.CONTROLLER.SystemActivity, click=True)
 
 ## End Function Definitions ----------------------------------------------------
 

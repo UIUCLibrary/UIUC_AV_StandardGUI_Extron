@@ -90,14 +90,23 @@ def FullName(o) -> str:
         return klass.__qualname__ # avoid outputs like 'builtins.str'
     return module + '.' + klass.__qualname__
 
+def MergeLists(*Lists) -> List:
+    rtnList = []
+    for l in Lists:
+        rtnList.extend(l)
+    return rtnList
+
 class Logger():
     __Prog = ProgramLogLogger()
     __Trace = TraceLogger()
-    Trace = __Trace.Log
 
     @classmethod
     def Log(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
         cls.__Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
+        # cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
+        
+    @classmethod
+    def Trace(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
         cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:

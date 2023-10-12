@@ -41,16 +41,51 @@ class ExTimer(Timer):
                  DurationFunction: Callable = None) -> None:
         self.__IntervalFunction = Function
         super().__init__(Interval, self.__ExFunction)
-        self.Duration = Duration
+        self.__Duration = None
+        if Duration is not None:
+            self.ChangeDuration(Duration)
         self.DurationFunction = DurationFunction
-        
+    
+    @property
+    def Duration(self) -> float:
+        return self.__Duration
+    
+    @Duration.setter
+    def Duration(self, val) -> None:
+        raise AttributeError('Setting Duration is disallowed. Use ChangeDuration instead.')
+    
+    @property
+    def Function(self) -> Callable:
+        return self.__IntervalFunction
+    
+    @Function.setter
+    def Function(self, val) -> None:
+        raise AttributeError('Setting Function is disallowed.')
+    
     def __ExFunction(self, Timer: Timer, Count: int) -> None:
-        self.__IntervalFunction(Timer, Count)
+        if callable(self.__IntervalFunction):
+            self.__IntervalFunction(Timer, Count)
         
-        dur = self.Interval * Count
-        if dur >= self.Duration:
+        elapsed = self.Interval * Count
+        if self.__Duration is not None and elapsed >= self.__Duration:
             self.Stop()
-            self.DurationFunction(Timer, Count)
+            if callable(self.DurationFunction):
+                self.DurationFunction(Timer, Count)
+            
+    def ChangeDuration(self, Duration: float) -> None:
+        if Duration is None:
+            self.__Duration = None
+        if type(Duration) in [int, float]:
+            if Duration <= self.Interval:
+                raise ValueError('Duration must be greater than Interval')
+            self.__Duration = Duration
+        else:
+            raise TypeError('Duration must be an int, float, or None') 
+        
+    def Wrapup(self) -> None:
+        if callable(self.DurationFunction):
+            self.DurationFunction(self, self.Count)
+        return super().Stop()
         
 
 ## End Class Definitions -------------------------------------------------------

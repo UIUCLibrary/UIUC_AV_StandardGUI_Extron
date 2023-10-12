@@ -21,9 +21,11 @@ PIN_TECH = '1867'                   # PIN Code to access tech pages, must be a s
                                         # Set to None to allow tech page access without pin
 
 #### Timer Settings
-STARTUP_TIMER_DUR = 5               # Max startup timer duration, seconds
-SWITCH_TIMER_DUR = 3                # Max switch timer duration, seconds
-SHUTDOWN_TIMER_DUR = 5              # Max shutdown timer duration, seconds
+STARTUP_TIMER_DUR = 30              # Max startup timer duration, seconds
+STARTUP_TIMER_MIN = 15              # Min startup timer duration, seconds
+SWITCH_TIMER_DUR = 5                # Max switch timer duration, seconds
+SHUTDOWN_TIMER_DUR = 45             # Max shutdown timer duration, seconds
+SHUTDOWN_TIMER_MIN = 30             # Min shutdown timer duration, seconds
 SHUTDOWN_CONF_TIMER_DUR = 30        # Shutdown confirmation duration, seconds
 TIP_TIMER_DUR = 15                  # Duration to show activity tip pages for, seconds
 SPLASH_INACTIVITY_TIMER_DUR = 600   # Inactivity timeout before showing "Splash" page when Activity is Off, seconds
