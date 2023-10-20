@@ -2644,6 +2644,19 @@
         "Schedule-AM",
         "Schedule-PM"
       ]
+    },
+    {
+      "Name": "Header-Control-Group",
+      "Class": "HeaderControlGroup",
+      "Controls": {
+        "RoomButton": "Room-Label",
+        "HelpButton": "Header-Help",
+        "AudioButton": "Header-Settings",
+        "LightsButton": "Header-Lights",
+        "CameraButton": "Header-Camera",
+        "AlertButton": "Header-Alert",
+        "CloseButton": "Popover-Close"
+      }
     }
   ],
   "modalPages":[
@@ -2655,7 +2668,10 @@
   ],
   "popoverPages":[
     "Popover-Ctl-Alert",
+    "Popover-Ctl-Audio_0",
     "Popover-Ctl-Audio_1",
+    "Popover-Ctl-Audio_2",
+    "Popover-Ctl-Audio_3",
     "Popover-Ctl-Camera_0",
     "Popover-Ctl-Camera_1",
     "Popover-Ctl-Camera_2",

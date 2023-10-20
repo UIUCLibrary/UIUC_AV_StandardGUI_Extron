@@ -43,6 +43,7 @@ from modules.helper.ModuleSupport import eventEx
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
 from Constants import BLANK_SOURCE
+import System
 
 from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
 from extronlib.ui import Button, Level, Label
@@ -723,12 +724,12 @@ class VariableRadioSet():
                     else:
                         source.SetState(initialState)
             elif event is 'Held':
-                if hasattr(source.Control.States, 'HoldShift'):
-                    source.SetState(source.Control.States.HoldShift)
+                if hasattr(self.Control.States, 'HoldShift'):
+                    source.SetState(self.Control.States.HoldShift)
             elif event is 'Repeated':
-                source.Control.Functions.Repeat(source, event)
+                self.Control.Functions.Repeat(source, event)
             elif event is 'Tapped':
-                source.Control.Functions.Primary(source, event)
+                self.Control.Functions.Primary(source, event)
                 self.SetCurrent(source)
         
 class ScrollingRadioSet():
@@ -950,6 +951,117 @@ class VolumeControlGroup():
         
         # TODO: create button events here
         Logger.Log('VolumeControlGroup ControlObject:', Control)
+        
+class HeaderControlGroup():
+    def __init__(self, 
+                 Name, 
+                 RoomButton: Union['Button', 'ExButton'],
+                 HelpButton: Union['Button', 'ExButton'],
+                 AudioButton: Union['Button', 'ExButton'],
+                 LightsButton: Union['Button', 'ExButton'],
+                 CameraButton: Union['Button', 'ExButton'],
+                 AlertButton: Union['Button', 'ExButton'],
+                 CloseButton: Union['Button', 'ExButton']) -> None:
+        self.__Name = Name
+        self.__Control = None
+        
+        self.__RoomButton = RoomButton
+        setattr(self.__RoomButton, 'HeaderAction', 'Room')
+        self.__RoomButton.SetEnable(False)
+        self.__HelpButton = HelpButton
+        setattr(self.__HelpButton, 'HeaderAction', 'Help')
+        self.__AudioButton = AudioButton
+        setattr(self.__AudioButton, 'HeaderAction', 'Audio')
+        setattr(self.__AudioButton, 'PopoverSuffix', self.__AudioSuffixCallback)
+        self.__LightsButton = LightsButton
+        setattr(self.__LightsButton, 'HeaderAction', 'Lights')
+        setattr(self.__LightsButton, 'PopoverSuffix', self.__LightsSuffixCallback)
+        self.__CameraButton = CameraButton
+        setattr(self.__CameraButton, 'HeaderAction', 'Camera')
+        setattr(self.__CameraButton, 'PopoverSuffix', self.__CameraSuffixCallback)
+        self.__AlertButton = AlertButton
+        setattr(self.__AlertButton, 'HeaderAction', 'Alert')
+        self.__AlertButton.SetVisible(False)
+        self.__CloseButton = CloseButton
+        setattr(self.__CloseButton, 'HeaderAction', 'Close')
+        
+        for btn in self.Objects:
+            setattr(btn, 'Group', self)
+        
+    @property
+    def Name(self) -> str:
+        return self.__Name
+    
+    @Name.setter
+    def Name(self, val) -> None:
+        raise AttributeError('Overriding the Name property is disallowed')
+    
+    @property
+    def Objects(self) -> List[Union['Button', 'ExButton']]:
+        return [self.__RoomButton,
+                self.__HelpButton, 
+                self.__AudioButton, 
+                self.__LightsButton, 
+                self.__CameraButton, 
+                self.__AlertButton,
+                self.__CloseButton]
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    @property
+    def Control(self) -> 'ControlObject':
+        return self.__Control
+    
+    @Control.setter
+    def Control(self, val) -> None:
+        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
+    
+    def __AudioSuffixCallback(self) -> str:
+        return str(len(System.CONTROLLER.Devices.Microphones))
+    
+    def __CameraSuffixCallback(self) -> str:
+        return str(len(System.CONTROLLER.Devices.Cameras))
+    
+    def __LightsSuffixCallback(self) -> str:
+        return str(len(System.CONTROLLER.Devices.Lights))
+    
+    def SetStates(self, obj: Union[List[Union[int, str, 'Button', 'ExButton']], int, str, 'Button', 'ExButton'], offState: int, onState: int) -> None:
+        Logger.Log('Attempting to set states of Header Control Group')
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        self.__Control = Control
+        
+        Logger.Log('Assigning Control Event', self, Control)
+        
+        @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        def ButtonHandler(source: 'ExButton', event: str):
+            Logger.Log('Button Event', source, event)
+            initialState = source.State
+            
+            if event is 'Pressed':
+                if self.Control.PressStateShift:
+                    source.SetState(self.Control.States.Shift)
+                
+            elif event is 'Released':
+                if not source.HasHold():
+                    self.Control.Functions.Primary(source, event)
+                    source.SetState(self.Control.States.Inactive)
+                else:
+                    self.Control.Functions.Hold(source, event)
+                    if self.Control.HoldLatching:
+                        source.SetState(self.Control.States.HoldActive)
+                    else:
+                        source.SetState(initialState)
+            elif event is 'Held':
+                if hasattr(self.Control.States, 'HoldShift'):
+                    source.SetState(self.Control.States.HoldShift)
+            elif event is 'Repeated':
+                self.Control.Functions.Repeat(source, event)
+            elif event is 'Tapped':
+                self.Control.Functions.Primary(source, event)
+                source.SetState(self.Control.States.Inactive)
 
 ## End Class Definitions -------------------------------------------------------
 ##

@@ -183,4 +183,16 @@ def StartShutdownConfirmation(prevActivity: ActivityMode, click: bool=False) -> 
         
     ShutdownTimer = ExTimer(1, CountdownHandler, System.CONTROLLER.Timers.ShutdownConf, ShutdownHandler)
 
+def HeaderSelect(button: 'ExButton', action: str) -> None:
+    uiDev = button.UIHost
+    if button.HeaderAction == 'Room':
+        uiDev.ShowPopup('Popover-Room')
+    elif button.HeaderAction in ['Help', 'Alert']:
+        uiDev.ShowPopup('Popover-Ctl-{}'.format(button.HeaderAction))
+    elif button.HeaderAction in ['Audio', 'Lights', 'Camera']:
+        uiDev.ShowPopup('Popover-Ctl-{}_{}'.format(button.HeaderAction, button.PopoverSuffix()))
+    elif button.HeaderAction == 'Close':
+        for popover in uiDev.Interface.Objects.PopoverPages:
+            uiDev.HidePopup(popover)
+
 ## End Function Definitions ----------------------------------------------------

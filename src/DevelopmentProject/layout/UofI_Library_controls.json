@@ -14,5 +14,11 @@
         "ActiveState": 1,
         "InactiveState": 0,
         "FuncModule": "control.ActivityController"
+    },
+    {
+        "ControlCollection": "Header-Control-Group",
+        "PrimaryFunc": "HeaderSelect",
+        "PressShift": true,
+        "FuncModule": "ui.interface.TouchPanel"
     }
 ]
