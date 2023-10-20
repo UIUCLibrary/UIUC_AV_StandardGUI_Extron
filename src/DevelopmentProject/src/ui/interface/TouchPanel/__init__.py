@@ -194,5 +194,9 @@ def HeaderSelect(button: 'ExButton', action: str) -> None:
     elif button.HeaderAction == 'Close':
         for popover in uiDev.Interface.Objects.PopoverPages:
             uiDev.HidePopup(popover)
+            
+def OpenTechPages(button: 'ExButton', action: str) -> None:
+    uiDev = button.UIHost
+    uiDev.ShowPage('Tech')
 
 ## End Function Definitions ----------------------------------------------------

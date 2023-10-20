@@ -58,7 +58,7 @@ class Alias:
 class ControlObject():
     __DefaultModule = control.AV
     def __init__(self, 
-                 PrimaryFunc: Union[str, Callable], 
+                 PrimaryFunc: Union[str, Callable] = None, 
                  HoldFunc: Union[str, Callable] = None,
                  RepeatFunc: Union[str, Callable] = None,
                  PressShift: bool=True, 
@@ -111,9 +111,12 @@ class ControlObject():
         elif type(FuncModule) is str:
             self.__FuncModule = importlib.import_module(FuncModule)
         
-        funcDict = {
-            'Primary': PrimaryFunc if callable(PrimaryFunc) else getattr(self.__FuncModule, PrimaryFunc)
-        }
+        funcDict = {}
+        
+        if PrimaryFunc is not None:
+            funcDict['Primary'] = PrimaryFunc if callable(PrimaryFunc) else getattr(self.__FuncModule, PrimaryFunc)
+        else:
+            funcDict['Primary'] = self.__DefaultCallable
         
         holdDict = {}
         if HoldFunc is not None:
@@ -128,8 +131,13 @@ class ControlObject():
                     holdDict['HoldShift'] = int('{}{}'.format(IconId, HoldShiftState))
                 else:
                     holdDict['HoldShift'] = HoldShiftState
+        else:
+            funcDict['Hold'] = self.__DefaultCallable
+            
         if RepeatFunc is not None:
             funcDict['Repeat'] = RepeatFunc if callable(RepeatFunc) else getattr(self.__FuncModule, RepeatFunc)
+        else:
+            funcDict['Repeat'] = self.__DefaultCallable
         
         self.Functions = DictObj(funcDict)
         
@@ -191,6 +199,9 @@ class ControlObject():
                 self.__LinkedCollection.SetStates(self.__LinkedObject, self.States.Inactive, self.States.Active)
                 
             self.__LinkedCollection.SetControlObject(self)
+
+    def __DefaultCallable(self, button, action) -> None:
+        pass
 
 class FeedbackObject():
     def __init__(self) -> None:

@@ -20,5 +20,10 @@
         "PrimaryFunc": "HeaderSelect",
         "PressShift": true,
         "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "Header-Settings",
+        "HoldFunc": "OpenTechPages",
+        "FuncModule": "ui.interface.TouchPanel"
     }
 ]
