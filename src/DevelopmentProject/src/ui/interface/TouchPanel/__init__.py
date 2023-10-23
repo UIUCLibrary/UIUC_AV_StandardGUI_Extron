@@ -88,6 +88,9 @@ class TouchPanelInterface():
         self.Transition.Level = self.Objects.Levels['PowerTransIndicator']
         self.Transition.Count = self.Objects.Labels['PowerTransLabel-Count']
 
+        for btn in self.Objects.Buttons.values():
+            Logger.Log(btn.Name, [grp.Name for grp in btn.GetGroupList()])
+
         self.Initialized = True
     
     def TransitionSystemState(self, state: SystemState) -> None:

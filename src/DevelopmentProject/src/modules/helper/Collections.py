@@ -354,9 +354,10 @@ class RadioSet(MESet):
                  Objects: List[Union['Button', 'ExButton', 'RefButton']]) -> None:
         super().__init__(Objects)
         self.__Name = Name
+        self.Group = None
         
         for btn in self.Objects:
-            setattr(btn, 'Group', self)
+            btn.Group = self
     
     def __repr__(self) -> str:
         sep = ', '
@@ -461,12 +462,13 @@ class SelectSet():
                  Objects: List[Union['Button', 'ExButton', 'RefButton']]) -> None:
         self.__Name = Name
         self.__StateList = []
-        
         self.__Objects = Objects
         
-        for o in self.__Objects:
+        self.Group = None
+        
+        for btn in self.__Objects:
             self.__StateList.append({"onState": 0, "offState": 1})
-            setattr(o, 'Group', self)
+            btn.Group = self
     
     def __repr__(self) -> str:
         sep = ', '
@@ -607,8 +609,10 @@ class VariableRadioSet():
         self.__PopupGroups = PopupGroups
         self.__Control = None
         
+        self.Group = None
+        
         for btn in self.Objects:
-            setattr(btn, 'Group', self)
+            btn.Group = self
     
     def __repr__(self) -> str:
         sep = ', '
@@ -704,33 +708,33 @@ class VariableRadioSet():
         
         Logger.Log('Assigning Control Event', self, Control)
         
-        @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-        def ButtonHandler(source: 'ExButton', event: str):
-            Logger.Log('Button Event', source, event)
-            initialState = source.State
+        # @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        # def ButtonHandler(source: 'ExButton', event: str):
+        #     Logger.Log('Button Event', source, event)
+        #     initialState = source.State
             
-            if event is 'Pressed':
-                if self.Control.PressStateShift:
-                    source.SetState(self.Control.States.Shift)
+        #     if event is 'Pressed':
+        #         if self.Control.PressStateShift:
+        #             source.SetState(self.Control.States.Shift)
                 
-            elif event is 'Released':
-                if not source.HasHold():
-                    self.Control.Functions.Primary(source, event)
-                    self.SetCurrent(source)
-                else:
-                    self.Control.Functions.Hold(source, event)
-                    if self.Control.HoldLatching:
-                        source.SetState(self.Control.States.HoldActive)
-                    else:
-                        source.SetState(initialState)
-            elif event is 'Held':
-                if hasattr(self.Control.States, 'HoldShift'):
-                    source.SetState(self.Control.States.HoldShift)
-            elif event is 'Repeated':
-                self.Control.Functions.Repeat(source, event)
-            elif event is 'Tapped':
-                self.Control.Functions.Primary(source, event)
-                self.SetCurrent(source)
+        #     elif event is 'Released':
+        #         if not source.HasHold():
+        #             self.Control.Functions.Primary(source, event)
+        #             self.SetCurrent(source)
+        #         else:
+        #             self.Control.Functions.Hold(source, event)
+        #             if self.Control.HoldLatching:
+        #                 source.SetState(self.Control.States.HoldActive)
+        #             else:
+        #                 source.SetState(initialState)
+        #     elif event is 'Held':
+        #         if hasattr(self.Control.States, 'HoldShift'):
+        #             source.SetState(self.Control.States.HoldShift)
+        #     elif event is 'Repeated':
+        #         self.Control.Functions.Repeat(source, event)
+        #     elif event is 'Tapped':
+        #         self.Control.Functions.Primary(source, event)
+        #         self.SetCurrent(source)
         
 class ScrollingRadioSet():
     def __init__(self, 
@@ -744,21 +748,24 @@ class ScrollingRadioSet():
         self.__Name = Name
         self.__Offset = 0
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
-        setattr(self.__BtnSet, 'Group', self)
+        self.__BtnSet.Group = self
         self.__RefSet = RadioSet('{}-RefObjects'.format(self.Name), RefObjects)
-        setattr(self.__RefSet, 'Group', self)
+        self.__RefSet.Group = self
         self.__Prev = PrevBtn
-        setattr(self.__Prev, 'Group', self)
+        self.__Prev.Group = self
         self.__Next = NextBtn
-        setattr(self.__Next, 'Group', self)
+        self.__Next.Group = self
         
         self.__PopupCallback = PopupCallback
         self.__PopupGroups = PopupGroups
         
+        self.Group = None
+        
         for btn in self.Objects:
             btn.Group = self
-        for btn in self.RefObjects:
-            btn.Group = self
+            
+        for ref in self.RefObjects:
+            ref.Group = self
 
     def __repr__(self) -> str:
         sep = ', '
@@ -893,33 +900,35 @@ class VolumeControlGroup():
         
         self.__Name = Name
         
+        self.Group = None
+        
         if type(VolUp) in [Button, ExButton]:
             self.VolUpBtn = VolUp
-            setattr(self.VolUpBtn, 'Group', self)
+            self.VolUpBtn.Group = self
         else:
             raise TypeError("VolUp must be an Extron Button object")
         
         if type(VolDown) in [Button, ExButton]:
             self.VolDownBtn = VolDown
-            setattr(self.VolDownBtn, 'Group', self)
+            self.VolDownBtn.Group = self
         else:
             raise TypeError("VolDown must be an Extron Button object")
         
         if type(Mute) in [Button, ExButton]:
             self.MuteBtn = Mute
-            setattr(self.MuteBtn, 'Group', self)
+            self.MuteBtn.Group = self
         else:
             raise TypeError("Mute must be an Extron Button object")
         
         if type(Feedback) in [Level, ExLevel]:
             self.FeedbackLvl = Feedback
-            setattr(self.FeedbackLvl, 'Group', self)
+            self.FeedbackLvl.Group = self
         else:
             raise TypeError("Feedback must be an Extron Level object")
         
         if type(ControlLabel) in [Label, ExLabel] or ControlLabel is None:
             self.ControlLbl = ControlLabel
-            setattr(self.ControlLbl, 'Group', self)
+            self.ControlLbl.Group = self
         else:
             raise TypeError("ControlLabel must either be an Extron Label object or None (default)")
         
@@ -965,6 +974,8 @@ class HeaderControlGroup():
         self.__Name = Name
         self.__Control = None
         
+        self.Group = None
+        
         self.__RoomButton = RoomButton
         setattr(self.__RoomButton, 'HeaderAction', 'Room')
         self.__RoomButton.SetEnable(False)
@@ -986,7 +997,7 @@ class HeaderControlGroup():
         setattr(self.__CloseButton, 'HeaderAction', 'Close')
         
         for btn in self.Objects:
-            setattr(btn, 'Group', self)
+            btn.Group = self
         
     @property
     def Name(self) -> str:
@@ -1035,35 +1046,35 @@ class HeaderControlGroup():
         
         Logger.Log('Assigning Control Event', self, Control)
         
-        @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-        def ButtonHandler(source: 'ExButton', event: str):
-            Logger.Log('Button Event', source, event)
+        # @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        # def ButtonHandler(source: 'ExButton', event: str):
+        #     Logger.Log('Button Event (HeaderControlGroup)', source, event)
             
-            if event is 'Pressed':
-                source.SetInitialPressState()
-                if self.Control.PressStateShift:
-                    source.SetState(self.Control.States.Shift)
+        #     if event is 'Pressed':
+        #         source.SetInitialPressState()
+        #         if self.Control.PressStateShift:
+        #             source.SetState(self.Control.States.Shift)
                 
-            elif event is 'Released':
-                if not source.HasHold():
-                    self.Control.Functions.Primary(source, event)
-                    source.SetState(self.Control.States.Inactive)
-                else:
-                    self.Control.Functions.Hold(source, event)
-                    if self.Control.HoldLatching:
-                        source.SetState(self.Control.States.HoldActive)
-                    else:
-                        source.SetState(source.GetInitialPressState())
-                source.ClearInitialPressState()
-            elif event is 'Held':
-                if hasattr(self.Control.States, 'HoldShift'):
-                    source.SetState(self.Control.States.HoldShift)
-            elif event is 'Repeated':
-                self.Control.Functions.Repeat(source, event)
-            elif event is 'Tapped':
-                self.Control.Functions.Primary(source, event)
-                source.SetState(self.Control.States.Inactive)
-                source.ClearInitialPressState()
+        #     elif event is 'Released':
+        #         if not source.HasHold():
+        #             self.Control.Functions.Primary(source, event)
+        #             source.SetState(self.Control.States.Inactive)
+        #         else:
+        #             self.Control.Functions.Hold(source, event)
+        #             if self.Control.HoldLatching:
+        #                 source.SetState(self.Control.States.HoldActive)
+        #             else:
+        #                 source.SetState(source.GetInitialPressState())
+        #         source.ClearInitialPressState()
+        #     elif event is 'Held':
+        #         if hasattr(self.Control.States, 'HoldShift'):
+        #             source.SetState(self.Control.States.HoldShift)
+        #     elif event is 'Repeated':
+        #         self.Control.Functions.Repeat(source, event)
+        #     elif event is 'Tapped':
+        #         self.Control.Functions.Primary(source, event)
+        #         source.SetState(self.Control.States.Inactive)
+        #         source.ClearInitialPressState()
 
 ## End Class Definitions -------------------------------------------------------
 ##

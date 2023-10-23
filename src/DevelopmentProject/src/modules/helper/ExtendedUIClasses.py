@@ -23,6 +23,7 @@ if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
     from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
     from modules.helper.PrimitiveObjects import ControlObject, FeedbackObject
+    from modules.helper.Collections import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet, VolumeControlGroup, HeaderControlGroup
 
 #### Python imports
 
@@ -48,6 +49,7 @@ class RefButton(Button):
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
+        self.Group = None
         self.__Control = None
         self.__RefName = None
         
@@ -109,6 +111,19 @@ class RefButton(Button):
         else:
             raise AttributeError('RefName is already set')
     
+    def GetGroupList(self) -> List:
+        groupList = []
+        continueUp = True
+        obj = self
+        while continueUp:
+            groupList.insert(0, obj)
+            if obj.Group is not None:
+                obj = obj.Group
+            else:
+                continueUp = False
+                
+        return groupList
+    
     def SetControlObject(self, Control: 'ControlObject'):
         if type(Control) is ControlObject:
             self.__Control = Control
@@ -129,17 +144,129 @@ class ExButton(Button):
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
+        self.Group = None
         self.__InitialState = None
         self.__Control = None
         self.__HoldTime = holdTime
         self.__RepeatTime = repeatTime
         self.__Indicator = None
+        self.__GroupList = None
+        self.__StateDict = {
+            "Inactive": None,
+            "Shift": None,
+            "Active": None,
+            "HoldShift": None,
+            "HoldActive": None,
+            # "RepeatActive": None
+        }
+        self.__ShiftDict = {
+            'Press': None,
+            'Hold': None,
+        }
+        self.__LatchingDict = {
+            'Latching': None,
+            'HoldLatching': None
+        }
+        self.__FunctDict = {
+            "Primary": None,
+            "Hold": None,
+            "Repeat": None
+        }
         
         for kw, val in kwargs.items():
             if kw == 'Text':
                 self.SetText(val)
             else:
                 setattr(self, kw, val)
+                
+        @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        def ExButtonHandler(source: 'ExButton', event: str) -> None:
+            Logger.Log('Button Event', source, event)
+            if event is 'Pressed':
+                # Capture initial press state
+                source.SetInitialPressState()
+                
+                # Change state to Shift state
+                if source.GetControlShift('Press'):
+                    source.SetState(source.GetControlState('Shift'))
+                
+            elif event is 'Released':
+                # Released no Hold
+                if not source.HasHold():
+                    # Do primary functionality
+                    for fn in source.GetControlFunctionList('Primary'):
+                        fn(source, event)
+                    
+                    # Determine after release state
+                    ## Control is latching (active after release)
+                    if source.GetControlLatching('Latching'):
+                        # Change state to Active state
+                        if source.Group is not None:
+                            if hasattr(source.Group, 'SetCurrent'):
+                                source.Group.SetCurrent(source)
+                            elif hasattr(source.Group, 'SetCurrentButton'):
+                                source.Group.SetCurrentButton(source)
+                            elif hasattr(source.Group, 'SetActive'):
+                                source.Group.SetActive(source)
+                        source.SetState(source.GetControlState('Active'))
+                    ## Control is non-latching (inactive after release)
+                    else:
+                        # Change state to Inactive state
+                        source.SetState(source.GetControlState('Inactive'))
+                        
+                # Relased after hold
+                else:
+                    # Do Hold functionality
+                    for fn in source.GetControlFunctionList('Hold'):
+                        fn(source, event)
+                    
+                    # Determine after release state
+                    ## Control is hold latching (HoldActive after release)
+                    if source.GetControlLatching('HoldLatching'):
+                        # Change to HoldActive state
+                        source.SetState(source.GetControlState('HoldActive'))
+                    else:
+                        # Return to initial press state
+                        source.SetState(source.GetInitialPressState())
+                        
+                # Clear initial press state
+                source.ClearInitialPressState()
+                
+            elif event is 'Held':
+                # Determine if state change is needed
+                source.SetState(source.GetControlState('HoldShift'))
+                    
+            elif event is 'Repeated':
+                # Do Repeat functionality
+                for fn in source.GetControlFunctionList('Repeat'):
+                    fn(source, event)
+                
+            elif event is 'Tapped':
+                source.Control.Functions.Primary(source, event)
+                
+                # Do primary functionality
+                for fn in source.GetControlFunctionList('Primary'):
+                    fn(source, event)
+                
+                # Determine after release state
+                ## Control is latching (active after release)
+                if source.GetControlLatching('Latching'):
+                    # Change state to Active state
+                    if source.Group is not None:
+                        if hasattr(source.Group, 'SetCurrent'):
+                            source.Group.SetCurrent(source)
+                        elif hasattr(source.Group, 'SetCurrentButton'):
+                            source.Group.SetCurrentButton(source)
+                        elif hasattr(source.Group, 'SetActive'):
+                            source.Group.SetActive(source)
+                    source.SetState(source.GetControlState('Active'))
+                ## Control is non-latching (inactive after release)
+                else:
+                    # Change state to Inactive state
+                    source.SetState(source.GetControlState('Inactive'))
+                
+                # Clear initial press state
+                source.ClearInitialPressState()
     
     @property
     def Control(self) -> 'ControlObject':
@@ -194,58 +321,150 @@ class ExButton(Button):
     
     def SetInitialPressState(self) -> None:
         self.__InitialState = self.State
+        Logger.Log(self, 'Set Initial State', self.__InitialState)
         
     def GetInitialPressState(self) -> int:
+        Logger.Log(self, 'Get Initial State', self.__InitialState)
         return self.__InitialState
     
     def ClearInitialPressState(self) -> None:
         self.__InitialState = None
+        Logger.Log(self, 'Clear Initial State')
+    
+    def GetGroupList(self) -> List[Union['ExButton', 'RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet', 'VolumeControlGroup', 'HeaderControlGroup']]:
+        if self.__GroupList is None:
+            groupList = []
+            continueUp = True
+            obj = self
+            while continueUp:
+                groupList.insert(0, obj)
+                if obj.Group is not None:
+                    obj = obj.Group
+                else:
+                    continueUp = False
+            self.__GroupList = groupList
+                
+        return self.__GroupList
+    
+    def GetControlState(self, mode: str) -> int:
+        stateDict = {
+            "Inactive": None,
+            "Shift": None,
+            "Active": None,
+            "HoldShift": None,
+            "HoldActive": None,
+            # "RepeatActive": None
+        }
+        if mode not in stateDict.keys():
+            raise ValueError('mode must be in {}'.format(stateDict.keys()))
+        
+        if self.__StateDict[mode] is None:
+            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
+                if hasattr(ctlobj.Control.States, mode):
+                    stateDict[mode] = getattr(ctlobj.Control.States, mode)
+            self.__StateDict[mode] = stateDict[mode]
+                
+        return self.__StateDict[mode]
+    
+    def GetControlShift(self, mode: str) -> bool:
+        shiftDict = {
+            'Press': None,
+            'Hold': None,
+        }
+        if mode not in shiftDict.keys():
+            raise ValueError('mode must be in {}'.format(shiftDict.keys()))
+        
+        if self.__ShiftDict[mode] is None:
+            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
+                shiftDict['Press'] = ctlobj.Control.PressStateShift
+                shiftDict['Hold'] = hasattr(ctlobj.Control.States, 'HoldShift')
+            self.__ShiftDict = shiftDict
+            
+        return self.__ShiftDict[mode]
+    
+    def GetControlLatching(self, mode: str) -> bool:
+        latchDict = {
+            'Latching': None,
+            'HoldLatching': None
+        }
+        if mode not in latchDict.keys():
+            raise ValueError('mode must be in {}'.format(latchDict.keys()))
+        
+        if self.__LatchingDict[mode] is None:
+            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
+                latchDict['Latching'] = ctlobj.Control.Latching
+                latchDict['HoldLatching'] = ctlobj.Control.HoldLatching
+            self.__LatchingDict = latchDict
+            
+        return self.__LatchingDict[mode]
+    
+    def GetControlFunctionList(self, mode: str) -> List[Callable]:
+        functDict = {
+            "Primary": None,
+            "Hold": None,
+            "Repeat": None
+        }
+        if mode not in functDict.keys():
+            raise ValueError('mode must be in {}'.format(functDict.keys()))
+        
+        if self.__FunctDict[mode] is None:
+            functDict[mode] = []
+            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
+                functDict[mode].append(getattr(ctlobj.Control.Functions, mode))
+            
+            for fn in functDict[mode]:
+                if not callable(fn):
+                    functDict[mode].remove(fn)
+            
+            self.__FunctDict[mode] = functDict[mode]
+        
+        return self.__FunctDict[mode]
     
     def SetControlObject(self, Control: 'ControlObject'):
         self.__Control = Control
         
-        Logger.Log('Assigning Control Event', self, Control)
-        # TODO: make sure this covers button usage
-        @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-        def ButtonHandler(source: 'ExButton', event: str):
-            Logger.Log("Button Event", source, event)
+        # Logger.Log('Assigning Control Event', self, Control)
+        # # TODO: make sure this covers button usage
+        # @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        # def ButtonHandler(source: 'ExButton', event: str):
+        #     Logger.Log("Button Event (ExButton)", source, event)
             
-            if event is 'Pressed':
-                source.SetInitialPressState()
-                if source.Control.PressStateShift:
-                    source.SetState(source.Control.States.Shift)
+        #     if event is 'Pressed':
+        #         source.SetInitialPressState()
+        #         if source.Control.PressStateShift:
+        #             source.SetState(source.Control.States.Shift)
                 
-            elif event is 'Released':
-                if not source.HasHold():
-                    source.Control.Functions.Primary(source, event)
+        #     elif event is 'Released':
+        #         if not source.HasHold():
+        #             source.Control.Functions.Primary(source, event)
                     
-                    if source.Control.IsLatching:
-                        source.SetState(source.Control.States.Active)
-                    else:
-                        source.SetState(source.Control.States.Inactive)
-                else:
-                    source.Control.Functions.Hold(source, event)
-                    if source.Control.HoldLatching:
-                        source.SetState(source.Control.States.HoldActive)
-                    else:
-                        source.SetState(source.GetInitialPressState())
-                source.ClearInitialPressState()
-            elif event is 'Held':
-                if hasattr(source.Control.States, 'HoldShift'):
-                    source.SetState(source.Control.States.HoldShift)
+        #             if source.Control.IsLatching:
+        #                 source.SetState(source.Control.States.Active)
+        #             else:
+        #                 source.SetState(source.Control.States.Inactive)
+        #         else:
+        #             source.Control.Functions.Hold(source, event)
+        #             if source.Control.HoldLatching:
+        #                 source.SetState(source.Control.States.HoldActive)
+        #             else:
+        #                 source.SetState(source.GetInitialPressState())
+        #         source.ClearInitialPressState()
+        #     elif event is 'Held':
+        #         if hasattr(source.Control.States, 'HoldShift'):
+        #             source.SetState(source.Control.States.HoldShift)
                     
-            elif event is 'Repeated':
-                source.Control.Functions.Repeat(source, event)
+        #     elif event is 'Repeated':
+        #         source.Control.Functions.Repeat(source, event)
                 
-            elif event is 'Tapped':
-                source.Control.Functions.Primary(source, event)
+        #     elif event is 'Tapped':
+        #         source.Control.Functions.Primary(source, event)
                 
-                if source.Control.IsLatching:
-                    source.SetState(source.Control.States.Active)
-                else:
-                    source.SetState(source.Control.States.Inactive)
+        #         if source.Control.IsLatching:
+        #             source.SetState(source.Control.States.Active)
+        #         else:
+        #             source.SetState(source.Control.States.Inactive)
                 
-                source.ClearInitialPressState()
+        #         source.ClearInitialPressState()
                     
 
 class ExLabel(Label):
@@ -258,6 +477,7 @@ class ExLabel(Label):
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
+        self.Group = None
         
         for kw, val in kwargs.items():
             if kw == 'Text':
@@ -283,6 +503,7 @@ class ExLevel(Level):
         
         self.UIHost = UIHost
         self.Id = self.ID
+        self.Group = None
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -310,6 +531,7 @@ class ExSlider(Slider):
         
         self.UIHost = UIHost
         self.Id = self.ID
+        self.Group = None
         
         self.__Control = None
         
@@ -354,6 +576,7 @@ class ExKnob(Knob):
         
         self.UIHost = UIHost
         self.Id = self.ID
+        self.Group = None
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)

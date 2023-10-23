@@ -142,7 +142,7 @@ class ControlObject():
         self.Functions = DictObj(funcDict)
         
         self.PressStateShift = PressShift
-        self.IsLatching = Latching
+        self.Latching = Latching
         self.HoldLatching = HoldLatching
         
         if IconId is not None and type(IconId) is int:
