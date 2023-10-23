@@ -1038,9 +1038,9 @@ class HeaderControlGroup():
         @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
         def ButtonHandler(source: 'ExButton', event: str):
             Logger.Log('Button Event', source, event)
-            initialState = source.State # TODO: figure out if this actually works for setting non-latching hold
             
             if event is 'Pressed':
+                source.SetInitialPressState()
                 if self.Control.PressStateShift:
                     source.SetState(self.Control.States.Shift)
                 
@@ -1053,7 +1053,8 @@ class HeaderControlGroup():
                     if self.Control.HoldLatching:
                         source.SetState(self.Control.States.HoldActive)
                     else:
-                        source.SetState(initialState) # TODO: See line 1041
+                        source.SetState(source.GetInitialPressState())
+                source.ClearInitialPressState()
             elif event is 'Held':
                 if hasattr(self.Control.States, 'HoldShift'):
                     source.SetState(self.Control.States.HoldShift)
@@ -1062,6 +1063,7 @@ class HeaderControlGroup():
             elif event is 'Tapped':
                 self.Control.Functions.Primary(source, event)
                 source.SetState(self.Control.States.Inactive)
+                source.ClearInitialPressState()
 
 ## End Class Definitions -------------------------------------------------------
 ##

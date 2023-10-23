@@ -152,7 +152,7 @@ class ControlObject():
                 'Inactive': int('{}{}'.format(IconId, InactiveState))
             }
             if holdDict != {}:
-                stateDict.append(holdDict)
+                stateDict.update(holdDict)
             self.States = DictObj(stateDict)
         elif IconId is None:
             stateDict = {
@@ -161,7 +161,7 @@ class ControlObject():
                 'Inactive': InactiveState
             }
             if holdDict != {}:
-                stateDict.append(holdDict)
+                stateDict.update(holdDict)
             self.States = DictObj(stateDict)
         else:
             raise TypeError('IconId must be an int or None')

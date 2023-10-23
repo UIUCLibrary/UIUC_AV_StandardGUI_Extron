@@ -120,7 +120,7 @@ def SplashStartHandler(button: Union['Button', 'ExButton'], action: str) -> None
     uiDev = button.UIHost
     
     if System.CONTROLLER.SystemPIN is not None:
-        uiDev.SecureAccess.System.Open(PIN=System.CONTROLLER.SystemPIN, Callback=SplashPinSuccess)
+        uiDev.PINAccess.Open(PIN=System.CONTROLLER.SystemPIN, Callback=SplashPinSuccess)
     else:
         SplashPinSuccess()
         
@@ -200,13 +200,21 @@ def HeaderSelect(button: 'ExButton', action: str) -> None:
 def OpenTechPages(button: 'ExButton', action: str) -> None:
     uiDev = button.UIHost
     
-    if System.CONTROLLER.SystemPIN is not None:
+    if System.CONTROLLER.TechPIN is not None:
         callbackFn = functools.partial(TechPinSuccess, uiDev=uiDev)
-        uiDev.SecureAccess.System.Open(PIN=System.CONTROLLER.SystemPIN, Callback=callbackFn)
+        uiDev.PINAccess.Open(PIN=System.CONTROLLER.TechPIN, Callback=callbackFn)
     else:
         TechPinSuccess(uiDev)
         
 def TechPinSuccess(uiDev: 'ExUIDevice') -> None:
     uiDev.ShowPage('Tech')
+    
+def CloseTechPages(button: 'ExButton', action: str) -> None:
+    uiDev = button.UIHost
+    
+    if System.CONTROLLER.SystemState is SystemState.Standby:
+        uiDev.ShowPage('Start')
+    else:
+        uiDev.ShowPage('Main')
 
 ## End Function Definitions ----------------------------------------------------

@@ -129,6 +129,7 @@ class ExButton(Button):
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
+        self.__InitialState = None
         self.__Control = None
         self.__HoldTime = holdTime
         self.__RepeatTime = repeatTime
@@ -175,18 +176,30 @@ class ExButton(Button):
         super().SetText(text)
         
     def SetState(self, state: int) -> None:
+        if state is None:
+            Logger.Log('None state sent to button set state', self, separator=' | ', logSeverity='warning')
+            return None
         # update indicator state
         indBtn = self.Indicator
         if indBtn is not None:
             indBtn.SetState(state % 10)
         # update state
-        return super().SetState(state)
+        super().SetState(state)
     
     def HasHold(self) -> bool:
         return (self.__HoldTime is not None)
     
     def HasRepeat(self) -> bool:
         return (self.__RepeatTime is not None)
+    
+    def SetInitialPressState(self) -> None:
+        self.__InitialState = self.State
+        
+    def GetInitialPressState(self) -> int:
+        return self.__InitialState
+    
+    def ClearInitialPressState(self) -> None:
+        self.__InitialState = None
     
     def SetControlObject(self, Control: 'ControlObject'):
         self.__Control = Control
@@ -196,9 +209,9 @@ class ExButton(Button):
         @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
         def ButtonHandler(source: 'ExButton', event: str):
             Logger.Log("Button Event", source, event)
-            initialState = source.State
             
             if event is 'Pressed':
+                source.SetInitialPressState()
                 if source.Control.PressStateShift:
                     source.SetState(source.Control.States.Shift)
                 
@@ -215,8 +228,8 @@ class ExButton(Button):
                     if source.Control.HoldLatching:
                         source.SetState(source.Control.States.HoldActive)
                     else:
-                        source.SetState(initialState)
-                        
+                        source.SetState(source.GetInitialPressState())
+                source.ClearInitialPressState()
             elif event is 'Held':
                 if hasattr(source.Control.States, 'HoldShift'):
                     source.SetState(source.Control.States.HoldShift)
@@ -231,7 +244,8 @@ class ExButton(Button):
                     source.SetState(source.Control.States.Active)
                 else:
                     source.SetState(source.Control.States.Inactive)
-                        
+                
+                source.ClearInitialPressState()
                     
 
 class ExLabel(Label):

@@ -141,10 +141,7 @@ class ExUIDevice(UIDevice):
         
         ## initialize PIN Controllers
         if self.Class == 'TouchPanel':
-            self.SecureAccess = DictObj({
-                    "System": PINController(self),
-                    "Tech": PINController(self)
-                })
+            self.PINAccess = PINController(self)
         
         ## set Room Label to system Room Name
         RoomLabelBtn = self.Interface.Objects.Buttons['Room-Label']

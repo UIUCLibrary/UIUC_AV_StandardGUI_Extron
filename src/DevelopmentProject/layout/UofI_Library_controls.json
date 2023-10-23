@@ -24,6 +24,12 @@
     {
         "ControlObject": "Header-Settings",
         "HoldFunc": "OpenTechPages",
+        "HoldShiftState": 2,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "Tech-Menu-Exit",
+        "PrimaryFunc": "CloseTechPages",
         "FuncModule": "ui.interface.TouchPanel"
     }
 ]
