@@ -27,6 +27,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Python imports
 import json
+import functools
 
 #### Extron Library Imports
 from extronlib.system import File
@@ -116,11 +117,12 @@ class TouchPanelInterface():
 ## Begin Function Definitions --------------------------------------------------
 
 def SplashStartHandler(button: Union['Button', 'ExButton'], action: str) -> None:
-    tp = button.UIHost
+    uiDev = button.UIHost
+    
     if System.CONTROLLER.SystemPIN is not None:
-        tp.SecureAccess.System.Open(PIN=System.CONTROLLER.SystemPIN, Callback=SplashPinSuccess)
+        uiDev.SecureAccess.System.Open(PIN=System.CONTROLLER.SystemPIN, Callback=SplashPinSuccess)
     else:
-        System.CONTROLLER.ShowStart()
+        SplashPinSuccess()
         
 def SplashPinSuccess() -> None:
     System.CONTROLLER.ShowStart()
@@ -197,6 +199,14 @@ def HeaderSelect(button: 'ExButton', action: str) -> None:
             
 def OpenTechPages(button: 'ExButton', action: str) -> None:
     uiDev = button.UIHost
+    
+    if System.CONTROLLER.SystemPIN is not None:
+        callbackFn = functools.partial(TechPinSuccess, uiDev=uiDev)
+        uiDev.SecureAccess.System.Open(PIN=System.CONTROLLER.SystemPIN, Callback=callbackFn)
+    else:
+        TechPinSuccess(uiDev)
+        
+def TechPinSuccess(uiDev: 'ExUIDevice') -> None:
     uiDev.ShowPage('Tech')
 
 ## End Function Definitions ----------------------------------------------------
