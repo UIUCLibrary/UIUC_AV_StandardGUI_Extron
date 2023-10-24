@@ -139,13 +139,6 @@ class TouchPanelObjects():
                                                     ID_Name=button['ID'],
                                                     **kwargs)
             self.Buttons[button['Name']].SetState(0)
-        
-        # link indictators
-        for button in self.Buttons.values():
-            if hasattr(button, 'indicator'):
-                ind = self.Buttons[button.indicator]
-                button.indicator = ind
-                setattr(ind, 'ind-ref', button)
 
     def LoadKnobs(self,
                   UIHost: Union['ExUIDevice', 'UIDevice'],

@@ -34,7 +34,7 @@ if TYPE_CHECKING: # pragma: no cover
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ModuleSupport import eventEx
 from modules.helper.ExtendedSystemClasses import ExTimer
-from modules.helper.Collections import DictObj
+from modules.helper.PrimitiveObjects import DictObj
 from Constants import STANDBY, SHARE, ADVSHARE, GROUPWORK, ACTIVE, ActivityMode, SystemState
 import System
 from ui.interface.TouchPanel import StartShutdownConfirmation

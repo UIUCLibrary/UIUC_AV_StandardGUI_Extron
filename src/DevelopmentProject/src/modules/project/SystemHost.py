@@ -31,7 +31,8 @@ from extronlib.system import Timer
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr, DictValueSearchByKey, RunAsync, debug
 from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
-from modules.helper.Collections import DictObj, UIDeviceCollection, ProcessorCollection
+from modules.helper.Collections import UIDeviceCollection, ProcessorCollection
+from modules.helper.PrimitiveObjects import DictObj
 from modules.helper.ModuleSupport import WatchVariable
 from control.ActivityController import ActivityController
 from control.PollController import PollingController

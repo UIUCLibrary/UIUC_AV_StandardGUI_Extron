@@ -31,11 +31,10 @@ from extronlib.system import Wait
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
-from modules.helper.Collections import DictObj
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.utilties.PinPad import PINController
-from modules.helper.PrimitiveObjects import Alias, classproperty
+from modules.helper.PrimitiveObjects import Alias, classproperty, DictObj
 import System
 
 ## End Imports -----------------------------------------------------------------

@@ -22,8 +22,8 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
     from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
-    from modules.helper.PrimitiveObjects import ControlObject, FeedbackObject
     from modules.helper.Collections import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet, VolumeControlGroup, HeaderControlGroup
+    from modules.helper.PrimitiveObjects import ControlObject
 
 #### Python imports
 
@@ -34,23 +34,24 @@ from extronlib.system import Wait
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from modules.helper.ModuleSupport import eventEx
+from modules.helper.PrimitiveObjects import ControlMixIn
 
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class RefButton(Button):
+class RefButton(ControlMixIn, Button):
     def __init__(self,
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
-        super().__init__(UIHost, ID_Name, None, None)
+        Button.__init__(self, UIHost, ID_Name, None, None)
+        ControlMixIn.__init__(self)
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
         self.Group = None
-        self.__Control = None
         self.__RefName = None
         
         for kw, val in kwargs.items():
@@ -58,14 +59,6 @@ class RefButton(Button):
                 self.SetText(val)
             else:
                 setattr(self, kw, val)
-        
-    @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
-    
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
     
     @property
     def Name(self) -> str:
@@ -74,20 +67,20 @@ class RefButton(Button):
         else:
             return self.__RefName
         
-    @property
-    def Indicator(self) -> 'ExButton':
-        if hasattr(self, '__indicator'):
-            try:
-                return self.UIHost.Interface.Objects.Buttons[self.__indicator]
-            except LookupError:
-                Logger.Log('No button found for indicator name: {}'.format(self.__indicator))
-                return None
-        else:
-            return None
+    # @property
+    # def Indicator(self) -> 'ExButton':
+    #     if hasattr(self, '__indicator'):
+    #         try:
+    #             return self.UIHost.Interface.Objects.Buttons[self.__indicator]
+    #         except LookupError:
+    #             Logger.Log('No button found for indicator name: {}'.format(self.__indicator))
+    #             return None
+    #     else:
+    #         return None
         
-    @Indicator.setter
-    def Indicator(self, val) -> None:
-        raise AttributeError('Overriding Indicator property is disallowed.')
+    # @Indicator.setter
+    # def Indicator(self, val) -> None:
+    #     raise AttributeError('Overriding Indicator property is disallowed.')
     
     def __repr__(self) -> str:
         return "{} ({})".format(self.Name, self.Id)
@@ -123,34 +116,28 @@ class RefButton(Button):
                 continueUp = False
                 
         return groupList
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
-        
-        # TODO: create button events here
 
-class ExButton(Button):
+class ExButton(ControlMixIn, Button):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str], 
                  holdTime: float = None, 
                  repeatTime: float = None,
                  **kwargs) -> None:
-        super().__init__(UIHost, ID_Name, holdTime, repeatTime)
+        Button.__init__(self, UIHost, ID_Name, holdTime, repeatTime)
+        ControlMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
         self.Group = None
+        self.Initialized = False
         self.__InitialState = None
-        self.__Control = None
         self.__HoldTime = holdTime
         self.__RepeatTime = repeatTime
         self.__Indicator = None
         self.__GroupList = None
+        self.__ControlList = None
         self.__StateDict = {
             "Inactive": None,
             "Shift": None,
@@ -269,21 +256,7 @@ class ExButton(Button):
                 source.ClearInitialPressState()
     
     @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
-    
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
-    
-    @property
     def Indicator(self) -> 'ExButton':
-        if hasattr(self, 'indicatorName') and self.__Indicator is None:
-            try:
-                self.__Indicator = self.UIHost.Interface.Objects.Buttons[self.indicatorName]
-            except LookupError:
-                Logger.Log('No button found for indicator name: {}'.format(self.indicatorName))
-        
         return self.__Indicator
         
     @Indicator.setter
@@ -307,9 +280,8 @@ class ExButton(Button):
             Logger.Log('None state sent to button set state', self, separator=' | ', logSeverity='warning')
             return None
         # update indicator state
-        indBtn = self.Indicator
-        if indBtn is not None:
-            indBtn.SetState(state % 10)
+        if self.Indicator is not None:
+            self.Indicator.SetState(state % 10)
         # update state
         super().SetState(state)
     
@@ -321,158 +293,140 @@ class ExButton(Button):
     
     def SetInitialPressState(self) -> None:
         self.__InitialState = self.State
-        Logger.Log(self, 'Set Initial State', self.__InitialState)
+        # Logger.Log(self, 'Set Initial State', self.__InitialState)
         
     def GetInitialPressState(self) -> int:
-        Logger.Log(self, 'Get Initial State', self.__InitialState)
+        # Logger.Log(self, 'Get Initial State', self.__InitialState)
         return self.__InitialState
     
     def ClearInitialPressState(self) -> None:
         self.__InitialState = None
-        Logger.Log(self, 'Clear Initial State')
+        # Logger.Log(self, 'Clear Initial State')
     
-    def GetGroupList(self) -> List[Union['ExButton', 'RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet', 'VolumeControlGroup', 'HeaderControlGroup']]:
+    def Initialize(self) -> None:
+        self.__InitGroupList()
+        self.__InitControlList()
+        
+        Logger.Log(self.Name, [grp.Name for grp in self.GroupList])
+        
+        self.__InitControlState()
+        self.__InitControlShift()
+        self.__InitControlLatching()
+        self.__InitControlFunctions()
+        
+        # link indictator
+        if hasattr(self, 'indicatorName'):
+            try:
+                ind = self.UIHost.Interface.Objects.Buttons[self.indicatorName]
+                self.__Indicator = ind
+                setattr(ind, 'ind-ref', self)
+            except LookupError:
+                Logger.Log('No button found for indicator name: {}'.format(self.indicatorName))
+        
+        self.Initialized = True
+    
+    @property
+    def GroupList(self) -> List[Union['ExButton', 'RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet', 'VolumeControlGroup', 'HeaderControlGroup']]:
         if self.__GroupList is None:
-            groupList = []
-            continueUp = True
-            obj = self
-            while continueUp:
-                groupList.insert(0, obj)
-                if obj.Group is not None:
-                    obj = obj.Group
-                else:
-                    continueUp = False
-            self.__GroupList = groupList
-                
+            self.__InitGroupList()
+        
         return self.__GroupList
     
-    def GetControlState(self, mode: str) -> int:
-        stateDict = {
-            "Inactive": None,
-            "Shift": None,
-            "Active": None,
-            "HoldShift": None,
-            "HoldActive": None,
-            # "RepeatActive": None
-        }
-        if mode not in stateDict.keys():
-            raise ValueError('mode must be in {}'.format(stateDict.keys()))
-        
-        if self.__StateDict[mode] is None:
-            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
-                if hasattr(ctlobj.Control.States, mode):
-                    stateDict[mode] = getattr(ctlobj.Control.States, mode)
-            self.__StateDict[mode] = stateDict[mode]
-                
-        return self.__StateDict[mode]
+    @GroupList.setter
+    def GroupList(self, val) -> None:
+        raise AttributeError('Setting GroupList property is disallowed')
     
-    def GetControlShift(self, mode: str) -> bool:
-        shiftDict = {
-            'Press': None,
-            'Hold': None,
-        }
-        if mode not in shiftDict.keys():
-            raise ValueError('mode must be in {}'.format(shiftDict.keys()))
-        
-        if self.__ShiftDict[mode] is None:
-            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
-                shiftDict['Press'] = ctlobj.Control.PressStateShift
-                shiftDict['Hold'] = hasattr(ctlobj.Control.States, 'HoldShift')
-            self.__ShiftDict = shiftDict
+    @property
+    def ControlList(self) -> List['ControlObject']:
+        if self.__ControlList is None:
+            self.__InitControlList()
             
-        return self.__ShiftDict[mode]
+        return self.__ControlList
     
-    def GetControlLatching(self, mode: str) -> bool:
-        latchDict = {
-            'Latching': None,
-            'HoldLatching': None
-        }
-        if mode not in latchDict.keys():
-            raise ValueError('mode must be in {}'.format(latchDict.keys()))
+    def __InitGroupList(self) -> None:
+        groupList = []
+        continueUp = True
+        obj = self
+        while continueUp:
+            groupList.insert(0, obj)
+            if obj.Group is not None:
+                obj = obj.Group
+            else:
+                continueUp = False
+        self.__GroupList = groupList
         
-        if self.__LatchingDict[mode] is None:
-            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
-                latchDict['Latching'] = ctlobj.Control.Latching
-                latchDict['HoldLatching'] = ctlobj.Control.HoldLatching
-            self.__LatchingDict = latchDict
-            
-        return self.__LatchingDict[mode]
+    def __InitControlList(self) -> None:
+        self.__ControlList = [obj for obj in self.GroupList if obj.Control is not None]
     
-    def GetControlFunctionList(self, mode: str) -> List[Callable]:
-        functDict = {
-            "Primary": None,
-            "Hold": None,
-            "Repeat": None
-        }
-        if mode not in functDict.keys():
-            raise ValueError('mode must be in {}'.format(functDict.keys()))
-        
-        if self.__FunctDict[mode] is None:
-            functDict[mode] = []
-            for ctlobj in [obj for obj in self.GetGroupList() if obj.Control is not None]:
-                functDict[mode].append(getattr(ctlobj.Control.Functions, mode))
-            
-            for fn in functDict[mode]:
-                if not callable(fn):
-                    functDict[mode].remove(fn)
-            
-            self.__FunctDict[mode] = functDict[mode]
-        
-        return self.__FunctDict[mode]
+    def __InitControlState(self) -> None:
+        for state in self.__StateDict:
+            for ctlobj in self.ControlList:
+                if hasattr(ctlobj.Control.States, state):
+                    self.__StateDict[state] = getattr(ctlobj.Control.States, state)
     
-    def SetControlObject(self, Control: 'ControlObject'):
-        self.__Control = Control
+    def GetControlState(self, State: str) -> int:
+        if State not in self.__StateDict.keys():
+            raise ValueError('State must be in {}'.format(self.__StateDict.keys()))
         
-        # Logger.Log('Assigning Control Event', self, Control)
-        # # TODO: make sure this covers button usage
-        # @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-        # def ButtonHandler(source: 'ExButton', event: str):
-        #     Logger.Log("Button Event (ExButton)", source, event)
+        if not self.Initialized:
+            raise RuntimeError('Button object {} must be initialized prior to using this function'.format(self))
+                
+        return self.__StateDict[State]
+    
+    def __InitControlShift(self) -> None:
+        for ctlobj in self.ControlList:
+            self.__ShiftDict['Press'] = ctlobj.Control.PressStateShift
+            self.__ShiftDict['Hold'] = hasattr(ctlobj.Control.States, 'HoldShift')
+    
+    def GetControlShift(self, Shift: str) -> bool:
+        if Shift not in self.__ShiftDict.keys():
+            raise ValueError('Shift must be in {}'.format(self.__ShiftDict.keys()))
+        
+        if not self.Initialized:
+            raise RuntimeError('Button object {} must be initialized prior to using this function'.format(self))
             
-        #     if event is 'Pressed':
-        #         source.SetInitialPressState()
-        #         if source.Control.PressStateShift:
-        #             source.SetState(source.Control.States.Shift)
-                
-        #     elif event is 'Released':
-        #         if not source.HasHold():
-        #             source.Control.Functions.Primary(source, event)
-                    
-        #             if source.Control.IsLatching:
-        #                 source.SetState(source.Control.States.Active)
-        #             else:
-        #                 source.SetState(source.Control.States.Inactive)
-        #         else:
-        #             source.Control.Functions.Hold(source, event)
-        #             if source.Control.HoldLatching:
-        #                 source.SetState(source.Control.States.HoldActive)
-        #             else:
-        #                 source.SetState(source.GetInitialPressState())
-        #         source.ClearInitialPressState()
-        #     elif event is 'Held':
-        #         if hasattr(source.Control.States, 'HoldShift'):
-        #             source.SetState(source.Control.States.HoldShift)
-                    
-        #     elif event is 'Repeated':
-        #         source.Control.Functions.Repeat(source, event)
-                
-        #     elif event is 'Tapped':
-        #         source.Control.Functions.Primary(source, event)
-                
-        #         if source.Control.IsLatching:
-        #             source.SetState(source.Control.States.Active)
-        #         else:
-        #             source.SetState(source.Control.States.Inactive)
-                
-        #         source.ClearInitialPressState()
-                    
+        return self.__ShiftDict[Shift]
+    
+    def __InitControlLatching(self) -> None:
+        for ctlobj in self.ControlList:
+            self.__LatchingDict['Latching'] = ctlobj.Control.Latching
+            self.__LatchingDict['HoldLatching'] = ctlobj.Control.HoldLatching
+    
+    def GetControlLatching(self, Latching: str) -> bool:
+        if Latching not in self.__LatchingDict.keys():
+            raise ValueError('Latching must be in {}'.format(self.__LatchingDict.keys()))
+        
+        if not self.Initialized:
+            raise RuntimeError('Button object {} must be initialized prior to using this function'.format(self))
+            
+        return self.__LatchingDict[Latching]
+    
+    def __InitControlFunctions(self) -> None:
+        for mode in self.__FunctDict:
+            self.__FunctDict[mode] = []
+            for ctlobj in self.ControlList:
+                if hasattr(ctlobj.Control.Functions, mode):
+                    fn = getattr(ctlobj.Control.Functions, mode)
+                    if callable(fn):
+                        self.__FunctDict[mode].append(fn)
+    
+    def GetControlFunctionList(self, Mode: str) -> List[Callable]:
+        if Mode not in self.__FunctDict.keys():
+            raise ValueError('Mode must be in {}'.format(self.__FunctDict.keys()))
+        
+        if not self.Initialized:
+            raise RuntimeError('Button object {} must be initialized prior to using this function'.format(self))
+        
+        return self.__FunctDict[Mode]
+    
 
-class ExLabel(Label):
+class ExLabel(ControlMixIn, Label):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'ExUIDevice', 'ProcessorDevice', 'ExProcessorDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
-        super().__init__(UIHost, ID_Name)
+        Label.__init__(self, UIHost, ID_Name)
+        ControlMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
@@ -494,12 +448,13 @@ class ExLabel(Label):
         self.Text = text
         super().SetText(text)
 
-class ExLevel(Level):
+class ExLevel(ControlMixIn, Level):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
-        super().__init__(UIHost, ID_Name)
+        Level.__init__(self, UIHost, ID_Name)
+        ControlMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
@@ -522,18 +477,17 @@ class ExLevel(Level):
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Level, self.Min, self.Max)
 
-class ExSlider(Slider):
+class ExSlider(ControlMixIn, Slider):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
-        super().__init__(UIHost, ID_Name)
+        Slider.__init__(self, UIHost, ID_Name)
+        ControlMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
         self.Group = None
-        
-        self.__Control = None
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -546,33 +500,17 @@ class ExSlider(Slider):
     def Level(self, Level) -> None:
         raise AttributeError('Level property cannot be set, use SetLevel instead')
     
-    @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
-    
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
-    
     def SetLevel(self, Level: Union[int,float]) -> None:
         self.SetFill(Level)
     
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Fill, self.Min, self.Max)
 
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
-        
-        # TODO: create events here
-
-class ExKnob(Knob):
+class ExKnob(ControlMixIn, Knob):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice'],
                  **kwargs) -> None:
-        super().__init__(UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
+        Knob.__init__(self, UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
         
         self.UIHost = UIHost
         self.Id = self.ID

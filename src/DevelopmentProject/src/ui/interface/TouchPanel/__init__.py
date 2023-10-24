@@ -34,7 +34,7 @@ from extronlib.system import File
 from extronlib import event
 
 #### Project imports
-from modules.helper.Collections import DictObj
+from modules.helper.PrimitiveObjects import DictObj
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
@@ -89,7 +89,7 @@ class TouchPanelInterface():
         self.Transition.Count = self.Objects.Labels['PowerTransLabel-Count']
 
         for btn in self.Objects.Buttons.values():
-            Logger.Log(btn.Name, [grp.Name for grp in btn.GetGroupList()])
+            btn.Initialize()
 
         self.Initialized = True
     

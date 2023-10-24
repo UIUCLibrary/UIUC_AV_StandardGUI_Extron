@@ -31,7 +31,7 @@ import importlib.util
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.Collections import DictObj
+from modules.helper.CommonUtilities import Logger
 import control.AV
 
 ## End Imports -----------------------------------------------------------------
@@ -54,6 +54,20 @@ class Alias:
 
     def __set__(self, obj, value):
         setattr(obj, self.source_name, value)
+
+class DictObj:
+    def __init__(self, src_dict: dict):
+        if type(src_dict) is not dict:
+            raise TypeError('DictObj src_dict must be of type dict')
+        
+        for key, val in src_dict.items():
+            if isinstance(val, (list, tuple)):
+               setattr(self, key, [DictObj(x) if isinstance(x, dict) else x for x in val])
+            else:
+               setattr(self, key, DictObj(val) if isinstance(val, dict) else val)
+               
+    def __repr__(self) -> str:
+        return str(self.__dict__)
 
 class ControlObject():
     __DefaultModule = control.AV
@@ -206,6 +220,26 @@ class ControlObject():
 class FeedbackObject():
     def __init__(self) -> None:
         pass
+
+class ControlMixIn():
+    def __init__(self) -> None:
+        self.__Control = None
+        
+    @property
+    def Control(self) -> 'ControlObject':
+        return self.__Control
+    
+    @Control.setter
+    def Control(self, val) -> None:
+        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        if type(Control) is ControlObject:
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        Logger.Log('RadioSet ControlObject:', Control)
 
 ## End Class Definitions -------------------------------------------------------
 ##

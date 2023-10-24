@@ -41,6 +41,7 @@ from modules.helper.ModuleSupport import WatchVariable
 from modules.helper.CommonUtilities import DictValueSearchByKey, RunAsync, debug, Logger
 from modules.helper.ModuleSupport import eventEx
 from modules.project.SystemHardware import SystemHardwareController
+from modules.helper.PrimitiveObjects import ControlMixIn
 from control.PollController import PollObject
 from Constants import BLANK_SOURCE
 import System
@@ -51,20 +52,6 @@ from extronlib.ui import Button, Level, Label
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
-
-class DictObj:
-    def __init__(self, src_dict: dict):
-        if type(src_dict) is not dict:
-            raise TypeError('DictObj src_dict must be of type dict')
-        
-        for key, val in src_dict.items():
-            if isinstance(val, (list, tuple)):
-               setattr(self, key, [DictObj(x) if isinstance(x, dict) else x for x in val])
-            else:
-               setattr(self, key, DictObj(val) if isinstance(val, dict) else val)
-               
-    def __repr__(self) -> str:
-        return str(self.__dict__)
 
 class DeviceCollection(UserDict):
     # override __init__ to add properties to the device collection
@@ -332,7 +319,6 @@ class UIDeviceCollection(UserList):
     def __iter__(self) -> Iterator[Union['ExUIDevice', 'ExEBUSDevice']]:
         return super().__iter__()
     
-
 class ProcessorCollection(UserList):
     def __init__(self, __list: None = None) -> List['ExProcessorDevice']:
         super().__init__(__list)
@@ -348,11 +334,14 @@ class ProcessorCollection(UserList):
     def __iter__(self) -> Iterator['ExProcessorDevice']:
         return super().__iter__()
 
-class RadioSet(MESet):
+
+class RadioSet(ControlMixIn, MESet):
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['Button', 'ExButton', 'RefButton']]) -> None:
-        super().__init__(Objects)
+        MESet.__init__(self, Objects)
+        ControlMixIn.__init__(self)
+        
         self.__Name = Name
         self.Group = None
         
@@ -447,19 +436,11 @@ class RadioSet(MESet):
         elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
-        
-        # TODO: create button events here
-        Logger.Log('RadioSet ControlObject:', Control)
-    
-class SelectSet():
+class SelectSet(ControlMixIn, object):
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['Button', 'ExButton', 'RefButton']]) -> None:
+        ControlMixIn.__init__(self)
         self.__Name = Name
         self.__StateList = []
         self.__Objects = Objects
@@ -587,27 +568,17 @@ class SelectSet():
         elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
-        
-        # TODO: create button events here
-        Logger.Log('SelectSet ControlObject:', Control)
-    
-class VariableRadioSet():
+class VariableRadioSet(ControlMixIn, object):
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['Button', 'ExButton']],
                  PopupCallback: Callable,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
-        
+        ControlMixIn.__init__(self)
         self.__Name = Name
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__PopupCallback = PopupCallback
         self.__PopupGroups = PopupGroups
-        self.__Control = None
         
         self.Group = None
         
@@ -640,16 +611,7 @@ class VariableRadioSet():
     
     @PopupName.setter
     def PopupName(self, val) -> None:
-        raise AttributeError('Overriding the PopupName property is disallowed')
-    
-    @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
-    
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
-    
+        raise AttributeError('Overriding the PopupName property is disallowed')    
     
     def Append(self, obj: Union['Button', 'ExButton'] = None) -> None:
         if obj is not None:
@@ -702,41 +664,8 @@ class VariableRadioSet():
                     self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(pug['Suffix'])))
         else:
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        self.__Control = Control
         
-        Logger.Log('Assigning Control Event', self, Control)
-        
-        # @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-        # def ButtonHandler(source: 'ExButton', event: str):
-        #     Logger.Log('Button Event', source, event)
-        #     initialState = source.State
-            
-        #     if event is 'Pressed':
-        #         if self.Control.PressStateShift:
-        #             source.SetState(self.Control.States.Shift)
-                
-        #     elif event is 'Released':
-        #         if not source.HasHold():
-        #             self.Control.Functions.Primary(source, event)
-        #             self.SetCurrent(source)
-        #         else:
-        #             self.Control.Functions.Hold(source, event)
-        #             if self.Control.HoldLatching:
-        #                 source.SetState(self.Control.States.HoldActive)
-        #             else:
-        #                 source.SetState(initialState)
-        #     elif event is 'Held':
-        #         if hasattr(self.Control.States, 'HoldShift'):
-        #             source.SetState(self.Control.States.HoldShift)
-        #     elif event is 'Repeated':
-        #         self.Control.Functions.Repeat(source, event)
-        #     elif event is 'Tapped':
-        #         self.Control.Functions.Primary(source, event)
-        #         self.SetCurrent(source)
-        
-class ScrollingRadioSet():
+class ScrollingRadioSet(ControlMixIn, object):
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['Button', 'ExButton']], 
@@ -745,6 +674,7 @@ class ScrollingRadioSet():
                  NextBtn: Union['Button', 'ExButton'], 
                  PopupCallback: Callable,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
+        ControlMixIn.__init__(self)
         self.__Name = Name
         self.__Offset = 0
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
@@ -876,17 +806,8 @@ class ScrollingRadioSet():
                     self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(pug['Suffix'])))
         else:
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
         
-        # TODO: create button events here
-        Logger.Log('ScrollingRadioSet ControlObject:', Control)
-        
-class VolumeControlGroup():
+class VolumeControlGroup(ControlMixIn, object):
     def __init__(self,
                  Name: str,
                  VolUp: Union['Button', 'ExButton'],
@@ -897,7 +818,7 @@ class VolumeControlGroup():
                  DisplayName: str=None,
                  Range: Tuple[int, int, int]=(0, 100, 1)
                  ) -> None:
-        
+        ControlMixIn.__init__(self)
         self.__Name = Name
         
         self.Group = None
@@ -951,17 +872,8 @@ class VolumeControlGroup():
     @Name.setter
     def Name(self, val) -> None:
         raise AttributeError('Overriding the Name property is disallowed')
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
         
-        # TODO: create button events here
-        Logger.Log('VolumeControlGroup ControlObject:', Control)
-        
-class HeaderControlGroup():
+class HeaderControlGroup(ControlMixIn, object):
     def __init__(self, 
                  Name, 
                  RoomButton: Union['Button', 'ExButton'],
@@ -971,8 +883,9 @@ class HeaderControlGroup():
                  CameraButton: Union['Button', 'ExButton'],
                  AlertButton: Union['Button', 'ExButton'],
                  CloseButton: Union['Button', 'ExButton']) -> None:
+        ControlMixIn.__init__(self)
+        
         self.__Name = Name
-        self.__Control = None
         
         self.Group = None
         
@@ -1021,14 +934,6 @@ class HeaderControlGroup():
     def Objects(self, val) -> None:
         raise AttributeError('Overriding the Objects property is disallowed')
     
-    @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
-    
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
-    
     def __AudioSuffixCallback(self) -> str:
         return str(len(System.CONTROLLER.Devices.Microphones))
     
@@ -1040,41 +945,6 @@ class HeaderControlGroup():
     
     def SetStates(self, obj: Union[List[Union[int, str, 'Button', 'ExButton']], int, str, 'Button', 'ExButton'], offState: int, onState: int) -> None:
         Logger.Log('Attempting to set states of Header Control Group')
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        self.__Control = Control
-        
-        Logger.Log('Assigning Control Event', self, Control)
-        
-        # @eventEx(self.Objects, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-        # def ButtonHandler(source: 'ExButton', event: str):
-        #     Logger.Log('Button Event (HeaderControlGroup)', source, event)
-            
-        #     if event is 'Pressed':
-        #         source.SetInitialPressState()
-        #         if self.Control.PressStateShift:
-        #             source.SetState(self.Control.States.Shift)
-                
-        #     elif event is 'Released':
-        #         if not source.HasHold():
-        #             self.Control.Functions.Primary(source, event)
-        #             source.SetState(self.Control.States.Inactive)
-        #         else:
-        #             self.Control.Functions.Hold(source, event)
-        #             if self.Control.HoldLatching:
-        #                 source.SetState(self.Control.States.HoldActive)
-        #             else:
-        #                 source.SetState(source.GetInitialPressState())
-        #         source.ClearInitialPressState()
-        #     elif event is 'Held':
-        #         if hasattr(self.Control.States, 'HoldShift'):
-        #             source.SetState(self.Control.States.HoldShift)
-        #     elif event is 'Repeated':
-        #         self.Control.Functions.Repeat(source, event)
-        #     elif event is 'Tapped':
-        #         self.Control.Functions.Primary(source, event)
-        #         source.SetState(self.Control.States.Inactive)
-        #         source.ClearInitialPressState()
 
 ## End Class Definitions -------------------------------------------------------
 ##
