@@ -32,6 +32,8 @@ from extronlib.system import MESet
 import System
 from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
 from modules.helper.CommonUtilities import Logger
+from modules.helper.ModuleSupport import eventEx
+from Constants import SystemState
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -594,25 +596,39 @@ class HeaderControlGroup(ControlMixIn, object):
         self.__RoomButton = RoomButton
         setattr(self.__RoomButton, 'HeaderAction', 'Room')
         self.__RoomButton.SetEnable(False)
+        
         self.__HelpButton = HelpButton
         setattr(self.__HelpButton, 'HeaderAction', 'Help')
+        
         self.__AudioButton = AudioButton
         setattr(self.__AudioButton, 'HeaderAction', 'Audio')
         setattr(self.__AudioButton, 'PopoverSuffix', self.__AudioSuffixCallback)
+        
         self.__LightsButton = LightsButton
         setattr(self.__LightsButton, 'HeaderAction', 'Lights')
         setattr(self.__LightsButton, 'PopoverSuffix', self.__LightsSuffixCallback)
+        
         self.__CameraButton = CameraButton
         setattr(self.__CameraButton, 'HeaderAction', 'Camera')
         setattr(self.__CameraButton, 'PopoverSuffix', self.__CameraSuffixCallback)
+        self.__CameraButton.SetVisible(False)
+        
         self.__AlertButton = AlertButton
         setattr(self.__AlertButton, 'HeaderAction', 'Alert')
         self.__AlertButton.SetVisible(False)
+        
         self.__CloseButton = CloseButton
         setattr(self.__CloseButton, 'HeaderAction', 'Close')
         
         for btn in self.Objects:
             btn.Group = self
+            
+        @eventEx(System.CONTROLLER.SystemStateWatch, 'Changed')
+        def SystemStateHandler(source, State: SystemState):
+            if State is SystemState.Active:
+                self.__CameraButton.SetVisible(True)
+            elif State is SystemState.Standby:
+                self.__CameraButton.SetVisible(False)
         
     @property
     def Name(self) -> str:
