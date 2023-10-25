@@ -26,15 +26,13 @@ if TYPE_CHECKING: # pragma: no cover
 import json
 
 #### Extron Library Imports
-from extronlib import event
 from extronlib.system import File
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
 from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
+import modules.helper.ExtendedUIClasses.UISets
 from modules.helper.PrimitiveObjects import ControlObject
-# import modules.helper.Collections 
-# UIObjectCollection = modules.helper.Collections.UIObjectCollection
 from modules.helper.Collections import UIObjectCollection, ControlGroupCollection
 import modules.project.callbacks.RefCallbacks
 import modules.project.callbacks.PopupCallbacks
@@ -390,7 +388,7 @@ class TouchPanelObjects():
         ## create MESets and build self.ButtonGroups
         for group in jsonObj['buttonGroups']:
             kwargs = {"Name": group['Name']}
-            CollectionModule = modules.helper.Collections
+            CollectionModule = modules.helper.ExtendedUIClasses.UISets
             Constructor = getattr(CollectionModule, group['Class'])
             
             ## reset btnList and populate it from the jsonObj

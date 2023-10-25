@@ -34,7 +34,7 @@ from extronlib.system import Wait
 #### Project imports
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from modules.helper.ModuleSupport import eventEx
-from modules.helper.PrimitiveObjects import ControlMixIn, EventMixIn
+from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn
 
 
 ## End Imports -----------------------------------------------------------------
@@ -66,21 +66,6 @@ class RefButton(ControlMixIn, Button):
             return self.Name
         else:
             return self.__RefName
-        
-    # @property
-    # def Indicator(self) -> 'ExButton':
-    #     if hasattr(self, '__indicator'):
-    #         try:
-    #             return self.UIHost.Interface.Objects.Buttons[self.__indicator]
-    #         except LookupError:
-    #             Logger.Log('No button found for indicator name: {}'.format(self.__indicator))
-    #             return None
-    #     else:
-    #         return None
-        
-    # @Indicator.setter
-    # def Indicator(self, val) -> None:
-    #     raise AttributeError('Overriding Indicator property is disallowed.')
     
     def __repr__(self) -> str:
         return "{} ({})".format(self.Name, self.Id)
@@ -131,14 +116,13 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
-        self.Group = None
         self.Initialized = False
+        
         self.__InitialState = None
         self.__HoldTime = holdTime
         self.__RepeatTime = repeatTime
         self.__Indicator = None
-        self.__GroupList = None
-        self.__ControlList = None
+        
         self.__StateDict = {
             "Inactive": None,
             "Shift": None,
@@ -216,10 +200,8 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         # Logger.Log(self, 'Clear Initial State')
     
     def Initialize(self) -> None:
-        self.__InitGroupList()
-        self.__InitControlList()
-        
-        Logger.Log(self.Name, [grp.Name for grp in self.GroupList])
+        ControlMixIn.Initialize(self)
+        EventMixIn.Initialize(self)
         
         self.__InitControlState()
         self.__InitControlShift()
@@ -236,39 +218,6 @@ class ExButton(EventMixIn, ControlMixIn, Button):
                 Logger.Log('No button found for indicator name: {}'.format(self.indicatorName))
         
         self.Initialized = True
-    
-    @property
-    def GroupList(self) -> List[Union['ExButton', 'RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet', 'VolumeControlGroup', 'HeaderControlGroup']]:
-        if self.__GroupList is None:
-            self.__InitGroupList()
-        
-        return self.__GroupList
-    
-    @GroupList.setter
-    def GroupList(self, val) -> None:
-        raise AttributeError('Setting GroupList property is disallowed')
-    
-    @property
-    def ControlList(self) -> List['ControlObject']:
-        if self.__ControlList is None:
-            self.__InitControlList()
-            
-        return self.__ControlList
-    
-    def __InitGroupList(self) -> None:
-        groupList = []
-        continueUp = True
-        obj = self
-        while continueUp:
-            groupList.insert(0, obj)
-            if obj.Group is not None:
-                obj = obj.Group
-            else:
-                continueUp = False
-        self.__GroupList = groupList
-        
-    def __InitControlList(self) -> None:
-        self.__ControlList = [obj for obj in self.GroupList if obj.Control is not None]
     
     def __InitControlState(self) -> None:
         for state in self.__StateDict:
@@ -331,18 +280,18 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         
         return self.__FunctDict[Mode]
     
-
-class ExLabel(ControlMixIn, Label):
+class ExLabel(Label):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'ExUIDevice', 'ProcessorDevice', 'ExProcessorDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Label.__init__(self, UIHost, ID_Name)
-        ControlMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
+        
+        # Add group property without adding ControlMixIn to class (Label is not controllable)
         self.Group = None
         
         for kw, val in kwargs.items():
@@ -360,7 +309,7 @@ class ExLabel(ControlMixIn, Label):
         self.Text = text
         super().SetText(text)
 
-class ExLevel(ControlMixIn, Level):
+class ExLevel(Level):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
@@ -370,6 +319,8 @@ class ExLevel(ControlMixIn, Level):
         
         self.UIHost = UIHost
         self.Id = self.ID
+        
+        # Add group property without adding ControlMixIn to class (Level is not controllable)
         self.Group = None
         
         for kw, val in kwargs.items():
@@ -399,7 +350,6 @@ class ExSlider(ControlMixIn, Slider):
         
         self.UIHost = UIHost
         self.Id = self.ID
-        self.Group = None
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -423,10 +373,10 @@ class ExKnob(ControlMixIn, Knob):
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice'],
                  **kwargs) -> None:
         Knob.__init__(self, UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
+        ControlMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
-        self.Group = None
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)

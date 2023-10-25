@@ -32,7 +32,6 @@ import importlib.util
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
-from modules.helper.ModuleSupport import eventEx
 import control.AV
 
 ## End Imports -----------------------------------------------------------------
@@ -221,124 +220,6 @@ class ControlObject():
 class FeedbackObject():
     def __init__(self) -> None:
         pass
-
-class ControlMixIn():
-    def __init__(self) -> None:
-        self.__Control = None
-        
-    @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
-    
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
-        else:
-            raise TypeError('Control must be a ControlObject')
-        
-        Logger.Log('RadioSet ControlObject:', Control)
-        
-class EventMixIn():
-    def __init__(self) -> None:
-        if type(self).__name__ == "ExButton":
-            @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
-            def ExButtonHandler(source, event) -> None:
-                self.__ExButtonHandler(source, event)
-        elif type(self).__name__ == "ExSlider":
-            Logger.Log('Slider event def goes here')
-                
-    def __ExButtonHandler(self, source: 'ExButton', event: str) -> None:
-        Logger.Log('ExButton Event', source, event)
-        if event is 'Pressed':
-            # Capture initial press state
-            source.SetInitialPressState()
-            
-            # Change state to Shift state
-            if source.GetControlShift('Press'):
-                source.SetState(source.GetControlState('Shift'))
-            
-        elif event is 'Released':
-            # Released no Hold
-            if not source.HasHold():
-                # Do primary functionality
-                for fn in source.GetControlFunctionList('Primary'):
-                    fn(source, event)
-                
-                # Determine after release state
-                ## Control is latching (active after release)
-                if source.GetControlLatching('Latching'):
-                    # Change state to Active state
-                    if source.Group is not None:
-                        if hasattr(source.Group, 'SetCurrent'):
-                            source.Group.SetCurrent(source)
-                        elif hasattr(source.Group, 'SetCurrentButton'):
-                            source.Group.SetCurrentButton(source)
-                        elif hasattr(source.Group, 'SetActive'):
-                            source.Group.SetActive(source)
-                    source.SetState(source.GetControlState('Active'))
-                ## Control is non-latching (inactive after release)
-                else:
-                    # Change state to Inactive state
-                    source.SetState(source.GetControlState('Inactive'))
-                    
-            # Relased after hold
-            else:
-                # Do Hold functionality
-                for fn in source.GetControlFunctionList('Hold'):
-                    fn(source, event)
-                
-                # Determine after release state
-                ## Control is hold latching (HoldActive after release)
-                if source.GetControlLatching('HoldLatching'):
-                    # Change to HoldActive state
-                    source.SetState(source.GetControlState('HoldActive'))
-                else:
-                    # Return to initial press state
-                    source.SetState(source.GetInitialPressState())
-                    
-            # Clear initial press state
-            source.ClearInitialPressState()
-            
-        elif event is 'Held':
-            source.UIHost.Click()
-            # Determine if state change is needed
-            source.SetState(source.GetControlState('HoldShift'))
-                
-        elif event is 'Repeated':
-            # Do Repeat functionality
-            for fn in source.GetControlFunctionList('Repeat'):
-                fn(source, event)
-            
-        elif event is 'Tapped':
-            source.Control.Functions.Primary(source, event)
-            
-            # Do primary functionality
-            for fn in source.GetControlFunctionList('Primary'):
-                fn(source, event)
-            
-            # Determine after release state
-            ## Control is latching (active after release)
-            if source.GetControlLatching('Latching'):
-                # Change state to Active state
-                if source.Group is not None:
-                    if hasattr(source.Group, 'SetCurrent'):
-                        source.Group.SetCurrent(source)
-                    elif hasattr(source.Group, 'SetCurrentButton'):
-                        source.Group.SetCurrentButton(source)
-                    elif hasattr(source.Group, 'SetActive'):
-                        source.Group.SetActive(source)
-                source.SetState(source.GetControlState('Active'))
-            ## Control is non-latching (inactive after release)
-            else:
-                # Change state to Inactive state
-                source.SetState(source.GetControlState('Inactive'))
-            
-            # Clear initial press state
-            source.ClearInitialPressState()
 
 ## End Class Definitions -------------------------------------------------------
 ##

@@ -88,6 +88,7 @@ class PollingController:
         self.__PollingState = 'stopped'
         
         self.__InactivePolling = Timer(1, self.__InactivePollingHandler)
+        self.__InactivePolling.Stop()
         self.__ActivePolling = Timer(1, self.__ActivePollingHandler)
         self.__ActivePolling.Stop()
     
