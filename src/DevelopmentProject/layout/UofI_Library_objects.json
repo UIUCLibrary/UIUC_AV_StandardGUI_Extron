@@ -489,61 +489,71 @@
       "Name": "PIN-0",
       "ID": 9000,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 0
     },
     {
       "Name": "PIN-1",
       "ID": 9001,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 1
     },
     {
       "Name": "PIN-2",
       "ID": 9002,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 2
     },
     {
       "Name": "PIN-3",
       "ID": 9003,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 3
     },
     {
       "Name": "PIN-4",
       "ID": 9004,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 4
     },
     {
       "Name": "PIN-5",
       "ID": 9005,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 5
     },
     {
       "Name": "PIN-6",
       "ID": 9006,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 6
     },
     {
       "Name": "PIN-7",
       "ID": 9007,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 7
     },
     {
       "Name": "PIN-8",
       "ID": 9008,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 8
     },
     {
       "Name": "PIN-9",
       "ID": 9009,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "pinValue": 9
     },
     {
       "Name": "PIN-Cancel",
@@ -2656,6 +2666,26 @@
         "CameraButton": "Header-Camera",
         "AlertButton": "Header-Alert",
         "CloseButton": "Popover-Close"
+      }
+    },
+    {
+      "Name": "PIN-Countrol-Group",
+      "Class": "PINPadControlGroup",
+      "Buttons": [
+        "PIN-0",
+        "PIN-1",
+        "PIN-2",
+        "PIN-3",
+        "PIN-4",
+        "PIN-5",
+        "PIN-6",
+        "PIN-7",
+        "PIN-8",
+        "PIN-9"
+      ],
+      "Controls": {
+        "BackspaceButton": "PIN-Del",
+        "CancelButton": "PIN-Cancel"
       }
     }
   ],

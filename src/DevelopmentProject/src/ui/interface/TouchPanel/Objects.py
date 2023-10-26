@@ -385,6 +385,7 @@ class TouchPanelObjects():
         elif jsonObj == {} and jsonPath == "":
             raise ValueError('Either jsonObj or jsonPath must be specified')
 
+        subGroups = []
         ## create MESets and build self.ButtonGroups
         for group in jsonObj['buttonGroups']:
             kwargs = {"Name": group['Name']}
@@ -417,6 +418,12 @@ class TouchPanelObjects():
                 kwargs['RefObjects'] = refs
 
             self.ControlGroups[group['Name']] = Constructor(**kwargs)
+            
+            # Get SubGroups created by ControlGroups
+            subGroups.extend(self.ControlGroups[group['Name']].GetSubGroups())
+            
+        for sg in subGroups:
+            self.ControlGroups[sg.Name] = sg
             
     def LoadControls(self, 
                      jsonObj: Dict = {},

@@ -82,6 +82,7 @@ class TouchPanelInterface():
         
         ## Load Controls
         self.Objects.LoadControlGroups(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        # Logger.Log(self.Objects.ControlGroups)
         self.Objects.LoadControls(jsonObj=self.__ControlDict)
 
         self.Transition.Label = self.Objects.Labels['PowerTransLabel-State']
@@ -98,9 +99,6 @@ class TouchPanelInterface():
             self.Device.ShowPopup('Power-Transition')
             self.Device.ShowPage('Main')
         elif state is SystemState.Standby:
-            # self.__ActivityBtns['select'][index].SetCurrent(0)
-            # self.__ActivityBtns['indicator'][index].SetCurrent(0)
-            
             self.Device.ShowPopup('Power-Transition')
             self.Device.HidePopup('Shutdown-Confirmation')
             self.Device.ShowPage('Start')

@@ -6,7 +6,7 @@
         "FuncModule": "ui.interface.TouchPanel"
     },
     {
-        "ControlCollection": "Activity-Select",
+        "ControlCollection": "Activity-Select-Objects",
         "PrimaryFunc": "ActivitySelect",
         "PressShift": true,
         "Latching": true,
@@ -31,5 +31,26 @@
         "ControlObject": "Tech-Menu-Exit",
         "PrimaryFunc": "CloseTechPages",
         "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlCollection": "PIN-Countrol-Group-Objects",
+        "PrimaryFunc": "PINPadHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.PinPad"
+    },
+    {
+        "ControlObject": "PIN-Del",
+        "PrimaryFunc": "PINBackspaceHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.PinPad"
+    },
+    {
+        "ControlObject": "PIN-Cancel",
+        "PrimaryFunc": "PINCancelHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.PinPad"
     }
 ]

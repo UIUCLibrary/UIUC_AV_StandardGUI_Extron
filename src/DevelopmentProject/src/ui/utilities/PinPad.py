@@ -44,60 +44,46 @@ class PINController:
         
         # Private Properties
         self.__CurrentPIN = ""
-        self.__PINPadBtns = \
-            {
-                "numPad": DictValueSearchByKey(self.UIHost.Interface.Objects.Buttons, r'PIN-\d', regex=True),
-                "backspace": self.UIHost.Interface.Objects.Buttons['PIN-Del'],
-                "cancel": self.UIHost.Interface.Objects.Buttons['PIN-Cancel']
-            }
+        # self.__PINPadBtns = \
+        #     {
+        #         "numPad": DictValueSearchByKey(self.UIHost.Interface.Objects.Buttons, r'PIN-\d', regex=True),
+        #         "backspace": self.UIHost.Interface.Objects.Buttons['PIN-Del'],
+        #         "cancel": self.UIHost.Interface.Objects.Buttons['PIN-Cancel']
+        #     }
         self.__PINLbl = self.UIHost.Interface.Objects.Labels['PIN-Label']
 
-        @eventEx(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
-        def UpdatePINHandler(button: 'ExButton', action: str):
-            self.__UpdatePINHandler(button, action)
+        # @eventEx(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
+        # def UpdatePINHandler(button: 'ExButton', action: str):
+        #     self.__UpdatePINHandler(button, action)
         
-        @eventEx(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
-        def BackspacePINHandler(button: 'ExButton', action: str):
-            self.__BackspacePINHandler(button, action)
+        # @eventEx(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
+        # def BackspacePINHandler(button: 'ExButton', action: str):
+        #     self.__BackspacePINHandler(button, action)
 
-        @eventEx(self.__PINPadBtns['cancel'], ['Pressed','Released']) # pragma: no cover
-        def CancelBtnHandler(button: 'ExButton', action: str):
-            self.__CancelBtnHandler(button, action)
+        # @eventEx(self.__PINPadBtns['cancel'], ['Pressed','Released']) # pragma: no cover
+        # def CancelBtnHandler(button: 'ExButton', action: str):
+        #     self.__CancelBtnHandler(button, action)
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    def __UpdatePINHandler(self, button: 'ExButton', action: str):
-        if action == 'Pressed':
-            button.SetState(1)
-        elif action == 'Released':
-            val = button.ID - 9000
-                # pin button IDs should start at 9000 and be in numerical order
-            self.__CurrentPIN = self.__CurrentPIN + str(val)
-            self.__MaskPIN() #remask pin after change
-            if (self.__CurrentPIN == self.PIN):
-                self.UIHost.ShowPopup("PIN Outcome Success", 2)
-                # clean up and go to destination page while success popup is up
-                self.Close(success=True)
-            elif (len(self.__CurrentPIN) >= 10):
-                self.UIHost.ShowPopup("PIN Outcome Failure", 2)
-                # clean up and go back to pin page while failure popup is up
-                self.ResetPIN()
-            button.SetState(0)
+    def UpdatePINHandler(self, value: int):
+        self.__CurrentPIN = self.__CurrentPIN + str(value)
+        self.__MaskPIN() #remask pin after change
+        if (self.__CurrentPIN == self.PIN):
+            self.UIHost.ShowPopup("PIN Outcome Success", 2)
+            # clean up and go to destination page while success popup is up
+            self.Close(success=True)
+        elif (len(self.__CurrentPIN) >= 10):
+            self.UIHost.ShowPopup("PIN Outcome Failure", 2)
+            # clean up and go back to pin page while failure popup is up
+            self.ResetPIN()
     
-    def __BackspacePINHandler(self, button: 'ExButton', action: str):
-        if action == 'Pressed':
-            button.SetState(1)
-        elif action == 'Released':
-            self.__CurrentPIN = self.__CurrentPIN[:-1] # remove last character of current pin
-            self.__MaskPIN()  # remask pin after change
-            button.SetState(0)
+    def BackspacePINHandler(self):
+        self.__CurrentPIN = self.__CurrentPIN[:-1] # remove last character of current pin
+        self.__MaskPIN()  # remask pin after change
     
-    def __CancelBtnHandler(self, button: 'ExButton', action: str):
-        if action == 'Pressed':
-            button.SetState(1)
-        elif action == 'Released':
-            self.Close()
-            button.SetState(0)
+    def CancelBtnHandler(self):
+        self.Close()
     
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -147,6 +133,18 @@ class PINController:
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+
+def PINPadHandler(source: 'ExButton', event: str) -> None:
+    PINCtl = source.UIHost.PINAccess
+    PINCtl.UpdatePINHandler(source.pinValue)
+            
+def PINBackspaceHandler(source: 'ExButton', event: str) -> None:
+    PINCtl = source.UIHost.PINAccess
+    PINCtl.BackspacePINHandler()
+
+def PINCancelHandler(source: 'ExButton', event: str) -> None:
+    PINCtl = source.UIHost.PINAccess
+    PINCtl.CancelBtnHandler()
 
 ## End Function Definitions ----------------------------------------------------
 

@@ -57,7 +57,7 @@ class ControlMixIn():
         else:
             raise TypeError('Control must be a ControlObject')
         
-        Logger.Log('RadioSet ControlObject:', Control)
+        Logger.Log('{} ControlObject:'.format(type(self).__name__), Control)
         
     @property
     def GroupList(self) -> List[Union['ExButton', 'RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet', 'VolumeControlGroup', 'HeaderControlGroup']]:

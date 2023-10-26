@@ -33,7 +33,7 @@ from extronlib.system import Wait
 from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.ButtonPanel import ButtonPanelInterface
-from ui.utilties.PinPad import PINController
+from ui.utilities.PinPad import PINController
 from modules.helper.PrimitiveObjects import Alias, classproperty, DictObj
 import System
 
@@ -95,7 +95,10 @@ class ExUIDevice(UIDevice):
         self.Id = DeviceAlias
         self.Name = Name
         self.WebControlId = WebControlId
+        self.PINAccess = None
+        
         self.Initialized = False
+        
         if type(UI) is str:
             self.UI = UI
         else:

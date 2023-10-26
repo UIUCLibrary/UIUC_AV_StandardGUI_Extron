@@ -39,23 +39,9 @@ from Constants import SystemState
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-
-class RadioSet(ControlMixIn, MESet):
-    def __init__(self, 
-                 Name: str,
-                 Objects: List[Union['ExButton', 'RefButton']]) -> None:
-        MESet.__init__(self, Objects)
-        ControlMixIn.__init__(self)
-        
+class UISetMixin(object):
+    def __init__(self, Name: str) -> None:
         self.__Name = Name
-        self.Group = None
-        
-        for btn in self.Objects:
-            btn.Group = self
-    
-    def __repr__(self) -> str:
-        sep = ', '
-        return "RadioSet (Current: {}) [{}]".format(self.GetCurrent(), sep.join([str(val) for val in self.Objects]))
     
     @property
     def Name(self) -> str:
@@ -64,6 +50,32 @@ class RadioSet(ControlMixIn, MESet):
     @Name.setter
     def Name(self, val) -> None:
         raise AttributeError('Overriding the Name property is disallowed')
+    
+    def GetSubGroups(self) -> List:
+        module = type(self).__name__
+        groupNameList = ['BtnSet', 'RefSet']
+        rtnList = []
+        
+        for grpName in groupNameList:
+            if hasattr(self, '_{}__{}'.format(module, grpName)):
+                rtnList.append(getattr(self, '_{}__{}'.format(module, grpName)))
+        
+        return rtnList
+
+class RadioSet(ControlMixIn, UISetMixin, MESet):
+    def __init__(self, 
+                 Name: str,
+                 Objects: List[Union['ExButton', 'RefButton']]) -> None:
+        MESet.__init__(self, Objects)
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        for btn in self.Objects:
+            btn.Group = self
+    
+    def __repr__(self) -> str:
+        sep = ', '
+        return "RadioSet {} (Current: {}) [{}]".format(self.Name, self.GetCurrent(), sep.join([str(val) for val in self.Objects]))
     
     @property
     def Objects(self) -> List[Union['ExButton', 'RefButton']]:
@@ -141,16 +153,15 @@ class RadioSet(ControlMixIn, MESet):
         elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
-class SelectSet(ControlMixIn, object):
+class SelectSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
                  Objects: List[Union['ExButton', 'RefButton']]) -> None:
         ControlMixIn.__init__(self)
-        self.__Name = Name
+        UISetMixin.__init__(self, Name)
+        
         self.__StateList = []
         self.__Objects = Objects
-        
-        self.Group = None
         
         for btn in self.__Objects:
             self.__StateList.append({"onState": 0, "offState": 1})
@@ -158,15 +169,7 @@ class SelectSet(ControlMixIn, object):
     
     def __repr__(self) -> str:
         sep = ', '
-        return "SelectSet (Current: [{}]) [{}]".format(sep.join([str(val) for val in self.GetActive()]), sep.join([str(val) for val in self.Objects]))
-    
-    @property
-    def Name(self) -> str:
-        return self.__Name
-    
-    @Name.setter
-    def Name(self, val) -> None:
-        raise AttributeError('Overriding the Name property is disallowed')
+        return "SelectSet {} (Current: [{}]) [{}]".format(self.Name, sep.join([str(val) for val in self.GetActive()]), sep.join([str(val) for val in self.Objects]))
     
     @property
     def Objects(self) -> List[Union['ExButton', 'RefButton']]:
@@ -273,34 +276,24 @@ class SelectSet(ControlMixIn, object):
         elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
-class VariableRadioSet(ControlMixIn, object):
+class VariableRadioSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
                  Objects: List['ExButton'],
                  PopupCallback: Callable,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
         ControlMixIn.__init__(self)
-        self.__Name = Name
+        UISetMixin.__init__(self, Name)
+        
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__PopupCallback = PopupCallback
         self.__PopupGroups = PopupGroups
         
-        self.Group = None
-        
-        for btn in self.Objects:
-            btn.Group = self
+        self.__BtnSet.Group = self
     
     def __repr__(self) -> str:
         sep = ', '
-        return "VariableRadioSet (Current: {}, Popup: {}) [{}]".format(self.GetCurrent(), self.PopupName, sep.join([str(val) for val in self.Objects]))
-    
-    @property
-    def Name(self) -> str:
-        return self.__Name
-    
-    @Name.setter
-    def Name(self, val) -> None:
-        raise AttributeError('Overriding the Name property is disallowed')
+        return "VariableRadioSet {} (Current: {}, Popup: {}) [{}]".format(self.Name, self.GetCurrent(), self.PopupName, sep.join([str(val) for val in self.Objects]))
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -369,7 +362,7 @@ class VariableRadioSet(ControlMixIn, object):
         else:
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
         
-class ScrollingRadioSet(ControlMixIn, object):
+class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
                  Objects: List['ExButton'], 
@@ -379,7 +372,8 @@ class ScrollingRadioSet(ControlMixIn, object):
                  PopupCallback: Callable,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
         ControlMixIn.__init__(self)
-        self.__Name = Name
+        UISetMixin.__init__(self, Name)
+        
         self.__Offset = 0
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__BtnSet.Group = self
@@ -393,25 +387,12 @@ class ScrollingRadioSet(ControlMixIn, object):
         self.__PopupCallback = PopupCallback
         self.__PopupGroups = PopupGroups
         
-        self.Group = None
-        
-        for btn in self.Objects:
-            btn.Group = self
-            
-        for ref in self.RefObjects:
-            ref.Group = self
+        self.__BtnSet.Group = self
+        self.__RefSet.Group = self
 
     def __repr__(self) -> str:
         sep = ', '
-        return "ScrollingRadioSet (Current: {}, Popup: {}) [{}]".format(self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
-    
-    @property
-    def Name(self) -> str:
-        return self.__Name
-    
-    @Name.setter
-    def Name(self, val) -> None:
-        raise AttributeError('Overriding the Name property is disallowed')
+        return "ScrollingRadioSet {} (Current: {}, Popup: {}) [{}]".format(self.Name, self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -428,6 +409,17 @@ class ScrollingRadioSet(ControlMixIn, object):
     @RefObjects.setter
     def RefObjects(self, val) -> None:
         raise AttributeError('Overriding the RefObjects property is disallowed')
+    
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'Previous': self.__Prev,
+            'Next': self.__Next
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
     
     @property
     def Offset(self) -> int:
@@ -511,7 +503,7 @@ class ScrollingRadioSet(ControlMixIn, object):
         else:
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
         
-class VolumeControlGroup(ControlMixIn, object):
+class VolumeControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
                  VolUp: 'ExButton',
@@ -523,9 +515,7 @@ class VolumeControlGroup(ControlMixIn, object):
                  Range: Tuple[int, int, int]=(0, 100, 1)
                  ) -> None:
         ControlMixIn.__init__(self)
-        self.__Name = Name
-        
-        self.Group = None
+        UISetMixin.__init__(self, Name)
         
         if type(VolUp).__name__ in ['ExButton']:
             self.VolUpBtn = VolUp
@@ -568,16 +558,13 @@ class VolumeControlGroup(ControlMixIn, object):
                     raise TypeError("Range tuple may only consist of int values")
             self.__Range = Range
             self.FeedbackLvl.SetRange(*Range)
-        
-    @property
-    def Name(self) -> str:
-        return self.__Name
+            
+    def __repr__(self) -> str:
+        sep = ', '
+        return "VolumeControlSet {}".format(self.Name)
     
-    @Name.setter
-    def Name(self, val) -> None:
-        raise AttributeError('Overriding the Name property is disallowed')
         
-class HeaderControlGroup(ControlMixIn, object):
+class HeaderControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name, 
                  RoomButton: 'ExButton',
@@ -588,10 +575,7 @@ class HeaderControlGroup(ControlMixIn, object):
                  AlertButton: 'ExButton',
                  CloseButton: 'ExButton') -> None:
         ControlMixIn.__init__(self)
-        
-        self.__Name = Name
-        
-        self.Group = None
+        UISetMixin.__init__(self, Name)
         
         self.__RoomButton = RoomButton
         setattr(self.__RoomButton, 'HeaderAction', 'Room')
@@ -620,7 +604,7 @@ class HeaderControlGroup(ControlMixIn, object):
         self.__CloseButton = CloseButton
         setattr(self.__CloseButton, 'HeaderAction', 'Close')
         
-        for btn in self.Objects:
+        for btn in self.UIControls.values():
             btn.Group = self
             
         @eventEx(System.CONTROLLER.SystemStateWatch, 'Changed')
@@ -629,27 +613,25 @@ class HeaderControlGroup(ControlMixIn, object):
                 self.__CameraButton.SetVisible(True)
             elif State is SystemState.Standby:
                 self.__CameraButton.SetVisible(False)
-        
-    @property
-    def Name(self) -> str:
-        return self.__Name
     
-    @Name.setter
-    def Name(self, val) -> None:
-        raise AttributeError('Overriding the Name property is disallowed')
+    def __repr__(self) -> str:
+        sep = ', '
+        return "HeaderControlGroup {}".format(self.Name)
     
     @property
-    def Objects(self) -> List['ExButton']:
-        return [self.__RoomButton,
-                self.__HelpButton, 
-                self.__AudioButton, 
-                self.__LightsButton, 
-                self.__CameraButton, 
-                self.__AlertButton,
-                self.__CloseButton]
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'Room': self.__RoomButton,
+            'Help': self.__HelpButton, 
+            'Audio': self.__AudioButton, 
+            'Lights': self.__LightsButton, 
+            'Camera': self.__CameraButton, 
+            'Alert': self.__AlertButton,
+            'Close': self.__CloseButton
+        }
     
-    @Objects.setter
-    def Objects(self, val) -> None:
+    @UIControls.setter
+    def UIControls(self, val) -> None:
         raise AttributeError('Overriding the Objects property is disallowed')
     
     def __AudioSuffixCallback(self) -> str:
@@ -664,6 +646,44 @@ class HeaderControlGroup(ControlMixIn, object):
     def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
         Logger.Log('Attempting to set states of Header Control Group')
 
+class PINPadControlGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self, 
+                 Name: str, 
+                 Objects: List['ExButton'], 
+                 BackspaceButton: 'ExButton', 
+                 CancelButton: 'ExButton') -> None:
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__BtnSet = SelectSet('{}-Objects'.format(self.Name), Objects)
+        self.__BackspaceBtn = BackspaceButton
+        self.__CancelBtn = CancelButton
+        
+    def __repr__(self) -> str:
+        sep = ', '
+        return "PINPadControlGroup {}".format(self.Name)
+    
+    @property
+    def Objects(self) -> List['ExButton']:
+        return self.__BtnSet.Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'Backspace': self.__BackspaceBtn,
+            'Cancel': self.__CancelBtn
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
+        self.__BtnSet.SetStates(obj, offState, onState)
 
 ## End Class Definitions -------------------------------------------------------
 ##
