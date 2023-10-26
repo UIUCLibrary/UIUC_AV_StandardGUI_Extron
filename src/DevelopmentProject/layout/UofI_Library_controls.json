@@ -52,5 +52,75 @@
         "PressShift": true,
         "Latching": false,
         "FuncModule": "ui.utilities.PinPad"
+    },
+    {
+        "ControlCollection": "Keyboard-Control-Group",
+        "PrimaryFunc": "KeyboardCharHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-bs",
+        "PrimaryFunc": "RemoveCharHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-del",
+        "PrimaryFunc": "RemoveCharHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-cancel",
+        "PrimaryFunc": "CancelHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-save",
+        "PrimaryFunc": "SaveHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-caps",
+        "PrimaryFunc": "CapsLockHandler",
+        "PressShift": true,
+        "Latching": true,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-shift",
+        "PrimaryFunc": "RemoveCharHandler",
+        "PressShift": true,
+        "Latching": true,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-left",
+        "PrimaryFunc": "CursorHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-right",
+        "PrimaryFunc": "CursorHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "KB-space",
+        "PrimaryFunc": "SpaceHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.utilities.Keyboard"
     }
 ]

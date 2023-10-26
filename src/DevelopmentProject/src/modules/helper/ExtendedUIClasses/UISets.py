@@ -651,13 +651,15 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
                  Name: str, 
                  Objects: List['ExButton'], 
                  BackspaceButton: 'ExButton', 
-                 CancelButton: 'ExButton') -> None:
+                 CancelButton: 'ExButton',
+                 TextAreaLabel: 'ExLabel') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
         self.__BtnSet = SelectSet('{}-Objects'.format(self.Name), Objects)
         self.__BackspaceBtn = BackspaceButton
         self.__CancelBtn = CancelButton
+        self.__TextArea = TextAreaLabel
         
     def __repr__(self) -> str:
         sep = ', '
@@ -684,7 +686,76 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
     
     def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
         self.__BtnSet.SetStates(obj, offState, onState)
+        
+    def SetText(self, value: str) -> None:
+        self.__TextArea.SetText(value)
 
+class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self, 
+                 Name: str, 
+                 Objects: List['ExButton'], 
+                 BackspaceButton: 'ExButton', 
+                 DeleteButton: 'ExButton',
+                 CancelButton: 'ExButton',
+                 SaveButton: 'ExButton',
+                 CapsLockButton: 'ExButton',
+                 ShiftButton: 'ExButton',
+                 SpaceButton: 'ExButton',
+                 CursorLeftButton: 'ExButton',
+                 CursorRightButton: 'ExButton',
+                 TextAreaLabel: 'ExLabel') -> None:
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__BtnSet = SelectSet('{}-Objects'.format(self.Name), Objects)
+        self.__BackspaceBtn = BackspaceButton
+        self.__DeleteBtn = DeleteButton
+        self.__CancelBtn = CancelButton
+        self.__SaveBtn = SaveButton
+        self.__CapsLockBtn = CapsLockButton
+        self.__ShiftBtn = ShiftButton
+        self.__SpaceBtn = SpaceButton
+        self.__CursorLeftBtn = CursorLeftButton
+        self.__CursorRightBtn = CursorRightButton
+        
+        self.__TextArea = TextAreaLabel
+        
+    def __repr__(self) -> str:
+        sep = ', '
+        return "KeyboardControlGroup {}".format(self.Name)
+    
+    @property
+    def Objects(self) -> List['ExButton']:
+        return self.__BtnSet.Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'Backspace': self.__BackspaceBtn,
+            'Delete': self.__DeleteBtn,
+            'Cancel': self.__CancelBtn,
+            'Save': self.__SaveBtn,
+            'CapsLock': self.__CapsLockBtn,
+            'Shift': self.__ShiftBtn,
+            'Space': self.__SpaceBtn,
+            'CursorLeft': self.__CursorLeftBtn,
+            'CursorRight': self.__CursorRightBtn
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    def SetText(self, value: str) -> None:
+        self.__TextArea.SetText(value)
+        
+    def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
+        self.__BtnSet.SetStates(obj, offState, onState)
+        
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------

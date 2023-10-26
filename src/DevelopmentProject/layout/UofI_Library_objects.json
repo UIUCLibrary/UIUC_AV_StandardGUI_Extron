@@ -1743,295 +1743,391 @@
       "Name": "KB-tilda",
       "ID": 12701,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "`",
+      "uc_char": "~"
     },
     {
       "Name": "KB-1",
       "ID": 12702,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "1",
+      "uc_char": "!"
     },
     {
       "Name": "KB-2",
       "ID": 12703,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "2",
+      "uc_char": "@"
     },
     {
       "Name": "KB-3",
       "ID": 12704,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "3",
+      "uc_char": "#"
     },
     {
       "Name": "KB-4",
       "ID": 12705,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "4",
+      "uc_char": "$"
     },
     {
       "Name": "KB-5",
       "ID": 12706,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "5",
+      "uc_char": "%"
     },
     {
       "Name": "KB-6",
       "ID": 12707,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "6",
+      "uc_char": "^"
     },
     {
       "Name": "KB-7",
       "ID": 12708,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "7",
+      "uc_char": "&"
     },
     {
       "Name": "KB-8",
       "ID": 12709,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "8",
+      "uc_char": "*"
     },
     {
       "Name": "KB-9",
       "ID": 12710,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "9",
+      "uc_char": "("
     },
     {
       "Name": "KB-0",
       "ID": 12711,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "0",
+      "uc_char": ")"
     },
     {
       "Name": "KB-dash",
       "ID": 12712,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "-",
+      "uc_char": "_"
     },
     {
       "Name": "KB-equals",
       "ID": 12713,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "=",
+      "uc_char": "+"
     },
     {
       "Name": "KB-q",
       "ID": 12714,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "q",
+      "uc_char": "Q"
     },
     {
       "Name": "KB-w",
       "ID": 12715,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "w",
+      "uc_char": "W"
     },
     {
       "Name": "KB-e",
       "ID": 12716,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "e",
+      "uc_char": "E"
     },
     {
       "Name": "KB-r",
       "ID": 12717,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "r",
+      "uc_char": "R"
     },
     {
       "Name": "KB-t",
       "ID": 12718,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "t",
+      "uc_char": "T"
     },
     {
       "Name": "KB-y",
       "ID": 12719,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "y",
+      "uc_char": "Y"
     },
     {
       "Name": "KB-u",
       "ID": 12720,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "u",
+      "uc_char": "U"
     },
     {
       "Name": "KB-i",
       "ID": 12721,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "i",
+      "uc_char": "I"
     },
     {
       "Name": "KB-o",
       "ID": 12722,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "o",
+      "uc_char": "O"
     },
     {
       "Name": "KB-p",
       "ID": 12723,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "p",
+      "uc_char": "P"
     },
     {
       "Name": "KB-openBracket",
       "ID": 12724,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "[",
+      "uc_char": "{"
     },
     {
       "Name": "KB-closeBracket",
       "ID": 12725,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "]",
+      "uc_char": "}"
     },
     {
       "Name": "KB-backslash",
       "ID": 12726,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "\\",
+      "uc_char": "|"
     },
     {
       "Name": "KB-a",
       "ID": 12727,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "a",
+      "uc_char": "A"
     },
     {
       "Name": "KB-s",
       "ID": 12728,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "s",
+      "uc_char": "S"
     },
     {
       "Name": "KB-d",
       "ID": 12729,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "d",
+      "uc_char": "D"
     },
     {
       "Name": "KB-f",
       "ID": 12730,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "f",
+      "uc_char": "F"
     },
     {
       "Name": "KB-g",
       "ID": 12731,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "g",
+      "uc_char": "G"
     },
     {
       "Name": "KB-h",
       "ID": 12732,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "h",
+      "uc_char": "H"
     },
     {
       "Name": "KB-j",
       "ID": 12733,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "j",
+      "uc_char": "J"
     },
     {
       "Name": "KB-k",
       "ID": 12734,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "k",
+      "uc_char": "K"
     },
     {
       "Name": "KB-l",
       "ID": 12735,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "l",
+      "uc_char": "L"
     },
     {
       "Name": "KB-semicolon",
       "ID": 12736,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": ";",
+      "uc_char": ":"
     },
     {
       "Name": "KB-apostrophy",
       "ID": 12737,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "'",
+      "uc_char": "\""
     },
     {
       "Name": "KB-z",
       "ID": 12738,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "z",
+      "uc_char": "Z"
     },
     {
       "Name": "KB-x",
       "ID": 12739,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "x",
+      "uc_char": "X"
     },
     {
       "Name": "KB-c",
       "ID": 12740,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "c",
+      "uc_char": "C"
     },
     {
       "Name": "KB-v",
       "ID": 12741,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "v",
+      "uc_char": "V"
     },
     {
       "Name": "KB-b",
       "ID": 12742,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "b",
+      "uc_char": "B"
     },
     {
       "Name": "KB-n",
       "ID": 12743,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "n",
+      "uc_char": "N"
     },
     {
       "Name": "KB-m",
       "ID": 12744,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "m",
+      "uc_char": "M"
     },
     {
       "Name": "KB-comma",
       "ID": 12745,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": ",",
+      "uc_char": "<"
     },
     {
       "Name": "KB-period",
       "ID": 12746,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": ".",
+      "uc_char": ">"
     },
     {
       "Name": "KB-slash",
       "ID": 12747,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "lc_char": "/",
+      "uc_char": "?"
     },
     {
       "Name": "KB-del",
       "ID": 12748,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null, 
+      "remove": 1
     },
     {
       "Name": "KB-bs",
       "ID": 12749,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "remove": -1
     },
     {
       "Name": "KB-caps",
@@ -2055,13 +2151,15 @@
       "Name": "KB-left",
       "ID": 12753,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "shift": -1
     },
     {
       "Name": "KB-right",
       "ID": 12754,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "shift": 1
     },
     {
       "Name": "KB-save",
@@ -2686,6 +2784,33 @@
       "Controls": {
         "BackspaceButton": "PIN-Del",
         "CancelButton": "PIN-Cancel"
+      },
+      "Labels": {
+        "TextAreaLabel": "PIN-Label"
+      }
+    },
+    {
+      "Name": "Keyboard-Control-Group",
+      "Class": "KeyboardControlGroup",
+      "Buttons": [
+        "KB-tilda", "KB-1", "KB-2", "KB-3", "KB-4", "KB-5", "KB-6", "KB-7", "KB-8", "KB-9", "KB-0", "KB-dash", "KB-equals",
+        "KB-q", "KB-w", "KB-e", "KB-r", "KB-t", "KB-y", "KB-u", "KB-i", "KB-o", "KB-p", "KB-openBracket", "KB-closeBracket", "KB-backslash",
+        "KB-a", "KB-s", "KB-d", "KB-f", "KB-g", "KB-h", "KB-j", "KB-k", "KB-l", "KB-semicolon", "KB-apostrophy",
+        "KB-z", "KB-x", "KB-c", "KB-v", "KB-b", "KB-n", "KB-m", "KB-comma", "KB-period", "KB-slash"
+      ],
+      "Controls": {
+        "BackspaceButton": "KB-bs",
+        "DeleteButton": "KB-del",
+        "CancelButton": "KB-cancel",
+        "SaveButton": "KB-save",
+        "CapsLockButton": "KB-caps",
+        "ShiftButton": "KB-shift",
+        "CursorLeftButton": "KB-left",
+        "CursorRightButton": "KB-right",
+        "SpaceButton": "KB-space"
+      },
+      "Labels": {
+        "TextAreaLabel": "KB-Editor"
       }
     }
   ],

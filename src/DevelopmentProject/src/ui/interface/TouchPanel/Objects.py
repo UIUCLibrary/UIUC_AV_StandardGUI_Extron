@@ -410,7 +410,11 @@ class TouchPanelObjects():
             if 'Controls' in group.keys():
                 for key, val in group['Controls'].items():
                     kwargs[key] = self.Buttons[val]
-                    
+            
+            if 'Labels' in group.keys():
+                for key, val in group['Labels'].items():
+                    kwargs[key] = self.Labels[val]
+            
             if 'RefCallback' in group.keys():
                 RefCBModule = modules.project.callbacks.RefCallbacks
                 RefCB = getattr(RefCBModule, group['RefCallback'])

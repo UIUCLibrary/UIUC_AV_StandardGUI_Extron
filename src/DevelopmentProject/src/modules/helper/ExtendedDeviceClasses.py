@@ -34,6 +34,7 @@ from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsyn
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.utilities.PinPad import PINController
+from ui.utilities.Keyboard import KeyboardController
 from modules.helper.PrimitiveObjects import Alias, classproperty, DictObj
 import System
 
@@ -143,7 +144,8 @@ class ExUIDevice(UIDevice):
         
         ## initialize PIN Controllers
         if self.Class == 'TouchPanel':
-            self.PINAccess = PINController(self)
+            self.PINAccess = PINController(self, self.Interface.Objects.ControlGroups['PIN-Countrol-Group'])
+            self.Keyboard = KeyboardController(self, self.Interface.Objects.ControlGroups['Keyboard-Control-Group'])
         
         ## set Room Label to system Room Name
         RoomLabelBtn = self.Interface.Objects.Buttons['Room-Label']

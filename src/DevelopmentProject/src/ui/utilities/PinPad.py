@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice
     from modules.helper.ExtendedUIClasses import ExButton
+    from modules.helper.ExtendedUIClasses.UISets import PINPadControlGroup
 
 #### Python imports
 
@@ -36,7 +37,8 @@ from modules.helper.CommonUtilities import Logger, DictValueSearchByKey
 
 class PINController:
     def __init__(self,
-                 UIHost: 'ExUIDevice') -> None:
+                 UIHost: 'ExUIDevice',
+                 ControlGroup: 'PINPadControlGroup') -> None:
         # Public Properties
         self.UIHost = UIHost
         self.PIN = None
@@ -44,25 +46,7 @@ class PINController:
         
         # Private Properties
         self.__CurrentPIN = ""
-        # self.__PINPadBtns = \
-        #     {
-        #         "numPad": DictValueSearchByKey(self.UIHost.Interface.Objects.Buttons, r'PIN-\d', regex=True),
-        #         "backspace": self.UIHost.Interface.Objects.Buttons['PIN-Del'],
-        #         "cancel": self.UIHost.Interface.Objects.Buttons['PIN-Cancel']
-        #     }
-        self.__PINLbl = self.UIHost.Interface.Objects.Labels['PIN-Label']
-
-        # @eventEx(self.__PINPadBtns['numPad'], ['Pressed','Released']) # pragma: no cover
-        # def UpdatePINHandler(button: 'ExButton', action: str):
-        #     self.__UpdatePINHandler(button, action)
-        
-        # @eventEx(self.__PINPadBtns['backspace'], ['Pressed','Released']) # pragma: no cover
-        # def BackspacePINHandler(button: 'ExButton', action: str):
-        #     self.__BackspacePINHandler(button, action)
-
-        # @eventEx(self.__PINPadBtns['cancel'], ['Pressed','Released']) # pragma: no cover
-        # def CancelBtnHandler(button: 'ExButton', action: str):
-        #     self.__CancelBtnHandler(button, action)
+        self.__ControlGroup = ControlGroup
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -93,7 +77,7 @@ class PINController:
         mask = ""
         while (len(mask) < len(self.__CurrentPIN)):
             mask = mask + "*"
-        self.__PINLbl.SetText(mask)
+        self.__ControlGroup.SetText(mask)
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     

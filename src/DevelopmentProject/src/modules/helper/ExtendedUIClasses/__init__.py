@@ -145,11 +145,17 @@ class ExButton(EventMixIn, ControlMixIn, Button):
             "Repeat": None
         }
         
+        # Overload kwargs
         for kw, val in kwargs.items():
             if kw == 'Text':
+                # use class's method to set text
                 self.SetText(val)
             else:
                 setattr(self, kw, val)
+                
+        # sets char tuple if lc_char and uc_char attributes exist
+        if hasattr(self, 'lc_char') and hasattr(self, 'uc_char'):
+            setattr(self, "char", (self.lc_char, self.uc_char))
     
     @property
     def Indicator(self) -> 'ExButton':
