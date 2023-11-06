@@ -19,9 +19,10 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
-    pass
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice
 
 #### Python imports
+import json
 
 #### Extron Library Imports
 
@@ -29,6 +30,7 @@ if TYPE_CHECKING: # pragma: no cover
 from modules.helper.CommonUtilities import Logger
 import System
 import Variables
+import modules.project.callbacks.PopupCallbacks
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -38,16 +40,36 @@ import Variables
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def SourceSelectRefCallback() -> None:
+def SourceSelectRefCallback(UIHost: 'ExUIDevice') -> None:
     RefBtnList = []
     for src in System.CONTROLLER.Devices.Sources:
         srcDict = {
             "Name": "Source-Select-Ref-{}".format(src.Id),
+            "Text": src.Name,
             "icon": src.Source['icon'],
             "input": src.Source['input']
         }
         RefBtnList.append(srcDict)
     return RefBtnList
+
+def TechMenuRefCallback(UIHost: 'ExUIDevice') -> None:
+    RefBtnList = []
+    
+    for item in UIHost.Interface.TechPgDict:
+        menuItemDict = {
+            'Name': "Tech-Menu-Select-{}".format(item['Name']),
+            'Text': item['DisplayName'],
+        }
+        if item['Suffix'] is not None:
+            mod = modules.project.callbacks.PopupCallbacks
+            suffixCB = getattr(mod, item['Suffix'])
+            menuItemDict['page'] = "{}_{}".format(item['Page'], suffixCB())
+        else:
+            menuItemDict['page'] = item['Page']
+        RefBtnList.append(menuItemDict)
+    return RefBtnList
+
+
 
 ## End Function Definitions ----------------------------------------------------
 

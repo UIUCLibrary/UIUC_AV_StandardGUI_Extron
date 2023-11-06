@@ -38,13 +38,13 @@ import System
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def ActivitySelectPopupCallback(Objects: List) -> str:
+def ActivitySelectPopupCallback(UISet) -> str:
     actMax = max(System.CONTROLLER.ActivityModes)
     
     return "Menu-Activity-{}".format(actMax)
 
-def SourceSelectPopupCallback(Objects: List) -> str:
-    length = len(Objects)
+def SourceSelectPopupCallback(UISet) -> str:
+    length = len(UISet.RefObjects)
     
     if length < 2:
         raise ValueError("Objects must contain at least two RefButtons")
@@ -52,6 +52,29 @@ def SourceSelectPopupCallback(Objects: List) -> str:
         return "Menu-Source-{}".format(length)
     elif length > 5:
         return "Menu-Source-5+"
+    
+def TechMenuPagePopupCallback(UISet) -> str:
+    length = len(UISet.RefObjects)
+    
+    fullpages = length // 5
+    remainder = length % 5
+    
+    if (UISet.Offset + 1) > (fullpages * 5):
+        return "Menu-Tech-{}".format(remainder)
+    else:
+        return "Menu-Tech-5"
+    
+def TechDisplayControlsCallback() -> str:
+    return "1,1,4"
+
+def TechCameraControlsCallback() -> str:
+    return str(len(System.CONTROLLER.Devices.Cameras))
+
+def TechRoomConfigurationCallback() -> str:
+    return "0"
+
+def TechAdvVolCallback() -> str:
+    return str(len(System.CONTROLLER.Devices.Microphones))
 
 ## End Function Definitions ----------------------------------------------------
 

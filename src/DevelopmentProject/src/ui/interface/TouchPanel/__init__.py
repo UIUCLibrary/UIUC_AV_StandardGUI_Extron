@@ -30,7 +30,6 @@ import json
 import functools
 
 #### Extron Library Imports
-from extronlib.system import File
 from extronlib import event
 
 #### Project imports
@@ -52,9 +51,11 @@ class TouchPanelInterface():
         self.__LayoutGLD = '{}.gdl'.format(Variables.UI_LAYOUT)
         self.__LayoutJSON = '{}_objects.json'.format(Variables.UI_LAYOUT)
         self.__ControlJSON = '{}_controls.json'.format(Variables.UI_LAYOUT)
+        self.__TechPgsJSON = '{}_techPages.json'.format(Variables.UI_LAYOUT)
 
-        self.__LayoutDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__LayoutJSON)))
-        self.__ControlDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__ControlJSON)))
+        self.LayoutDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__LayoutJSON)))
+        self.ControlDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__ControlJSON)))
+        self.TechPgDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__TechPgsJSON)))
 
         self.Device = device
         self.InterfaceType = interfaceType
@@ -69,21 +70,21 @@ class TouchPanelInterface():
     
     def Initialize(self) -> None:
         ## Load UI Objects
-        self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.__LayoutDict)
-        self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.__LayoutDict)
-        self.Objects.LoadLabels(UIHost=self.Device, jsonObj=self.__LayoutDict)
-        self.Objects.LoadLevels(UIHost=self.Device, jsonObj=self.__LayoutDict)
-        self.Objects.LoadSliders(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.LayoutDict)
+        self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.LayoutDict)
+        self.Objects.LoadLabels(UIHost=self.Device, jsonObj=self.LayoutDict)
+        self.Objects.LoadLevels(UIHost=self.Device, jsonObj=self.LayoutDict)
+        self.Objects.LoadSliders(UIHost=self.Device, jsonObj=self.LayoutDict)
         
         ## Load Page Lists
-        self.Objects.LoadModalPages(jsonObj=self.__LayoutDict)
-        self.Objects.LoadPopoverPages(jsonObj=self.__LayoutDict)
-        self.Objects.LoadPopupGroups(jsonObj=self.__LayoutDict)
+        self.Objects.LoadModalPages(jsonObj=self.LayoutDict)
+        self.Objects.LoadPopoverPages(jsonObj=self.LayoutDict)
+        self.Objects.LoadPopupGroups(jsonObj=self.LayoutDict)
         
         ## Load Controls
-        self.Objects.LoadControlGroups(UIHost=self.Device, jsonObj=self.__LayoutDict)
+        self.Objects.LoadControlGroups(UIHost=self.Device, jsonObj=self.LayoutDict)
         # Logger.Log(self.Objects.ControlGroups)
-        self.Objects.LoadControls(jsonObj=self.__ControlDict)
+        self.Objects.LoadControls(jsonObj=self.ControlDict)
 
         self.Transition.Label = self.Objects.Labels['PowerTransLabel-State']
         self.Transition.Level = self.Objects.Levels['PowerTransIndicator']
@@ -208,6 +209,10 @@ def OpenTechPages(button: 'ExButton', action: str) -> None:
         TechPinSuccess(uiDev)
         
 def TechPinSuccess(uiDev: 'ExUIDevice') -> None:
+    uiSet = uiDev.Interface.Objects.ControlGroups['Tech-Menu-Select']
+    uiSet.SetCurrentRef(0)
+    uiSet.SetOffset(0)
+    uiDev.ShowPopup(uiSet.GetCurrentRef().page)
     uiDev.ShowPage('Tech')
     
 def CloseTechPages(button: 'ExButton', action: str) -> None:
@@ -217,5 +222,21 @@ def CloseTechPages(button: 'ExButton', action: str) -> None:
         uiDev.ShowPage('Start')
     else:
         uiDev.ShowPage('Main')
+        
+def TechPageMenuNav(button: 'ExButton', action: str) -> None:
+    uiDev = button.UIHost
+    uiSet = button.Group
+    
+    newOff = uiSet.Offset + button.Offset
+    uiSet.SetOffset(newOff)
+    
+def TechPageSelect(button: 'ExButton', action: str) -> None:
+    uiDev = button.UIHost
+    uiSet = button.Group.Group
+    
+    refBtn = uiSet.GetRefByObject(button)
+    uiSet.SetCurrentRef(refBtn)
+    
+    uiDev.ShowPopup(refBtn.page)
 
 ## End Function Definitions ----------------------------------------------------

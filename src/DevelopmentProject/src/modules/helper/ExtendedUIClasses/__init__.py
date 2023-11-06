@@ -74,14 +74,11 @@ class RefButton(ControlMixIn, Button):
         if text is None:
             text = ''
         self.Text = text
-        super().SetText(text)
+        Button.SetText(self, text)
         
     def SetState(self, state: int) -> None:
-        # update indicator state
-        indState = state % 10
-        self.Indicator.SetState(indState)
         # update state
-        return super().SetState(state)
+        Button.SetState(self, state)
         
     def SetRefName(self, Name: str) -> None:
         if self.__RefName is None:

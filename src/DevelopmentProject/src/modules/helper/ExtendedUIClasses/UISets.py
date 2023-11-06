@@ -23,9 +23,10 @@ if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedUIClasses import *
 
 #### Python imports
+import math
 
 #### Extron Library Imports
-from extronlib.system import MESet
+from extronlib.system import MESet, Wait
 # from extronlib.ui import Button, Level, Label
 
 #### Project imports
@@ -117,7 +118,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
     def SetCurrent(self, obj: Union[int, str, 'ExButton', 'RefButton']) -> None:
-        if type(obj).__name__ in [type(int).__name__, 'ExButton', 'RefButton']:
+        if type(obj).__name__ in ['ExButton', 'RefButton']:
             super().SetCurrent(obj)
         elif obj is None:
             super().SetCurrent(obj)
@@ -131,6 +132,8 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                 super().SetCurrent(i)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
+        elif type(obj) is int:
+            super().SetCurrent(obj)
         else:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
@@ -389,6 +392,8 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         
         self.__BtnSet.Group = self
         self.__RefSet.Group = self
+        
+        self.LoadButtonView()
 
     def __repr__(self) -> str:
         sep = ', '
@@ -431,11 +436,25 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     
     @property
     def PopupName(self) -> str:
-        return self.__PopupCallback(self.__RefSet.Objects)
+        return self.__PopupCallback(self)
     
     @PopupName.setter
     def PopupName(self, val) -> None:
         raise AttributeError('Overriding the PopupName property is disallowed')
+    
+    @property
+    def Pages(self) -> int:
+        return math.ceil((len(self.RefObjects)/len(self.Objects)))
+    
+    @Pages.setter
+    def Pages(self, val) -> None:
+        raise AttributeError('Overriding the Pages property is disallowed')
+    
+    @property
+    def CurrentPage(self) -> int:
+        index = self.Offset + 1
+        pg = math.ceil((index/len(self.Objects)))
+        return pg
     
     def GetRefByObject(self, obj: Union[int, str, 'ExButton']) -> 'RefButton':
         if type(obj) is int:
@@ -443,12 +462,37 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         elif type(obj) is str:
             for btn in self.__BtnSet.Objects:
                 if btn.Name == obj:
-                    return self.__RefSet.Objects[self.__BtnSet.Objects.index(btn)]
+                    return self.__RefSet.Objects[self.__BtnSet.Objects.index(btn) + self.__Offset]
             return None
         elif type(obj).__name__ in ['ExButton']:
-            return self.__RefSet.Objects[self.__BtnSet.Objects.index(obj)]
+            return self.__RefSet.Objects[self.__BtnSet.Objects.index(obj) + self.__Offset]
         else:
             raise TypeError('obj must be an index int, name str, Button or ExButton object')
+    
+    def GetObjectByRef(self, ref: Union[int, str, 'RefButton']) -> Union[None, 'ExButton']:
+        objIndex = None
+        
+        Logger.Log("GetObjectByRef Ref:", ref, type(ref))
+        
+        if type(ref) is int:
+            objIndex = ref - self.__Offset
+            
+        elif type(ref) is str:
+            for refBtn in self.__RefSet.Objects:
+                if refBtn.Name == ref:
+                    objIndex = self.__RefSet.Objects.index(refBtn) - self.__Offset
+                    
+        elif type(ref).__name__ in ['RefButton']:
+            objIndex = self.__RefSet.Objects.index(ref) - self.__Offset
+        
+        Logger.Log("ObjIndex", objIndex, self.__Offset)
+        
+        if objIndex is None:
+            return None
+        elif objIndex >= 0 and objIndex < len(self.Objects):
+            return self.__BtnSet.Objects[objIndex]
+        else:
+            return None
     
     def GetCurrentButton(self) -> 'ExButton':
         return self.__BtnSet.GetCurrent()
@@ -502,6 +546,51 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
                     self.__BtnSet.Objects[0].Host.ShowPopup('{}_{}'.format(self.PopupName, str(pug['Suffix'])))
         else:
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
+        
+    def LoadButtonView(self) -> None:
+        Logger.Log('Current Page', self.CurrentPage, 'Pages', self.Pages, 'Offset', self.Offset)
+        if self.CurrentPage == 1:
+            # Disabled Prev button
+            self.__Prev.SetEnable(False)
+            self.__Prev.SetState(2)
+        else:
+            self.__Prev.SetEnable(True)
+            self.__Prev.SetState(0)
+            
+        if self.CurrentPage == self.Pages:
+            # Disabled Next button
+            self.__Next.SetEnable(False)
+            self.__Next.SetState(2)
+        else:
+            self.__Next.SetEnable(True)
+            self.__Next.SetState(0)
+            
+        endOffset = self.Offset + len(self.Objects)
+        
+        self.__BtnSet.SetCurrent(None)
+        
+        curRefSet = self.RefObjects[self.Offset:endOffset]
+        
+        for btn in self.Objects:
+            # Set Names and icons
+            index = self.Objects.index(btn)
+            
+            btn.SetText(curRefSet[index].Text)
+            # TODO: Set Icon state
+        
+        Logger.Log("Current Object", self.GetCurrentRef(), self.GetObjectByRef(self.GetCurrentRef()))
+        
+        curObj = self.GetObjectByRef(self.GetCurrentRef())
+        if curObj is not None:
+            self.SetCurrentButton(curObj)
+    
+    def SetOffset(self, Offset: int) -> None:
+        if type(Offset) is not int:
+            raise TypeError('Offset must be an integer')
+        elif (Offset < 0 or Offset >= len(self.RefObjects)):
+            raise ValueError("Offset must be greater than or equal to 0 and less than the number of Ref Objects ({})".format(len(self.RefObjects)))
+        self.__Offset = Offset
+        self.LoadButtonView()
         
 class VolumeControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,

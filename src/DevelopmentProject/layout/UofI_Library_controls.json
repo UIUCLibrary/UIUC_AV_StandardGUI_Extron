@@ -122,5 +122,26 @@
         "PressShift": true,
         "Latching": false,
         "FuncModule": "ui.utilities.Keyboard"
+    },
+    {
+        "ControlObject": "Tech-Menu-Previous",
+        "PrimaryFunc": "TechPageMenuNav",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "Tech-Menu-Next",
+        "PrimaryFunc": "TechPageMenuNav",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlCollection": "Tech-Menu-Select-Objects",
+        "PrimaryFunc": "TechPageSelect",
+        "PressShift": true,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel"
     }
 ]

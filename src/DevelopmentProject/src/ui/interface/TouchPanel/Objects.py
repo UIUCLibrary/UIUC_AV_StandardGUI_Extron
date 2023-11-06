@@ -418,7 +418,7 @@ class TouchPanelObjects():
             if 'RefCallback' in group.keys():
                 RefCBModule = modules.project.callbacks.RefCallbacks
                 RefCB = getattr(RefCBModule, group['RefCallback'])
-                refs = self.LoadRefs(UIHost, RefCB())
+                refs = self.LoadRefs(UIHost, RefCB(UIHost))
                 kwargs['RefObjects'] = refs
 
             self.ControlGroups[group['Name']] = Constructor(**kwargs)

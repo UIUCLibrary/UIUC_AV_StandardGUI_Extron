@@ -684,62 +684,32 @@
       "repeatTime": null
     },
     {
-      "Name": "Tech-SystemStatus",
+      "Name": "Tech-Menu-1",
       "ID": 12001,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-DisplayControls",
+      "Name": "Tech-Menu-2",
       "ID": 12002,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-AdvancedVolume_1",
+      "Name": "Tech-Menu-3",
       "ID": 12003,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-PanelSetup",
+      "Name": "Tech-Menu-4",
       "ID": 12004,
       "holdTime": null,
       "repeatTime": null
     },
     {
-      "Name": "Tech-About",
+      "Name": "Tech-Menu-5",
       "ID": 12005,
-      "holdTime": null,
-      "repeatTime": null
-    },
-    {
-      "Name": "Tech-ManualMatrix",
-      "ID": 12006,
-      "holdTime": null,
-      "repeatTime": null
-    },
-    {
-      "Name": "Tech-RoomSchedule",
-      "ID": 12007,
-      "holdTime": null,
-      "repeatTime": null
-    },
-    {
-      "Name": "Tech-CameraControls",
-      "ID": 12008,
-      "holdTime": null,
-      "repeatTime": null
-    },
-    {
-      "Name": "Tech-RoomConfig",
-      "ID": 12009,
-      "holdTime": null,
-      "repeatTime": null
-    },
-    {
-      "Name": "Tech-AudioGain",
-      "ID": 12010,
       "holdTime": null,
       "repeatTime": null
     },
@@ -1731,13 +1701,15 @@
       "Name": "Tech-Menu-Previous",
       "ID": 12901,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": -5
     },
     {
       "Name": "Tech-Menu-Next",
       "ID": 12902,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": 5
     },
     {
       "Name": "KB-tilda",
@@ -2706,6 +2678,29 @@
       "RefCallback": "SourceSelectRefCallback"
     },
     {
+      "Name": "Tech-Menu-Select",
+      "Class": "ScrollingRadioSet",
+      "Buttons":[
+        "Tech-Menu-1",
+        "Tech-Menu-2",
+        "Tech-Menu-3",
+        "Tech-Menu-4",
+        "Tech-Menu-5"
+      ],
+      "Controls":{
+        "PrevBtn": "Tech-Menu-Previous",
+        "NextBtn": "Tech-Menu-Next"
+      },
+      "PopupGroups": [
+        {
+          "Name": "Tech-Page-Select",
+          "Suffix": null
+        }
+      ],
+      "PopupCallback": "TechMenuPagePopupCallback",
+      "RefCallback": "TechMenuRefCallback"
+    },
+    {
       "Name":"Activity-Select",
       "Class": "VariableRadioSet",
       "Buttons":[
@@ -2904,6 +2899,13 @@
     "Activity-Controls": [
       "Activity-Control-AdvShare",
       "Activity-Control-Group"
+    ],
+    "Tech-Page-Select": [
+      "Menu-Tech-1",
+      "Menu-Tech-2",
+      "Menu-Tech-3",
+      "Menu-Tech-4",
+      "Menu-Tech-5"
     ]
   }
 }

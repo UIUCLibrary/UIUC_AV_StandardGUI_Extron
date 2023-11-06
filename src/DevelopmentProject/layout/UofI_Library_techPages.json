@@ -1,0 +1,62 @@
+[
+    {
+        "Name": "Status",
+        "DisplayName": "System Status",
+        "Page": "Tech-SystemStatus",
+        "Suffix": null
+    },
+    {
+        "Name": "Displays",
+        "DisplayName": "Display Controls",
+        "Page": "Tech-DisplayControls",
+        "Suffix": "TechDisplayControlsCallback"
+    },
+    {
+        "Name": "Matrix",
+        "DisplayName": "Manual Matrix",
+        "Page": "Tech-ManualMatrix_12x6",
+        "Suffix": null
+    },
+    {
+        "Name": "Camera",
+        "DisplayName": "Camera Controls",
+        "Page": "Tech-CameraControls",
+        "Suffix": "TechCameraControlsCallback"
+    },
+    {
+        "Name": "AudioInput",
+        "DisplayName": "Audio Input Configuration",
+        "Page": "Tech-AudioGain",
+        "Suffix": null
+    },
+    {
+        "Name": "RoomConfig",
+        "DisplayName": "Room Configuration",
+        "Page": "Tech-RoomConfig",
+        "Suffix": "TechRoomConfigurationCallback"
+    },
+    {
+        "Name": "Scheduling",
+        "DisplayName": "Room Scheduling",
+        "Page": "Tech-RoomSchedule",
+        "Suffix": null
+    },
+    {
+        "Name": "AdvVol",
+        "DisplayName": "Advanced Audio",
+        "Page": "Tech-AdvancedVolume",
+        "Suffix": "TechAdvVolCallback"
+    },
+    {
+        "Name": "Panel",
+        "DisplayName": "Panel Setup",
+        "Page": "Tech-PanelSetup",
+        "Suffix": null
+    },
+    {
+        "Name": "About",
+        "DisplayName": "About",
+        "Page": "Tech-About",
+        "Suffix": null
+    }
+]

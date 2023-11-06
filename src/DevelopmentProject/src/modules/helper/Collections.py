@@ -90,35 +90,35 @@ class DeviceCollection(UserDict):
     
     # Add list properties - these generate sublists based on the IsXXX attributes of SystemHardwareController
     @property
-    def Destinations(self) -> list:
+    def Destinations(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsDest]
     
     @property
-    def Sources(self) -> list:
+    def Sources(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsSrc]
     
     @property
-    def Switches(self) -> list:
+    def Switches(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsSwitch]
     
     @property
-    def Cameras(self) -> list:
+    def Cameras(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsCam]
     
     @property
-    def Microphones(self) -> list:
+    def Microphones(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsMic]
     
     @property
-    def Screens(self) -> list:
+    def Screens(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsScn]
     
     @property
-    def Lights(self) -> list:
+    def Lights(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsLight]
     
     @property
-    def Shades(self) -> list:
+    def Shades(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsShade]
 
     # Special Add Item Methods
