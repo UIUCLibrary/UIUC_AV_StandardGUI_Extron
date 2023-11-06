@@ -17,21 +17,19 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import DeviceCollection
     from modules.helper.ExtendedSystemClasses import ExTimer
 
 #### Python imports
-from os.path import splitext
 
 #### Extron Library Imports
-from extronlib.system import Timer
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger, TimeIntToStr, DictValueSearchByKey, RunAsync, debug
-from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
-from modules.helper.Collections import UIDeviceCollection, ProcessorCollection
+from modules.helper.CommonUtilities import Logger, TimeIntToStr
+from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExEBUSDevice
+from modules.helper.Collections import UIDeviceCollection
 from modules.helper.PrimitiveObjects import DictObj
 from modules.helper.ModuleSupport import WatchVariable
 from control.ActivityController import ActivityController
@@ -167,9 +165,9 @@ class SystemController:
         Logger.Log("Setting SystemActivity:", val)
         if type(val) is Constants.ActivityMode:
             enumVal = val
-        elif type(val) is int:
+        elif isinstance(val, int):
             enumVal = Constants.ActivityMode(val)
-        elif type(val) is str:
+        elif isinstance(val, str):
             enumVal = Constants.ActivityMode[val]
         else:
             raise TypeError('val must be a str, int, or ActivityMode Enum')
@@ -331,7 +329,7 @@ class SystemController:
         #         if curStatus not in ['Off', 'off', 'Power Off', 'Standby (Power Save)', 'Suspend (Power Save)', 'OFF', 'Power off', 'POWER OFF']:
         #             destStatus = False
         
-        if count >= (self.Timers.Shutdown - 5) or (destStatus == True and count > self.Timers.ShutdownMin):
+        if count >= (self.Timers.Shutdown - 5) or (destStatus is True and count > self.Timers.ShutdownMin):
             # if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
             #     # Put SVSI ENC endpoints in to standby mode
             #     self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
@@ -339,7 +337,7 @@ class SystemController:
             #     self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
             Logger.Log('Testing: Put AVoIP Switching Hardware into standby')
         
-        if count >= self.Timers.Shutdown or (destStatus == True and count > self.Timers.ShutdownMin):
+        if count >= self.Timers.Shutdown or (destStatus is True and count > self.Timers.ShutdownMin):
             # self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
             Logger.Log('Untie matrix switcher')
             

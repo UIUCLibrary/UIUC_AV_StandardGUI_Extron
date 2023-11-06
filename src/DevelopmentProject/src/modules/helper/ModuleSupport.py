@@ -92,7 +92,7 @@ def eventEx(Object, EventName, *args, **kwargs):
                 )
                 raise TypeError(msg)
 
-            if not (obj, evtname) in __dispatchmap.keys():
+            if (obj, evtname) not in __dispatchmap.keys():
                 __dispatchmap[(obj, evtname)] = []
 
             __dispatchmap[(obj, evtname)].append(handler)

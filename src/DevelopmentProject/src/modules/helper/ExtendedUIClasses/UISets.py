@@ -17,22 +17,22 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import (TYPE_CHECKING, Dict, Iterator, Tuple, List, Union, Callable)
+from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedUIClasses import *
+    from modules.helper.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel
 
 #### Python imports
 import math
 
 #### Extron Library Imports
-from extronlib.system import MESet, Wait
+from extronlib.system import MESet
 # from extronlib.ui import Button, Level, Label
 
 #### Project imports
 import System
 from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
-from modules.helper.CommonUtilities import Logger
+from modules.helper.CommonUtilities import Logger, isinstanceEx
 from modules.helper.ModuleSupport import eventEx
 from Constants import SystemState
 
@@ -94,16 +94,16 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         return super().Append(obj)
     
     def Remove(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
-        if type(obj) is list:
+        if isinstance(obj, list):
             for item in obj:
                 self.Remove(item)
         elif type(obj).__name__ in [type(int).__name__, 'ExButton', 'RefButton']:
-            if type(obj) is int:
+            if isinstance(obj, int):
                 delattr(self.Objects[obj], 'Group')
             elif obj in self.Objects:
                 delattr(obj, 'Group')
             super().Remove(obj)
-        elif type (obj) is str:
+        elif isinstance(obj, str):
             i = None
             for o in self.Objects:
                 if o.Name == obj:
@@ -118,11 +118,11 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
     def SetCurrent(self, obj: Union[int, str, 'ExButton', 'RefButton']) -> None:
-        if type(obj).__name__ in ['ExButton', 'RefButton']:
+        if isinstanceEx(obj, ('ExButton', 'RefButton')):
             super().SetCurrent(obj)
         elif obj is None:
             super().SetCurrent(obj)
-        elif type(obj) is str:
+        elif isinstance(obj, str):
             i = None
             for o in self.Objects:
                 if o.Name == obj:
@@ -132,18 +132,18 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                 super().SetCurrent(i)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
-        elif type(obj) is int:
+        elif isinstance(obj, int):
             super().SetCurrent(obj)
         else:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
     def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
-        if type(obj) is list:
+        if isinstance(obj, list):
             for item in obj:
                 self.SetStates(item, offState, onState)
-        elif type(obj) in [type(int).__name__, 'ExButton', 'RefButton']:
+        elif isinstanceEx(obj, (int, 'ExButton', 'RefButton')):
             super().SetStates(obj, offState, onState)
-        elif type(obj) is str:
+        elif isinstance(obj, str):
             i = None
             for o in self.Objects:
                 if o.Name == obj:
@@ -197,19 +197,19 @@ class SelectSet(ControlMixIn, UISetMixin, object):
         return activeList
     
     def Remove(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
-        if type(obj) is list:
+        if isinstance(obj, list):
             for item in obj:
                 self.Remove(item)
-        elif type(obj) is int:
+        elif isinstance(obj, int):
             delattr(self.__Objects[obj], 'Group')
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
-        elif type(obj).__name__ in ['ExButton', 'RefButton']:
+        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
             delattr(obj, 'Group')
             i = self.__Objects.index(obj)
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
-        elif type(obj) is str:
+        elif isinstance(obj, str):
             i = None
             for o in self.__Objects:
                 if o.Name == obj:
@@ -225,7 +225,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
     
     def SetActive(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
-        if type(obj) is list:
+        if isinstance(obj, list):
             for item in obj:
                 self.SetActive(item)
         elif obj in ['all', 'All', 'ALL']:
@@ -234,9 +234,9 @@ class SelectSet(ControlMixIn, UISetMixin, object):
         elif obj in ['none', 'None', 'NONE'] or obj is None:
             for o in self.__Objects:
                 o.SetState(self.__StateList[self.__Objects.index(o)]['offState'])
-        elif type(obj) is int:
+        elif isinstance(obj, int):
             self.__Objects[obj].SetState(self.__StateList[obj]['onState'])
-        elif type(obj) is str:
+        elif isinstance(obj, str):
             i = None
             for o in self.__Objects:
                 if o.Name == obj:
@@ -255,17 +255,17 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             raise TypeError('Object must be an object name, int index, the button object (Button or ExButton class), or List of these')
 
     def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
-        if type(obj) is list:
+        if isinstance(obj, list):
             for item in obj:
                 self.SetStates(item, offState, onState)
-        elif type(obj) is int:
+        elif isinstance(obj, int):
             self.__StateList[obj]['onState'] = onState
             self.__StateList[obj]['offState'] = offState
-        elif type(obj).__name__ in ['ExButton', 'RefButton']:
+        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
             i = self.__Objects.index(obj)
             self.__StateList[i]['onState'] = onState
             self.__StateList[i]['offState'] = offState
-        elif type(obj) is str:
+        elif isinstance(obj, str):
             i = None
             for o in self.__Objects:
                 if o.Name == obj:
@@ -330,9 +330,9 @@ class VariableRadioSet(ControlMixIn, UISetMixin, object):
             self.__BtnSet.Remove(Object)
             
         if Popup is not None:
-            if type(Popup) is int:
+            if isinstance(Popup, int):
                 self.__PopupDict.pop(Popup)
-            elif type(Popup) is str:
+            elif isinstance(Popup, str):
                 for key, val in self.__PopupDict:
                     if val == Popup:
                         self.__PopupDict.pop(key)
@@ -457,14 +457,14 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         return pg
     
     def GetRefByObject(self, obj: Union[int, str, 'ExButton']) -> 'RefButton':
-        if type(obj) is int:
+        if isinstance(obj, int):
             return self.__RefSet.Objects[obj + self.__Offset]
-        elif type(obj) is str:
+        elif isinstance(obj, str):
             for btn in self.__BtnSet.Objects:
                 if btn.Name == obj:
                     return self.__RefSet.Objects[self.__BtnSet.Objects.index(btn) + self.__Offset]
             return None
-        elif type(obj).__name__ in ['ExButton']:
+        elif isinstanceEx(obj, 'ExButton'):
             return self.__RefSet.Objects[self.__BtnSet.Objects.index(obj) + self.__Offset]
         else:
             raise TypeError('obj must be an index int, name str, Button or ExButton object')
@@ -474,15 +474,15 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         
         Logger.Log("GetObjectByRef Ref:", ref, type(ref))
         
-        if type(ref) is int:
+        if isinstance(ref, int):
             objIndex = ref - self.__Offset
             
-        elif type(ref) is str:
+        elif isinstance(ref, str):
             for refBtn in self.__RefSet.Objects:
                 if refBtn.Name == ref:
                     objIndex = self.__RefSet.Objects.index(refBtn) - self.__Offset
                     
-        elif type(ref).__name__ in ['RefButton']:
+        elif isinstanceEx(ref, 'RefButton'):
             objIndex = self.__RefSet.Objects.index(ref) - self.__Offset
         
         Logger.Log("ObjIndex", objIndex, self.__Offset)
@@ -585,7 +585,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
             self.SetCurrentButton(curObj)
     
     def SetOffset(self, Offset: int) -> None:
-        if type(Offset) is not int:
+        if not isinstance(Offset, int):
             raise TypeError('Offset must be an integer')
         elif (Offset < 0 or Offset >= len(self.RefObjects)):
             raise ValueError("Offset must be greater than or equal to 0 and less than the number of Ref Objects ({})".format(len(self.RefObjects)))
@@ -643,13 +643,12 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
             
         if type(Range) is tuple and len(Range) == 3:
             for i in Range:
-                if type(i) is not int:
+                if not isinstance(i, int):
                     raise TypeError("Range tuple may only consist of int values")
             self.__Range = Range
             self.FeedbackLvl.SetRange(*Range)
             
     def __repr__(self) -> str:
-        sep = ', '
         return "VolumeControlSet {}".format(self.Name)
     
         
@@ -704,7 +703,6 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
                 self.__CameraButton.SetVisible(False)
     
     def __repr__(self) -> str:
-        sep = ', '
         return "HeaderControlGroup {}".format(self.Name)
     
     @property
@@ -751,7 +749,6 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
         self.__TextArea = TextAreaLabel
         
     def __repr__(self) -> str:
-        sep = ', '
         return "PINPadControlGroup {}".format(self.Name)
     
     @property
@@ -810,7 +807,6 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
         self.__TextArea = TextAreaLabel
         
     def __repr__(self) -> str:
-        sep = ', '
         return "KeyboardControlGroup {}".format(self.Name)
     
     @property

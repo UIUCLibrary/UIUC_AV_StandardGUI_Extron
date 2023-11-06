@@ -14,7 +14,7 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, List, Union, Callable, Any, Tuple
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.ui import Button, Label
     from modules.project.SystemHardware import SystemHardwareController
@@ -25,7 +25,6 @@ from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
-import inspect
 import re
 import functools
 import traceback
@@ -59,7 +58,7 @@ class SortKeys:
     
     @classmethod
     def SortDaysOfWeek(cls, sortItem: str) -> int:
-        if type(sortItem) is not str:
+        if not isinstance(sortItem, str):
             raise TypeError("sortItem must be a string")
         test = sortItem.lower()
         if test in ['monday', 'mon', 'm']:
@@ -92,7 +91,7 @@ def FullName(o) -> str:
 
 def MergeLists(*Lists) -> List:
     rtnList = []
-    for l in Lists:
+    for l in Lists:  # noqa: E741
         rtnList.extend(l)
     return rtnList
 
@@ -204,7 +203,7 @@ def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, captur
         for key, value in dict.items():
             if regex:
                 re_match = re.match(search_term, key)
-                if re_match != None:
+                if re_match is not None:
                     find_list.append(value)
             else:
                 if search_term in key:
@@ -216,7 +215,7 @@ def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, captur
         find_dict = {}
         for key, value in dict.items():
             re_match = re.match(search_term, key)
-            if re_match != None and re_match.group(1) != None:
+            if re_match is not None and re_match.group(1) is not None:
                 find_dict[re_match.group(1)] = value
         return find_dict
     else:
@@ -252,5 +251,19 @@ def RunAsync(func, callback: Callable=print):
             if callable(callback): # run callback with function output if callback is supplied and callable
                 callback(value)
     return wrapper_async
+
+def isinstanceEx(Object: Any, Type: Union[str, type, Tuple[Union[str, type]]]) -> bool:
+    if isinstance(Type, str):
+        return (type(Object).__name__ == Type)
+    elif isinstance(Type, type):
+        return isinstance(Object, Type)
+    elif isinstance(Type, tuple):
+        rtnBool = False
+        for t in Type:
+            if isinstance(t, str) and type(Object).__name__ == Type:
+                rtnBool = True
+            elif isinstance(t, type) and isinstance(Object, t):
+                rtnBool = True
+        return rtnBool
 
 ## End Function Definitions ----------------------------------------------------

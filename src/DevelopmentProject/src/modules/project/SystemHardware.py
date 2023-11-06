@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import DeviceCollection
 
@@ -27,7 +27,6 @@ import importlib
 import importlib.util
 import functools
 from inspect import getmro
-from pydoc import locate
 
 #### Exron Library Imports
 
@@ -76,11 +75,11 @@ class SystemHardwareController:
             self.__Constructor = getattr(self.__Module,
                                         Interface['interface_class'])
             
-            if 'ConnectionHandler' in Interface and type(Interface['ConnectionHandler']) is dict:
+            if 'ConnectionHandler' in Interface and isinstance(Interface['ConnectionHandler'], dict):
                 self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),
                                                     **Interface['ConnectionHandler'])
                 if not Variables.TESTING:
-                    connInfo = self.interface.Connect()
+                    self.interface.Connect()
             else:
                 self.interface = self.__Constructor(**Interface['interface_configuration'])
             
@@ -279,12 +278,12 @@ class SystemHardwareController:
     def GetQualifierList(self, subscription):
         qualList = [None]
         if 'qualifier' in subscription and subscription['qualifier'] is not None:
-            if type(subscription['qualifier']) is list:
+            if isinstance(subscription['qualifier'], list):
                 for q in subscription['qualifier']:
-                    if type(q) is not dict:
+                    if not isinstance(q, dict):
                         raise TypeError('Qualifier ({}) must be a dictionary'.format(q))
                 qualList = subscription['qualifier']
-            elif type(subscription['qualifier']) is dict:
+            elif isinstance(subscription['qualifier'], dict):
                 qualList = [subscription['qualifier']]
             else:
                 raise TypeError('Qualifier must be a dictionary')
@@ -296,7 +295,7 @@ class SystemHardwareController:
                 callbackFn = functools.partial(subscription['callback'], hardware=self, tag=subscription['tag'])
             else:
                 callbackFn = functools.partial(subscription['callback'], hardware=self)
-        elif type(subscription['callback']) is str and hasattr(self.interface, subscription['callback']):
+        elif isinstance(subscription['callback'], str) and hasattr(self.interface, subscription['callback']):
             if 'tag' in subscription:
                 callbackFn = functools.partial(getattr(self.interface, subscription['callback']), hardware=self, tag=subscription['tag'])
             else:

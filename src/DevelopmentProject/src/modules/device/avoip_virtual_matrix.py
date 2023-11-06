@@ -14,16 +14,23 @@
 # limitations under the License.
 ################################################################################
 
+## Begin Imports ---------------------------------------------------------------
 
-
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+#### Type Checking
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
+    pass
 
+#### Python imports
+
+#### Extron Library Imports
 from extronlib.system import ProgramLog
 
+#### Project imports
 from modules.device.mixins.VirtualDevice import VirtualDeviceInterface
-import modules.helper.CommonUtilities as UtilityFunctions
+from modules.helper.CommonUtilities import Logger
+
+## End Imports -----------------------------------------------------------------
 
 class DeviceClass:
     def __init__(self):
@@ -113,7 +120,7 @@ class DeviceClass:
                             else:
                                 self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                         else:
-                            UtilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
+                            Logger.Log('Device Status for {} is undefined'.format(InputHw.Name))
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
@@ -133,12 +140,12 @@ class DeviceClass:
                             else:
                                 self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                         else:
-                            UtilityFunctions.Log('Device Status for {} is undefined'.format(InputHw.Name))
+                            Logger.Log('Device Status for {} is undefined'.format(InputHw.Name))
                     self.WriteStatus('OutputTieStatus', 0, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
                     self.WriteStatus('OutputTieStatus', mInputV, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInputA, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
             else:
-                UtilityFunctions.Log('Stream info for {} is undefined'.format(OutputHw.Name))
+                Logger.Log('Stream info for {} is undefined'.format(OutputHw.Name))
                 
         self.__ConnectHelper()
 
@@ -334,7 +341,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         if Parameter in qualifier:
                             Method[qualifier[Parameter]] = {}
                             Method = Method[qualifier[Parameter]]
@@ -356,7 +363,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         break
             if 'callback' in Method and Method['callback']:
                 Method['callback'](command, value, qualifier)  
@@ -383,7 +390,7 @@ class DeviceClass:
             if Status['Live'] != value:
                 Status['Live'] = value
                 self.NewStatus(command, value, qualifier)
-        except:
+        except Exception:
             Status['Live'] = value
             self.NewStatus(command, value, qualifier)
 
@@ -400,7 +407,7 @@ class DeviceClass:
                         return None
             try:
                 return Status['Live']
-            except:
+            except Exception:
                 return None
         else:
             raise KeyError('Invalid command for ReadStatus: ' + command)
@@ -428,10 +435,10 @@ class VirtualDeviceClass(VirtualDeviceInterface, DeviceClass):
     def Error(self, message):
         portInfo = 'VirtualDeviceClass - Virtual Matrix Interface'
         print('Module: {}'.format(__name__), portInfo, 'Error Message: {}'.format(message[0]), sep='\r\n')
-        UtilityFunctions.Log('Error Message: {}'.format(message[0]))
+        Logger.Log('Error Message: {}'.format(message[0]))
   
     def Discard(self, message):
-        UtilityFunctions.Log('Discarding Command')
+        Logger.Log('Discarding Command')
         self.Error([message])
 
     def Disconnect(self):

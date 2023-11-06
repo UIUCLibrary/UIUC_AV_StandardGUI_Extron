@@ -14,14 +14,11 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
     from modules.project.SystemHardware import SystemHardwareController
 
 from extronlib.system import Timer, Wait
-from modules.helper.CommonUtilities import Logger, RunAsync, debug
 
 class Source:
     def __init__(self,
@@ -45,12 +42,12 @@ class Source:
         else:
             raise ValueError('Device or id and name must be provided')
         
-        if type(icon) is int and icon >= 0:
+        if isinstance(icon, int) and icon >= 0:
             self.Icon = icon
         else:
             raise ValueError('Icon must be an integer greater than or equal to 0')
         
-        if type(input) is int and input >= 0:
+        if isinstance(input, int) and input >= 0:
             self.Input = input
         else:
             raise ValueError('Input must be an integer greater than or equal to 0')

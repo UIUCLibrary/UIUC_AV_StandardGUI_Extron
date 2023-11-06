@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice
     from modules.helper.ExtendedUIClasses import ExButton
@@ -28,8 +28,6 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.ModuleSupport import eventEx
-from modules.helper.CommonUtilities import Logger, DictValueSearchByKey
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -91,7 +89,7 @@ class PINController:
         self.Callback = Callback
         
         # validate pin
-        if type(PIN) is str:
+        if isinstance(PIN, str):
             for character in PIN:
                 if not character.isnumeric():
                     raise ValueError('All PIN Characters must be numeric')

@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     pass
 
@@ -26,7 +26,6 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------
 ##

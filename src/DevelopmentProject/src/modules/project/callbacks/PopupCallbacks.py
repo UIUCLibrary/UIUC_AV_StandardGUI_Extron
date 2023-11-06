@@ -17,17 +17,15 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from extronlib.ui import Button
-    from modules.helper.ExtendedUIClasses import ExButton, RefButton
+    pass
 
 #### Python imports
 
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 import System
 
 ## End Imports -----------------------------------------------------------------

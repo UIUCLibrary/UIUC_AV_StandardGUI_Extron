@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice
     from extronlib.device import UIDevice, eBUSDevice
@@ -27,7 +27,6 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 from ui.interface.ButtonPanel.Objects import ButtonPanelObjects
 
 ## End Imports -----------------------------------------------------------------

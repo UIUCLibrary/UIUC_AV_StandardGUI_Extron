@@ -20,17 +20,16 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
     pass
 
 #### Python imports
 
 #### Extron Library Imports
-from extronlib.system import Timer, Ping, WakeOnLan
+from extronlib.system import Timer, Ping
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -141,7 +140,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         if Parameter in qualifier:
                             Method[qualifier[Parameter]] = {}
                             Method = Method[qualifier[Parameter]]
@@ -163,7 +162,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         break
             if 'callback' in Method and Method['callback']:
                 Method['callback'](command, value, qualifier)  
@@ -189,7 +188,7 @@ class DeviceClass:
             if Status['Live'] != value:
                 Status['Live'] = value
                 self.NewStatus(command, value, qualifier)
-        except:
+        except Exception:
             Status['Live'] = value
             self.NewStatus(command, value, qualifier)
 
@@ -206,7 +205,7 @@ class DeviceClass:
                         return None
             try:
                 return Status['Live']
-            except:
+            except Exception:
                 return None
         else:
             raise KeyError('Invalid command for ReadStatus: ' + command)

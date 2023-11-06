@@ -17,25 +17,21 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHost import SystemController
-    from modules.helper.ExtendedUIClasses import ExUIDevice
     from extronlib.ui import Button
     from modules.helper.ExtendedUIClasses import ExButton
 
 #### Python imports
 
 #### Extron Library Imports
-# from extronlib import event
-# from extronlib.system import Timer
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
-from modules.helper.ModuleSupport import eventEx
 from modules.helper.ExtendedSystemClasses import ExTimer
 from modules.helper.PrimitiveObjects import DictObj
-from Constants import STANDBY, SHARE, ADVSHARE, GROUPWORK, ACTIVE, ActivityMode, SystemState
+from Constants import STANDBY, ActivityMode, SystemState
 import System
 from ui.interface.TouchPanel import StartShutdownConfirmation
 

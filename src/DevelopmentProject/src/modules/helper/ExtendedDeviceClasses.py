@@ -18,7 +18,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING: # pragma: no cover
     pass
 
@@ -30,12 +30,11 @@ from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
 from extronlib.system import Wait
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.utilities.PinPad import PINController
 from ui.utilities.Keyboard import KeyboardController
-from modules.helper.PrimitiveObjects import Alias, classproperty, DictObj
+from modules.helper.PrimitiveObjects import Alias, classproperty
 import System
 
 ## End Imports -----------------------------------------------------------------
@@ -100,7 +99,7 @@ class ExUIDevice(UIDevice):
         
         self.Initialized = False
         
-        if type(UI) is str:
+        if isinstance(UI, str):
             self.UI = UI
         else:
             raise ValueError('Layout must be a string')
@@ -227,7 +226,7 @@ class ExEBUSDevice(eBUSDevice):
         self.Id = DeviceAlias
         self.eBUSID = Alias('ID')
         self.WebControlId = WebControlId
-        if type(UI) is str:
+        if isinstance(UI, str):
             self.UI = UI
         else:
             raise ValueError('Layout must be a string')

@@ -17,10 +17,10 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet, VolumeControlGroup, HeaderControlGroup
-    from modules.helper.ExtendedUIClasses import ExButton, ExSlider, RefButton
+    from modules.helper.ExtendedUIClasses import ExButton
 
 #### Python imports
 
@@ -110,7 +110,7 @@ class EventMixIn():
     
     def __ExButtonHandler(self, source: 'ExButton', event: str) -> None:
         Logger.Log('ExButton Event', source, event)
-        if event is 'Pressed':
+        if event == 'Pressed':
             # Capture initial press state
             source.SetInitialPressState()
             
@@ -118,7 +118,7 @@ class EventMixIn():
             if source.GetControlShift('Press'):
                 source.SetState(source.GetControlState('Shift'))
             
-        elif event is 'Released':
+        elif event == 'Released':
             # Released no Hold
             if not source.HasHold():
                 # Do primary functionality
@@ -162,19 +162,19 @@ class EventMixIn():
             # Clear initial press state
             source.ClearInitialPressState()
             
-        elif event is 'Held':
+        elif event == 'Held':
             source.UIHost.Click()
             
             if source.Enabled:
                 # Determine if state change is needed
                 source.SetState(source.GetControlState('HoldShift'))
                 
-        elif event is 'Repeated':
+        elif event == 'Repeated':
             # Do Repeat functionality
             for fn in source.GetControlFunctionList('Repeat'):
                 fn(source, event)
             
-        elif event is 'Tapped':
+        elif event == 'Tapped':
             source.Control.Functions.Primary(source, event)
             
             # Do primary functionality

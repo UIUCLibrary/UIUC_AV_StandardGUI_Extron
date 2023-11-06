@@ -17,14 +17,14 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import (TYPE_CHECKING, Dict, Iterator, Tuple, List, Union, Callable, TypeVar,
-                    ValuesView, ItemsView, KeysView, Any)
+from typing import (TYPE_CHECKING, Dict, Iterator, List, Union, TypeVar,
+                    ValuesView, ItemsView, KeysView)
 if TYPE_CHECKING: # pragma: no cover
     from modules.device.classes.Destinations import Destination
     from modules.device.classes.Sources import Source
-    from modules.helper.ExtendedDeviceClasses import *
-    from modules.helper.ExtendedUIClasses import *
-    from modules.helper.ExtendedUIClasses.UISets import *
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice
+    from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
+    from modules.helper.ExtendedUIClasses.UISets import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet
     
     _KT = TypeVar('_KT')
 
@@ -35,7 +35,6 @@ from collections import UserDict, UserList
 
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
-from modules.helper.CommonUtilities import Logger
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
 from Constants import BLANK_SOURCE
@@ -129,12 +128,12 @@ class DeviceCollection(UserDict):
         
     # Search Methods
     def GetDestination(self, id: str=None, name: str=None) -> 'Destination':
-        if id != None:
+        if id is not None:
             if hasattr(self.data[id], 'Destination'):
                 return self.data[id].Destination
             else:
                 raise LookupError("No destination defined for provided id '{}'".format(id))
-        elif name != None:
+        elif name is not None:
             for dest in self.Destinations:
                 if dest.Name == name:
                     return dest.Destination
@@ -152,12 +151,12 @@ class DeviceCollection(UserDict):
             raise ValueError('ouptutNum must be an integer greater than 0')
 
     def GetSource(self, id: str=None, name: str=None) -> 'Source':
-        if id != None:
+        if id is not None:
             if hasattr(self.data[id], 'Source'):
                 return self.data[id].Source
             else:
                 raise LookupError("No source defined for provided id '{}'".format(id))
-        elif name != None:
+        elif name is not None:
             for src in self.Sources:
                 if src.Name == name:
                     return src.Source
@@ -257,10 +256,10 @@ class UIObjectCollection(UserDict):
     
     # Typecasts __getitem__
     def __getitem__(self, key: Union[str, int]) -> Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'RefButton']:
-        if (type(key) is str) and not key.isnumeric():
+        if isinstance(key, str) and not key.isnumeric():
             return super().__getitem__(key)
-        elif (type(key) is int) or ((type(key) is str) and key.isnumeric()):
-            if type(key) is str:
+        elif isinstance(key, int) or (isinstance(key, str) and key.isnumeric()):
+            if isinstance(key, str):
                 key = int(key)
                 
             for val in self.values():

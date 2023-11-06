@@ -14,19 +14,16 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Dict, Union, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
-    from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import SourceController, MatrixRow, LayoutTuple, RelayTuple
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from uofi_gui.sourceControls import MatrixRow, LayoutTuple, RelayTuple
+    from extronlib.ui import Button, Label
 
 from collections import namedtuple
 from extronlib import event
 from modules.device.classes.Sources import Source
 from modules.project.SystemHardware import SystemHardwareController
 from modules.device.mersive_solstice_pod import PodFeedbackHelper
-from modules.helper.CommonUtilities import Log
 from Devices import SystemDevices as Devices
 from Variables import BLANK_SOURCE
 
@@ -42,14 +39,14 @@ class Destination:
                  advLayout: 'LayoutTuple',
                  confFollow: str=None) -> None:
         
-        if type(device) is SystemHardwareController:
+        if isinstance(device, SystemHardwareController):
             self.Device = device
             self.Id = device.Id
             self.Name = device.Name
         else:
             raise ValueError('Device must be a SystemHardwareController object')
         
-        if type(output) is int and output >= 0:
+        if isinstance(output, int) and output >= 0:
             self.Output = output
         else:
             raise ValueError('Output must be an integer greater than or equal to 0')
@@ -180,9 +177,9 @@ class Destination:
                 2: 'Local Source',
                 3: 'Local Mute'
             }
-        if type(Configuration) is int and Configuration in list(AudDict.keys()):
+        if isinstance(Configuration, int) and Configuration in list(AudDict.keys()):
             pass
-        elif type(Configuration) is str and Configuration in list(AudDict.values()):
+        elif isinstance(Configuration, str) and Configuration in list(AudDict.values()):
             Configuration = list(AudDict.values()).index(Configuration)
         else:
             if type(Configuration) not in [int, str]:
@@ -228,7 +225,7 @@ class Destination:
         self.AssignMatrixBySource(source, 'AV')
     
     def AssignMatrixByInput(self, input: int, tieType: str='AV') -> None:
-        if type(input) is not int:
+        if not isinstance(input, int):
             raise ValueError('Input must be an integer')
         
         inputSrc = self.SourceController.GetSourceByInput(input)
@@ -316,7 +313,7 @@ class Destination:
         vidSrc = cast('Source', vidSrc)
         self.__AdvSelectBtn.SetText(vidSrc.Name)
         
-        if vidSrc.AdvSourceControlPage == None:
+        if vidSrc.AdvSourceControlPage is None:
             self.__AdvCtlBtn.SetVisible(False)
             self.__AdvCtlBtn.SetEnable(False)
         else:
@@ -324,7 +321,7 @@ class Destination:
             self.__AdvCtlBtn.SetEnable(True)
             
     def AdvSourceAlertHandler(self) -> None:
-        if self.AssignedSource != None and self.AssignedSource.Vid.AlertFlag:
+        if self.AssignedSource is not None and self.AssignedSource.Vid.AlertFlag:
             self.__AdvAlertBtn.SetVisible(True)
             self.__AdvAlertBtn.SetEnable(True)
             self.__AdvAlertBtn.SetBlinking('Medium', [0,1])

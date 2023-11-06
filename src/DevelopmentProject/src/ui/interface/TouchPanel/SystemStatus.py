@@ -17,33 +17,21 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import DeviceCollection
     from uofi_gui.uiObjects import ExUIDevice
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from extronlib.ui import Button
 
 #### Python Imports
 from datetime import datetime
-import importlib
 import math
-import re
-import functools
 
 #### Exron Library Imports
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+from extronlib import event
+from extronlib.system import Timer
 
 #### Project Imports
-from modules.helper.ConnectionHandler import GetConnectionHandler
-from modules.helper.CommonUtilities import Logger, RunAsync, debug, DictValueSearchByKey, SortKeys
+from modules.helper.CommonUtilities import DictValueSearchByKey, SortKeys
 
 ## End Imports -----------------------------------------------------------------
 ##

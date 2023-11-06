@@ -1,10 +1,36 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
+################################################################################
+# Copyright © 2023 The Board of Trustees of the University of Illinois
+#
+# Licensed under the MIT License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://opensource.org/licenses/MIT
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
 
-from extronlib.interface import SerialInterface, EthernetClientInterface
+## Begin Imports ---------------------------------------------------------------
+
+#### Type Checking
+from typing import TYPE_CHECKING
+if TYPE_CHECKING: # pragma: no cover
+    pass
+
+#### Python imports
 import re
-from extronlib.system import Wait, ProgramLog
+
+#### Extron Library Imports
+from extronlib.interface import EthernetClientInterface
+from extronlib.system import ProgramLog
+
+#### Project imports
+
+## End Imports -----------------------------------------------------------------
 
 class DeviceClass:
     def __init__(self):
@@ -318,9 +344,9 @@ class DeviceClass:
         self.WriteStatus('NetStatus', netStatusDict)
     
     def SetMute(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('Mute', 'mute{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('Mute', 'unmute{}'.format(self.__lineEnding), value, qualifier)
     
     def __CallbackMute(self, match, tag):
@@ -331,7 +357,7 @@ class DeviceClass:
     def SetLiveLocal(self, value, qualifier):
         if value == 'live':
             self.__SetHelper('LiveLocal', 'live{}'.format(self.__lineEnding), value, qualifier)
-        elif type(value) == int and value >= 0 and value <= 7:
+        elif isinstance(value, int) and value >= 0 and value <= 7:
             self.__SetHelper('LiveLocal', 'local:{}{}'.format(value, self.__lineEnding), value, qualifier)
     
     def __CallbackLiveLocal(self, match, tag):
@@ -379,9 +405,9 @@ class DeviceClass:
         self.WriteStatus('SerialConfig', dataVal)
     
     def SetTx(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('Tx', 'txenable{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('Tx', 'txdisable{}'.format(self.__lineEnding), value, qualifier)
     
     def SetVidSource(self, value, qualifier):
@@ -412,7 +438,7 @@ class DeviceClass:
     
     def SetKVMMasterIP(self, value, qualifier):
         if qualifier is not None and 'VideoFollow' in qualifier:
-            if qualifier['VideoFollow'] == 1 or qualifier['VideoFollow'] == True or qualifier['VideoFollow'] == 'on':
+            if qualifier['VideoFollow'] == 1 or qualifier['VideoFollow'] is True or qualifier['VideoFollow'] == 'on':
                 qualifier['VideoFollow'] = 1
             else:
                 qualifier['VideoFollow'] = 0
@@ -442,9 +468,9 @@ class DeviceClass:
         self.WriteStatus('Volume', dataVal)
     
     def SetHDMIOutput(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('HDMIOutput', 'hdmiOn{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('HDMIOutput', 'hdmiOff{}'.format(self.__lineEnding), value, qualifier)
     
     def __CallbackHDMIOutput(self, match, tag):
@@ -460,9 +486,9 @@ class DeviceClass:
         self.WriteStatus('HDMIStatus', dataVal)
     
     def SetScaler(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('Scaler', 'scalerenable{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('Scaler', 'scalerdisable{}'.format(self.__lineEnding), value, qualifier)
     
     def __CallbackScaler(self, match, tag):
@@ -482,18 +508,18 @@ class DeviceClass:
         self.WriteStatus('ScalerMode', dataVal)
     
     def SetIRPassthrough(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('IRPassthrough', 'setSettings:irPassThroughEnable:on{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('IRPassthrough', 'setSettings:irPassThroughEnable:off{}'.format(self.__lineEnding), value, qualifier)
     
     def SetIRDestination(self, value, qualifier):
         self.__SetHelper('IRDestination', 'irClientIP:{}{}'.format(value, self.__lineEnding), value, qualifier)
     
     def SetVideoWall(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('VideoWall', 'setSettings:wallEnable:on{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('VideoWall', 'setSettings:wallEnable:off{}'.format(self.__lineEnding), value, qualifier)
     
     def __CallbackVideoWall(self, match, tag):
@@ -658,7 +684,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         if Parameter in qualifier:
                             Method[qualifier[Parameter]] = {}
                             Method = Method[qualifier[Parameter]]
@@ -680,7 +706,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         break
             if 'callback' in Method and Method['callback']:
                 Method['callback'](command, value, qualifier)  
@@ -706,7 +732,7 @@ class DeviceClass:
             if Status['Live'] != value:
                 Status['Live'] = value
                 self.NewStatus(command, value, qualifier)
-        except:
+        except Exception:
             Status['Live'] = value
             self.NewStatus(command, value, qualifier)
 
@@ -723,7 +749,7 @@ class DeviceClass:
                         return None
             try:
                 return Status['Live']
-            except:
+            except Exception:
                 return None
         else:
             raise KeyError('Invalid command for ReadStatus: ' + command)

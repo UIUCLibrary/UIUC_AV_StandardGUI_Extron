@@ -17,10 +17,10 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, List, Union
 if TYPE_CHECKING: # pragma: no cover
-    from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice, ExSPDevice
+    from extronlib.device import UIDevice
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice
 
 #### Python imports
 import json
@@ -29,8 +29,7 @@ import json
 from extronlib.system import File
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
-from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
+from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
 import modules.helper.ExtendedUIClasses.UISets
 from modules.helper.PrimitiveObjects import ControlObject
 from modules.helper.Collections import UIObjectCollection, ControlGroupCollection

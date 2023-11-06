@@ -18,7 +18,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Union, Callable
 from types import ModuleType
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet
@@ -31,7 +31,6 @@ import importlib.util
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 import control.AV
 
 ## End Imports -----------------------------------------------------------------
@@ -57,7 +56,7 @@ class Alias:
 
 class DictObj:
     def __init__(self, src_dict: dict):
-        if type(src_dict) is not dict:
+        if not isinstance(src_dict, dict):
             raise TypeError('DictObj src_dict must be of type dict')
         
         for key, val in src_dict.items():
@@ -120,9 +119,9 @@ class ControlObject():
         self.__LinkedCollection = None
         
         self.__FuncModule = self.__DefaultModule
-        if type(FuncModule) is ModuleType:
+        if isinstance(FuncModule, ModuleType):
             self.__FuncModule = FuncModule
-        elif type(FuncModule) is str:
+        elif isinstance(FuncModule, str):
             self.__FuncModule = importlib.import_module(FuncModule)
         
         funcDict = {}
@@ -136,12 +135,12 @@ class ControlObject():
         if HoldFunc is not None:
             funcDict['Hold'] = HoldFunc if callable(HoldFunc) else getattr(self.__FuncModule, HoldFunc)
             if HoldActiveState is not None:
-                if IconId is not None and type(IconId) is int:
+                if IconId is not None and isinstance(IconId, int):
                     holdDict['HoldActive'] = int('{}{}'.format(IconId, HoldActiveState))
                 else:
                     holdDict['HoldActive'] = HoldActiveState
             if HoldShiftState is not None:
-                if IconId is not None and type(IconId) is int:
+                if IconId is not None and isinstance(IconId, int):
                     holdDict['HoldShift'] = int('{}{}'.format(IconId, HoldShiftState))
                 else:
                     holdDict['HoldShift'] = HoldShiftState
@@ -159,7 +158,7 @@ class ControlObject():
         self.Latching = Latching
         self.HoldLatching = HoldLatching
         
-        if IconId is not None and type(IconId) is int:
+        if IconId is not None and isinstance(IconId, int):
             stateDict = {
                 'Shift': int('{}{}'.format(IconId, ShiftState)),
                 'Active': int('{}{}'.format(IconId, ActiveState)),

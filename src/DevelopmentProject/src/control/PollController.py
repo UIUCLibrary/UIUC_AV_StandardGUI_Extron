@@ -17,9 +17,8 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import DeviceCollection
     from uofi_gui import SystemController
 
 #### Extron Library Imports
@@ -52,17 +51,17 @@ class PollObject:
         
         self.Interface = self.Device.interface
         
-        if type(Command) is str:
+        if isinstance(Command, str):
             self.Command = Command
         else:
             raise TypeError('Command ({}) must be of type str'.format(type(Command)))
         
-        if type(Qualifier) is dict or Qualifier is None:
+        if isinstance(Qualifier, dict) or Qualifier is None:
             self.Qualifier = Qualifier
         else:
             raise TypeError('Qualifier ({}) must be either be of type dict or None'.format(type(Qualifier)))
         
-        if type(ActiveDuration) is int or ActiveDuration is None:
+        if isinstance(ActiveDuration, int) or ActiveDuration is None:
             if ActiveDuration is not None:
                 self.ActiveDuration = ActiveDuration
             else:
@@ -70,7 +69,7 @@ class PollObject:
         else:
             raise TypeError('ActiveDuration ({}) must be either of type int or None'.format(type(ActiveDuration)))
         
-        if type(InactiveDuration) is int or InactiveDuration is None:
+        if isinstance(InactiveDuration, int) or InactiveDuration is None:
             if InactiveDuration is not None:
                 self.InactiveDuration = InactiveDuration
             else:

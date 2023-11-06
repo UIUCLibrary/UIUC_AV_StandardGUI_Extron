@@ -14,7 +14,7 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
     pass
 

@@ -17,8 +17,8 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
-if TYPE_CHECKING: # pragma: no cover
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:                                                               # pragma: no cover
     pass
 
 #### Python imports
@@ -27,11 +27,20 @@ import json
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 from modules.helper.Collections import DeviceCollection
 from modules.helper.PrimitiveObjects import DictObj
 from Variables import PROJECT_FILE
-from ui.Feedback.Device import *
+from ui.Feedback.Device import (DSP_GainHandler,
+                                DSP_MuteHandler, 
+                                DSP_LevelHandler,
+                                DSP_PhantomHandler,
+                                Display_AudioMuteStatusHandler,
+                                Display_PowerStatusHandler,
+                                Display_VolumeStatusHandler,
+                                Mic_MuteHandler,
+                                WPD_StatusHandler,
+                                VMX_InputHandler,
+                                VMX_OutputHandler)
 # TODO: load this in a more secure way
 import secrets_devices
 

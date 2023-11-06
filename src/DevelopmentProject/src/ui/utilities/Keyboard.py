@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Tuple, Callable
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice
     from modules.helper.ExtendedUIClasses import ExButton
@@ -29,7 +29,6 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib.system import Timer
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger, DictValueSearchByKey, RunAsync, debug
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -117,7 +116,7 @@ class KeyboardController:
         if self.Shift:
             index = not index
         
-        return int(index == True)
+        return int(index is True)
     
     def __CursorString(self, cursorInd = 0):
         return self.Text[:self.__Pos] + self.__Cursor[cursorInd] + self.Text[self.__Pos:]

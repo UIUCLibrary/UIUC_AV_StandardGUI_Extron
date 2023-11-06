@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice
     from modules.helper.ExtendedUIClasses import ExButton
@@ -34,7 +34,7 @@ from extronlib import event
 
 #### Project imports
 from modules.helper.PrimitiveObjects import DictObj
-from modules.helper.CommonUtilities import Logger, TimeIntToStr
+from modules.helper.CommonUtilities import TimeIntToStr
 from modules.helper.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
 from Constants import ActivityMode, SystemState
@@ -224,7 +224,7 @@ def CloseTechPages(button: 'ExButton', action: str) -> None:
         uiDev.ShowPage('Main')
         
 def TechPageMenuNav(button: 'ExButton', action: str) -> None:
-    uiDev = button.UIHost
+    # uiDev = button.UIHost
     uiSet = button.Group
     
     newOff = uiSet.Offset + button.Offset

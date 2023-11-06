@@ -16,18 +16,15 @@
 
 
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
     from uofi_gui.uiObjects import ExUIDevice
     from modules.project.SystemHardware import SystemHardwareController
 
 from urllib import request, error, parse
 import ssl
-import re
-import base64
 import json
-from extronlib.system import Wait, ProgramLog
+from extronlib.system import ProgramLog
 import traceback
 
 import modules.helper.CommonUtilities as UtilityFunctions
@@ -40,7 +37,7 @@ def PodFeedbackHelper(touchpanel: 'ExUIDevice', hardware: str, blank_on_fail = T
     
     podHW = None
     
-    if type(hardware) is str:
+    if isinstance(hardware, str):
         # utilityFunctions.Log('Hardware ID String Submitted - {}'.format(hardware))
         podHW = touchpanel.GUIHost.Hardware.get(hardware, None)
     elif type(hardware) is SystemHardwareController:
@@ -192,7 +189,7 @@ class DeviceClass:
         
         if data is None:
             data = {}
-        elif type(data) is not type({}):
+        elif not isinstance(data, dict):
             self.Error(['Data must be a dictionary object'])
         
         if self.authentication is not None:
@@ -219,7 +216,7 @@ class DeviceClass:
         except error.URLError as err:  # received if can't reach the server (times out)
             self.Error(['{0} {1}'.format(command, err.reason)])
             res = ''
-        except Exception as err:  # includes HTTP status code 100 and any invalid status code
+        except Exception:  # includes HTTP status code 100 and any invalid status code
             res = ''
         else:
             if res.status not in (200, 202):
@@ -245,7 +242,7 @@ class DeviceClass:
         
         if data is None:
             data = {}
-        elif type(data) is not type({}):
+        elif not isinstance(data, dict):
             self.Error(['Data must be a dictionary object'])
         
         if self.authentication is not None:
@@ -272,7 +269,7 @@ class DeviceClass:
         except error.URLError as err:  # received if can't reach the server (times out)
             self.Error(['{0} {1}'.format(command, err.reason)])
             res = ''
-        except Exception as err:  # includes HTTP status code 100 and any invalid status code
+        except Exception:  # includes HTTP status code 100 and any invalid status code
             res = ''
         else:
             if res.status not in (200, 202):
@@ -328,7 +325,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         if Parameter in qualifier:
                             Method[qualifier[Parameter]] = {}
                             Method = Method[qualifier[Parameter]]
@@ -350,7 +347,7 @@ class DeviceClass:
                 for Parameter in Command['Parameters']:
                     try:
                         Method = Method[qualifier[Parameter]]
-                    except:
+                    except Exception:
                         break
             if 'callback' in Method and Method['callback']:
                 Method['callback'](command, value, qualifier)  
@@ -376,7 +373,7 @@ class DeviceClass:
             if Status['Live'] != value:
                 Status['Live'] = value
                 self.NewStatus(command, value, qualifier)
-        except:
+        except Exception:
             Status['Live'] = value
             self.NewStatus(command, value, qualifier)
 
@@ -393,7 +390,7 @@ class DeviceClass:
                         return None
             try:
                 return Status['Live']
-            except:
+            except Exception:
                 return None
         else:
             raise KeyError('Invalid command for ReadStatus: ' + command)

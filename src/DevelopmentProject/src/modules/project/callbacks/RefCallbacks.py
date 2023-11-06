@@ -17,19 +17,16 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice
 
 #### Python imports
-import json
 
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
 import System
-import Variables
 import modules.project.callbacks.PopupCallbacks
 
 ## End Imports -----------------------------------------------------------------

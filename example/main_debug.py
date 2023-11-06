@@ -25,7 +25,7 @@ sys.path.insert(0, "/var/nortxe/uf/admin/modules/")
 
 # Import GUIController
 from uofi_gui import SystemController
-from DevelopmentProject.src.modules.helper.UtilityFunctions import debug
+from modules.helper.UtilityFunctions import debug
 
 # System configuration modules (GS Modules)
 import settings

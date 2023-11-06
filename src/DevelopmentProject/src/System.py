@@ -12,18 +12,22 @@ Examples of items in the system file:
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     pass
 
 #### Python imports
 
 #### Extron Library Imports
+from extronlib import Platform, Version
 
 #### Project imports
+from modules.helper.CommonUtilities import Logger
 from modules.project.SystemHost import SystemController
 import Devices
 
 ## End Imports -----------------------------------------------------------------
+
+Logger.Log('ControlScript', Platform(), Version(), separator=' - ')
 
 CONTROLLER = SystemController(Devices.ControlDevices, Devices.SystemDevices)
