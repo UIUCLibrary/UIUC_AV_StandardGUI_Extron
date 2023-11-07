@@ -3,8 +3,10 @@ The variables file is for data that will be used throughout the project.  This c
 dynamic data.  After being initial loaded by main.py, it can be imported and used in any module
 throughout the system.
 """
-
+import sys
+UNIT_TESTING = ('unittest' in sys.modules.keys())
 TESTING = True
+
 
 ## PROJECT CONSTANTS -----------------------------------------------------------
 ##     Edit values below to configure the project

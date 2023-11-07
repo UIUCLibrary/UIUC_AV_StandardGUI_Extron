@@ -29,7 +29,7 @@ if TYPE_CHECKING: # pragma: no cover
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExEBUSDevice
-from modules.helper.Collections import UIDeviceCollection
+from modules.helper.Collections import UIDeviceCollection, ProcessorCollection
 from modules.helper.PrimitiveObjects import DictObj
 from modules.helper.ModuleSupport import WatchVariable
 from control.ActivityController import ActivityController
@@ -101,7 +101,7 @@ class SystemController:
         self.__SystemStateTransition = False
 
         ## Processor Definition ------------------------------------------------
-        self.Processors = []
+        self.Processors = ProcessorCollection()
         for p in processors:
             self.Processors.append(ExProcessorDevice(p.alias, p.part_number))
 

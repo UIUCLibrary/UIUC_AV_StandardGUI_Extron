@@ -23,11 +23,12 @@ if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel
 
 #### Python imports
+from subprocess import Popen, PIPE
 import math
+import datetime
 
 #### Extron Library Imports
 from extronlib.system import MESet
-# from extronlib.ui import Button, Level, Label
 
 #### Project imports
 import System
@@ -35,6 +36,7 @@ from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
 from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys
 from modules.helper.ModuleSupport import eventEx
 from Constants import SystemState
+from Variables import UNIT_TESTING
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -606,31 +608,31 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
-        if type(VolUp).__name__ in ['ExButton']:
+        if isinstanceEx(VolUp, 'ExButton'):
             self.VolUpBtn = VolUp
             self.VolUpBtn.Group = self
         else:
             raise TypeError("VolUp must be an Extron Button object")
         
-        if type(VolDown).__name__ in ['ExButton']:
+        if isinstanceEx(VolDown, 'ExButton'):
             self.VolDownBtn = VolDown
             self.VolDownBtn.Group = self
         else:
             raise TypeError("VolDown must be an Extron Button object")
         
-        if type(Mute).__name__ in ['ExButton']:
+        if isinstanceEx(Mute, 'ExButton'):
             self.MuteBtn = Mute
             self.MuteBtn.Group = self
         else:
             raise TypeError("Mute must be an Extron Button object")
         
-        if type(Feedback).__name__ in ['ExLevel']:
+        if isinstanceEx(Feedback, 'ExLevel'):
             self.FeedbackLvl = Feedback
             self.FeedbackLvl.Group = self
         else:
             raise TypeError("Feedback must be an Extron Level object")
         
-        if type(ControlLabel).__name__ in ['ExLabel'] or ControlLabel is None:
+        if isinstanceEx(ControlLabel, 'ExLabel') or ControlLabel is None:
             self.ControlLbl = ControlLabel
             self.ControlLbl.Group = self
         else:
@@ -743,9 +745,16 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
         UISetMixin.__init__(self, Name)
         
         self.__BtnSet = SelectSet('{}-Objects'.format(self.Name), Objects)
+        self.__BtnSet.Group = self
+        
         self.__BackspaceBtn = BackspaceButton
         self.__CancelBtn = CancelButton
+        
+        for btn in self.UIControls.values():
+            btn.Group = self
+        
         self.__TextArea = TextAreaLabel
+        self.__TextArea.Group = self
         
     def __repr__(self) -> str:
         return "PINPadControlGroup {}".format(self.Name)
@@ -793,6 +802,8 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
         UISetMixin.__init__(self, Name)
         
         self.__BtnSet = SelectSet('{}-Objects'.format(self.Name), Objects)
+        self.__BtnSet.Group = self
+        
         self.__BackspaceBtn = BackspaceButton
         self.__DeleteBtn = DeleteButton
         self.__CancelBtn = CancelButton
@@ -803,7 +814,11 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
         self.__CursorLeftBtn = CursorLeftButton
         self.__CursorRightBtn = CursorRightButton
         
+        for btn in self.UIControls.values():
+            btn.Group = self
+        
         self.__TextArea = TextAreaLabel
+        self.__TextArea.Group = self
         
     def __repr__(self) -> str:
         return "KeyboardControlGroup {}".format(self.Name)
@@ -855,6 +870,7 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
         
         self.__Objects = Objects
         self.__Objects.sort(key=SortKeys.StatusSort)
+            
         self.__ObjectLabels = ObjectLabels
         self.__ObjectLabels.sort(key=SortKeys.StatusSort)
         
@@ -862,13 +878,22 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
             index = self.__Objects.index(obj)
             obj.Label = self.__ObjectLabels[index]
             obj.Group = self
+            
+        for lbl in self.__ObjectLabels:
+            lbl.Group = self
         
         self.__PrevBtn = PreviousButton
         self.__NextBtn = NextButton
         
+        for lbl in self.UIControls.values():
+            lbl.Group = self
+        
         self.__CurrentPageLbl = CurrentPageLabel
+        self.__CurrentPageLbl.Group = self
         self.__TotalPageLbl = TotalPageLabel
+        self.__TotalPageLbl.Group = self
         self.__Divider = DividerLabel
+        self.__Divider.Group = self
         
     @property
     def Objects(self) -> List['ExButton']:
@@ -904,7 +929,125 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
         self.__CurrentPageLbl.SetVisible(True)
         self.__TotalPageLbl.SetVisible(True)
         self.__Divider.SetVisible(True)
-    
+
+class AboutPageGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self,
+                 Name: str,
+                 CopyrightLabel: 'ExLabel',
+                 ModelLabel: 'ExLabel',
+                 SNLabel: 'ExLabel',
+                 MACLabel: 'ExLabel',
+                 HostLabel: 'ExLabel',
+                 IPLabel: 'ExLabel',
+                 FWLabel: 'ExLabel',
+                 ProgLabel: 'ExLabel',
+                 VersionLabel: 'ExLabel',
+                 AuthorLabel: 'ExLabel',
+                 DiskLabel: 'ExLabel',
+                 CPULabel: 'ExLabel',
+                 RAMLabel: 'ExLabel') -> None:
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__Copyright = CopyrightLabel
+        self.__Copyright.SetText('Copyright © {} The Board of Trustees of the University of Illinois'.format(datetime.datetime.now().year))
+        self.__Copyright.Group = self
+        
+        self.__Model = ModelLabel
+        self.__Model.Group = self
+        
+        self.__SN = SNLabel
+        self.__SN.Group = self
+        
+        self.__MAC = MACLabel
+        self.__MAC.Group = self
+        
+        self.__Host = HostLabel
+        self.__Host.Group = self
+        
+        self.__IP = IPLabel
+        self.__IP.Group = self
+        
+        self.__FW = FWLabel
+        self.__FW.Group = self
+        
+        self.__Prog = ProgLabel
+        self.__Prog.Group = self
+        
+        self.__Vers = VersionLabel
+        self.__Vers.Group = self
+        
+        self.__Auth = AuthorLabel
+        self.__Auth.Group = self
+        
+        self.__Disk = DiskLabel
+        self.__Disk.Group = self
+        
+        self.__CPU = CPULabel
+        self.__CPU.Group = self
+        
+        self.__RAM = RAMLabel
+        self.__RAM.Group = self
+        
+    def SetModel(self, ModelName: str = None, ModelNumber: str = None) -> None:
+        if ModelName is None and ModelNumber is None:
+            raise ValueError('Either ModelName or ModelNumber must be provided')
+        
+        string = ''
+        if ModelName is None:
+            string = ModelNumber
+        elif ModelNumber is None:
+            string = ModelName
+        else:
+            string = "{} | {}".format(ModelName, ModelNumber)
+            
+        self.__Model.SetText(string)
+        
+    def SetDeviceInfo(self, SerialNumber: str, MAC: str, Hostname: str, IP: str, FW: str) -> None:
+        self.__SN.SetText(SerialNumber)
+        self.__MAC.SetText(MAC)
+        self.__Host.SetText(Hostname)
+        self.__IP.SetText(IP)
+        self.__FW.SetText(FW)
+        
+    def SetProgramInfo(self, FileLoaded: str, SoftwareVersion: str, Author: str, **kwargs) -> None:
+        self.__Prog.SetText(FileLoaded)
+        self.__Vers.SetText(SoftwareVersion)
+        self.__Auth.SetText(Author)
+        
+    def RefreshStatusInfo(self) -> None:
+        ## Get Disk Info
+        used = math.floor(System.CONTROLLER.Processors[0].UserUsage[0]/1024)
+        total = math.floor(System.CONTROLLER.Processors[0].UserUsage[1]/1024)
+        self.__Disk.SetText('{}/{} MB'.format(used, total))
+        
+        # Get CPU Info
+        if UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
+            cpuUsage = 42.17
+        else:
+            sub = Popen(('grep', 'cpu', '/proc/stat'), stdout=PIPE, stderr=PIPE)
+            cpuData = str(sub.communicate()[0], 'UTF-8')
+            top_vals = [int(val) for val in cpuData.split('\n')[0].split()[1:5]]
+            cpuUsage = round((top_vals[0] + top_vals[2]) * 100. /(top_vals[0] + top_vals[2] + top_vals[3]), 2)
+            
+        self.__CPU.SetText('{}%'.format(cpuUsage))
+        
+        # Get Memory Info
+        if UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
+            memTuple = (20, 25, 45)
+        else:
+            filepath = "/proc/meminfo"
+            meminfo = dict(
+                (i.split()[0].rstrip(":"), int(i.split()[1]))
+                for i in open(filepath).readlines()
+            )
+            memTotalMB = round(meminfo["MemTotal"] / (2 ** 10), 2)
+            memFreeMB = round(meminfo["MemFree"] / (2 ** 10), 2)
+            memUsedMB = round(((meminfo["MemTotal"] - meminfo["MemFree"]) / (2 ** 10)), 2)
+            memTuple = (memUsedMB, memFreeMB, memTotalMB)
+            
+        self.__RAM.SetText('{} MB used; {} MB free;\n{} MB total'.format(*memTuple))
+
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------

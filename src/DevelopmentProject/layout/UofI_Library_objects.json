@@ -2375,6 +2375,10 @@
       "ID": 10161
     },
     {
+      "Name": "Tech-About-Copyright",
+      "ID": 10170
+    },
+    {
       "Name": "ProcInfoLabel-Model",
       "ID": 10171
     },
@@ -2855,6 +2859,25 @@
         "CurrentPageLabel": "DeviceStatusPage-Current",
         "TotalPageLabel": "DeviceStatusPage-Total",
         "DividerLabel": "PaginationSlash"
+      }
+    },
+    {
+      "Name": "Tech-About-Group",
+      "Class": "AboutPageGroup",
+      "Labels": {
+        "CopyrightLabel": "Tech-About-Copyright",
+        "ModelLabel": "ProcInfoLabel-Model",
+        "SNLabel": "ProcInfoLabel-Serial",
+        "MACLabel": "ProcInfoLabel-MAC",
+        "HostLabel": "ProcInfoLabel-Host",
+        "IPLabel": "ProcInfoLabel-IP",
+        "FWLabel": "ProcInfoLabel-FW",
+        "ProgLabel": "ProcStatusLabel-File",
+        "VersionLabel": "ProcStatusLabel-Version",
+        "AuthorLabel": "ProcStatusLabel-Author",
+        "DiskLabel": "ProcStatusLabel-Storage",
+        "CPULabel": "ProcStatusLabel-CPU",
+        "RAMLabel": "ProcStatusLabel-Memory"
       }
     }
   ],

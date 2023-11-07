@@ -40,6 +40,7 @@ from modules.helper.PrimitiveObjects import Alias, classproperty
 from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.TouchPanel.SystemStatus import SystemStatusController
+from ui.interface.TouchPanel.PanelAbout import PanelAboutController
 from ui.utilities.Keyboard import KeyboardController
 from ui.utilities.PinPad import PINController
 
@@ -160,6 +161,7 @@ class ExUIDevice(UIDevice):
             self.PINAccess = PINController(self, self.Interface.Objects.ControlGroups['PIN-Countrol-Group'])
             self.Keyboard = KeyboardController(self, self.Interface.Objects.ControlGroups['Keyboard-Control-Group'])
             self.SystemStatusCtl = SystemStatusController(self, self.Interface.Objects.ControlGroups['SystemStatus-Control-Group'])
+            self.AboutPageCtl = PanelAboutController(self, self.Interface.Objects.ControlGroups['Tech-About-Group'])
         
         ## set Room Label to system Room Name
         RoomLabelBtn = self.Interface.Objects.Buttons['Room-Label']

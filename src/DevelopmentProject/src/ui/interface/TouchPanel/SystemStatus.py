@@ -63,7 +63,6 @@ class SystemStatusController:
         
         @eventEx(self.UIHost.PopupShown, 'Changed')
         def PageShownHandler(src, value) -> None:
-            Logger.Log("Popup Shown Handler (System Status)", src, value, separator=' | ')
             if value == 'Tech-SystemStatus':
                 Logger.Log('Status Page Shown')
                 self.UpdateStatusIcons()
