@@ -43,6 +43,7 @@ from ui.interface.TouchPanel.SystemStatus import SystemStatusController
 from ui.interface.TouchPanel.PanelAbout import PanelAboutController
 from ui.utilities.Keyboard import KeyboardController
 from ui.utilities.PinPad import PINController
+from Constants import SystemState
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -134,9 +135,18 @@ class ExUIDevice(UIDevice):
         }
         
         self.__PopupWaits = {}
+        self.__Page = None
     
     def __repr__(self) -> str:
         return 'ExUIDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
+        
+    @property
+    def Page(self) -> str:
+        return self.__Page
+    
+    @Page.setter
+    def Page(self, val) -> None:
+        raise AttributeError('Setting Page is disallowed. Use SetPage to set a UI page.')
         
     @classproperty
     def validation_part_list(cls) -> list:
@@ -212,13 +222,17 @@ class ExUIDevice(UIDevice):
             self.HidePopup(popover)
             
     def __TechPageInactivityHandler(self) -> None:
-        # if self.UIHost.TechCtl.TechMenuOpen:
-        #     self.UIHost.TechCtl.CloseTechMenu()
-        pass
+        if self.Page == 'Tech':
+            if System.CONTROLLER.SystemState is SystemState.Standby:
+                self.ShowPage('Start')
+            else:
+                self.ShowPage('Main')
     
     def ShowPage(self, page: Union[int, str]) -> None:
         if isinstance(page, int):
             page = self._pages[str(page)]
+        
+        self.__Page = page
         
         self.PageChanged.Change(page)
         UIDevice.ShowPage(self, page)
