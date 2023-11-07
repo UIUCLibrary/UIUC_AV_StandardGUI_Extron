@@ -398,6 +398,12 @@ class TouchPanelObjects():
                     ## get button objects from Dict and add to list
                     kwargs['Objects'].append(self.Buttons[btn])
             
+            if 'ButtonLabels' in group.keys():
+                kwargs['ObjectLabels'] = []
+                for lbl in group['ButtonLabels']:
+                    # get label objects from Dict and add to list
+                    kwargs['ObjectLabels'].append(self.Labels[lbl])
+            
             if 'PopupCallback' in group.keys():
                 PopupCBModule = modules.project.callbacks.PopupCallbacks
                 PopupCB = getattr(PopupCBModule, group['PopupCallback'])

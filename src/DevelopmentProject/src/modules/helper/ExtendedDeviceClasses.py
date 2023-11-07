@@ -19,23 +19,29 @@
 
 #### Type Checking
 from typing import TYPE_CHECKING, List, Union
+
 if TYPE_CHECKING: # pragma: no cover
     pass
 
-#### Python imports
+#### Python Imports
+import functools
 
 #### Extron Library Imports
 from extronlib import event
-from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
+from extronlib.device import ProcessorDevice, SPDevice, UIDevice, eBUSDevice
 from extronlib.system import Wait
 
-#### Project imports
-from ui.interface.TouchPanel import TouchPanelInterface
-from ui.interface.ButtonPanel import ButtonPanelInterface
-from ui.utilities.PinPad import PINController
-from ui.utilities.Keyboard import KeyboardController
-from modules.helper.PrimitiveObjects import Alias, classproperty
+#### Project Imports
 import System
+
+from modules.helper.CommonUtilities import Logger
+from modules.helper.ModuleSupport import WatchVariable
+from modules.helper.PrimitiveObjects import Alias, classproperty
+from ui.interface.ButtonPanel import ButtonPanelInterface
+from ui.interface.TouchPanel import TouchPanelInterface
+from ui.interface.TouchPanel.SystemStatus import SystemStatusController
+from ui.utilities.Keyboard import KeyboardController
+from ui.utilities.PinPad import PINController
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -96,6 +102,8 @@ class ExUIDevice(UIDevice):
         self.Name = Name
         self.WebControlId = WebControlId
         self.PINAccess = None
+        self.Keyboard = None
+        self.SystemStatusCtl = None
         
         self.Initialized = False
         
@@ -107,11 +115,15 @@ class ExUIDevice(UIDevice):
         if self.PartNumber in self.tp_part_list:
             self.Class = 'TouchPanel'
             self.Interface = TouchPanelInterface(self, self.UI)
+            self.PageChanged = WatchVariable('GUI Page')
+            self.PopupShown = WatchVariable('Popup Shown')
+            self.PopupHidden = WatchVariable('Popup Hidden')
         elif self.PartNumber in self.bp_part_list:
             self.Class = 'ButtonPanel'
             self.Interface = ButtonPanelInterface(self, self.UI)
         else:
             self.Class = 'Unknown'
+            self.Interface = None
             
         self.BlinkLights(Rate='Slow', StateList=['Red', 'Off'])
         
@@ -119,6 +131,8 @@ class ExUIDevice(UIDevice):
             180: self.__PopoverInactivityHandler,
             300: self.__TechPageInactivityHandler
         }
+        
+        self.__PopupWaits = {}
     
     def __repr__(self) -> str:
         return 'ExUIDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
@@ -141,10 +155,11 @@ class ExUIDevice(UIDevice):
         ## show control group popups
         self.Interface.Objects.ControlGroups.ShowPopups()
         
-        ## initialize PIN Controllers
+        ## initialize SubControllers
         if self.Class == 'TouchPanel':
             self.PINAccess = PINController(self, self.Interface.Objects.ControlGroups['PIN-Countrol-Group'])
             self.Keyboard = KeyboardController(self, self.Interface.Objects.ControlGroups['Keyboard-Control-Group'])
+            self.SystemStatusCtl = SystemStatusController(self, self.Interface.Objects.ControlGroups['SystemStatus-Control-Group'])
         
         ## set Room Label to system Room Name
         RoomLabelBtn = self.Interface.Objects.Buttons['Room-Label']
@@ -200,6 +215,57 @@ class ExUIDevice(UIDevice):
         # if self.UIHost.TechCtl.TechMenuOpen:
         #     self.UIHost.TechCtl.CloseTechMenu()
         pass
+    
+    def ShowPage(self, page: Union[int, str]) -> None:
+        if isinstance(page, int):
+            page = self._pages[str(page)]
+        
+        self.PageChanged.Change(page)
+        UIDevice.ShowPage(self, page)
+        
+    def ShowPopup(self, page: Union[int, str], duration: float = 0) -> None:
+        Logger.Log('Popup Shown:', page, duration)
+        if isinstance(page, int):
+            page = self._popups[str(page)]['name']
+        
+        self.PopupShown.Change(page)
+        if duration > 0:
+            closefunc = functools.partial(self.PopupHidden.Change, page)
+            closefunc.__name__ = "Wait-{}".format(page)
+            self.__PopupWaits[page] = Wait(duration, closefunc)
+        UIDevice.ShowPopup(self, page, duration)
+        
+    def HidePopup(self, popup: Union[int, str]) -> None:
+        Logger.Log('Hide Popup:', popup)
+        if isinstance(popup, int):
+            popup = self._popups[str(popup)]['name']
+            
+        if self.__PopupWaits.get(popup) is not None:
+            self.__PopupWaits[popup].Cancel()
+            self.__PopupWaits.pop(popup)
+        
+        self.PopupHidden.Change(popup)
+        UIDevice.HidePopup(self, popup)
+        
+    def HidePopupGroup(self, group: int) -> None:
+        Logger.Log('Hide Popup Group:', group)
+        popupList = [popup['name'] for popup in [self._popups.values()] if popup['group'] == group]
+        for popup in popupList:
+            self.PopupHidden.Change(popup)
+            if self.__PopupWaits.get(popup) is not None:
+                self.__PopupWaits[popup].Cancel()
+                self.__PopupWaits.pop(popup)
+        UIDevice.HidePopupGroup(self, group)
+        
+    def HideAllPopups(self) -> None:
+        Logger.Log('Hide All Popups')
+        for popup in self._popups.values():
+            self.PopupHidden.Change(popup['name'])
+        for wait in self.__PopupWaits.values():
+            wait.Cancel()
+        self.__PopupWaits = {}
+        UIDevice.HideAllPopups(self)
+
 
 class ExSPDevice(SPDevice):
     def __init__(self, DeviceAlias: str, PartNumber: str = None) -> None:

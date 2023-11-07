@@ -735,13 +735,15 @@
       "Name": "DeviceStatus-PageDown",
       "ID": 12106,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": -1
     },
     {
       "Name": "DeviceStatus-PageUp",
       "ID": 12107,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": 1
     },
     {
       "Name": "Tech-Display-proj-1-On",
@@ -2806,6 +2808,53 @@
       },
       "Labels": {
         "TextAreaLabel": "KB-Editor"
+      }
+    },
+    {
+      "Name": "SystemStatus-Control-Group",
+      "Class": "SystemStatusControlGroup",
+      "Buttons": [
+        "DeviceStatusIcon-1",
+        "DeviceStatusIcon-2",
+        "DeviceStatusIcon-3",
+        "DeviceStatusIcon-4",
+        "DeviceStatusIcon-5",
+        "DeviceStatusIcon-6",
+        "DeviceStatusIcon-7",
+        "DeviceStatusIcon-8",
+        "DeviceStatusIcon-9",
+        "DeviceStatusIcon-10",
+        "DeviceStatusIcon-11",
+        "DeviceStatusIcon-12",
+        "DeviceStatusIcon-13",
+        "DeviceStatusIcon-14",
+        "DeviceStatusIcon-15"
+      ],
+      "ButtonLabels": [
+        "DeviceStatusLabel-1",
+        "DeviceStatusLabel-2",
+        "DeviceStatusLabel-3",
+        "DeviceStatusLabel-4",
+        "DeviceStatusLabel-5",
+        "DeviceStatusLabel-6",
+        "DeviceStatusLabel-7",
+        "DeviceStatusLabel-8",
+        "DeviceStatusLabel-9",
+        "DeviceStatusLabel-10",
+        "DeviceStatusLabel-11",
+        "DeviceStatusLabel-12",
+        "DeviceStatusLabel-13",
+        "DeviceStatusLabel-14",
+        "DeviceStatusLabel-15"
+      ],
+      "Controls": {
+        "PreviousButton": "DeviceStatus-PageDown",
+        "NextButton": "DeviceStatus-PageUp"
+      },
+      "Labels": {
+        "CurrentPageLabel": "DeviceStatusPage-Current",
+        "TotalPageLabel": "DeviceStatusPage-Total",
+        "DividerLabel": "PaginationSlash"
       }
     }
   ],

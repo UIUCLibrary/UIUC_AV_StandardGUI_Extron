@@ -32,7 +32,7 @@ from extronlib.system import MESet
 #### Project imports
 import System
 from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
-from modules.helper.CommonUtilities import Logger, isinstanceEx
+from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys
 from modules.helper.ModuleSupport import eventEx
 from Constants import SystemState
 
@@ -155,7 +155,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
-    
+
 class SelectSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
@@ -278,7 +278,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
         elif obj is not None:
             raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
-    
+
 class VariableRadioSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
@@ -650,8 +650,7 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
             
     def __repr__(self) -> str:
         return "VolumeControlSet {}".format(self.Name)
-    
-        
+
 class HeaderControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name, 
@@ -841,6 +840,71 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
     def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
         self.__BtnSet.SetStates(obj, offState, onState)
         
+class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self,
+                 Name: str,
+                 Objects: List['ExButton'],
+                 ObjectLabels: List['ExLabel'],
+                 PreviousButton: 'ExButton',
+                 NextButton: 'ExButton',
+                 CurrentPageLabel: 'ExLabel',
+                 TotalPageLabel: 'ExLabel',
+                 DividerLabel: 'ExLabel') -> None:
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__Objects = Objects
+        self.__Objects.sort(key=SortKeys.StatusSort)
+        self.__ObjectLabels = ObjectLabels
+        self.__ObjectLabels.sort(key=SortKeys.StatusSort)
+        
+        for obj in self.__Objects:
+            index = self.__Objects.index(obj)
+            obj.Label = self.__ObjectLabels[index]
+            obj.Group = self
+        
+        self.__PrevBtn = PreviousButton
+        self.__NextBtn = NextButton
+        
+        self.__CurrentPageLbl = CurrentPageLabel
+        self.__TotalPageLbl = TotalPageLabel
+        self.__Divider = DividerLabel
+        
+    @property
+    def Objects(self) -> List['ExButton']:
+        return self.__Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'Previous': self.__PrevBtn,
+            'Next': self.__NextBtn
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    def SetTotalPages(self, pages: int) -> None:
+        self.__TotalPageLbl.SetText(str(pages))
+        
+    def SetCurrentPage(self, page: int) -> None:
+        self.__CurrentPageLbl.SetText(str(page))
+        
+    def HidePagination(self) -> None:
+        self.__CurrentPageLbl.SetVisible(False)
+        self.__TotalPageLbl.SetVisible(False)
+        self.__Divider.SetVisible(False)
+    
+    def ShowPagination(self) -> None:
+        self.__CurrentPageLbl.SetVisible(True)
+        self.__TotalPageLbl.SetVisible(True)
+        self.__Divider.SetVisible(True)
+    
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------

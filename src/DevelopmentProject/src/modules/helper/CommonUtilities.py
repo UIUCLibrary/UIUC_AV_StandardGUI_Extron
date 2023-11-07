@@ -260,7 +260,7 @@ def isinstanceEx(Object: Any, Type: Union[str, type, Tuple[Union[str, type]]]) -
     elif isinstance(Type, tuple):
         rtnBool = False
         for t in Type:
-            if isinstance(t, str) and type(Object).__name__ == Type:
+            if isinstance(t, str) and type(Object).__name__ == t:
                 rtnBool = True
             elif isinstance(t, type) and isinstance(Object, t):
                 rtnBool = True

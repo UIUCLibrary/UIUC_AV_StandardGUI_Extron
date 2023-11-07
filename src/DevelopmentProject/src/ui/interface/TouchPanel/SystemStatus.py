@@ -18,104 +18,95 @@
 
 #### Type Checking
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui.uiObjects import ExUIDevice
-    from extronlib.ui import Button
+    from modules.helper.ExtendedUIClasses import ExButton
+    from modules.helper.ExtendedDeviceClasses import ExUIDevice
+    from modules.helper.ExtendedUIClasses.UISets import SystemStatusControlGroup
+    from modules.project.SystemHardware import SystemHardwareController
 
 #### Python Imports
-from datetime import datetime
 import math
+from datetime import datetime
 
-#### Exron Library Imports
-from extronlib import event
+#### Extron Library Imports
 from extronlib.system import Timer
 
 #### Project Imports
-from modules.helper.CommonUtilities import DictValueSearchByKey, SortKeys
+import System
+
+from modules.helper.CommonUtilities import Logger, SortKeys
+from modules.helper.ModuleSupport import eventEx
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
 class SystemStatusController:
-    def __init__(self, UIHost: 'ExUIDevice') -> None:
+    def __init__(self, UIHost: 'ExUIDevice', ControlGroup: 'SystemStatusControlGroup') -> None:
 
         self.UIHost = UIHost
-        self.GUIHost = self.UIHost.GUIHost
-        self.Hardware = list(self.GUIHost.Hardware.values())
-        self.Hardware.sort(key=SortKeys.HardwareSort)
         
-        self.__StatusIcons = DictValueSearchByKey(self.UIHost.Btns, r'DeviceStatusIcon-\d+', regex=True)
-        self.__StatusIcons.sort(key=SortKeys.StatusSort)
-        self.__StatusLabels = DictValueSearchByKey(self.UIHost.Lbls, r'DeviceStatusLabel-\d+', regex=True)
-        self.__StatusLabels.sort(key=SortKeys.StatusSort)
-        self.__Arrows = \
-            {
-                'prev': self.UIHost.Btns['DeviceStatus-PageDown'],
-                'next': self.UIHost.Btns['DeviceStatus-PageUp']
-            }
-        self.__PageLabels = \
-            {
-                'current': self.UIHost.Lbls['DeviceStatusPage-Current'],
-                'total': self.UIHost.Lbls['DeviceStatusPage-Total'],
-                'div': self.UIHost.Lbls['PaginationSlash']
-            }
+        self.Devices = list(System.CONTROLLER.Devices.values())
+        self.Devices.sort(key=SortKeys.HardwareSort)
+        
+        self.__ControlGroup = ControlGroup
         
         self.__CurrentPageIndex = 0
         
-        self.UpdateTimer = Timer(15, self.__UpdateHandler)
+        self.UpdateTimer = Timer(15, self.UpdateStatusIcons)
         self.UpdateTimer.Stop()
         
         self.__ClearStatusIcons()
             
         self.__UpdatePagination()
         
-        @event(list(self.__Arrows.values()), ['Pressed','Released']) # pragma: no cover
-        def paginationHandler(button: 'Button', action: str):
-            self.__PaginationHandler(button, action)
+        @eventEx(self.UIHost.PopupShown, 'Changed')
+        def PageShownHandler(src, value) -> None:
+            Logger.Log("Popup Shown Handler (System Status)", src, value, separator=' | ')
+            if value == 'Tech-SystemStatus':
+                Logger.Log('Status Page Shown')
+                self.UpdateStatusIcons()
+                self.UpdateTimer.Restart()
+                self.ResetPages()
+                
+        @eventEx(self.UIHost.PopupHidden, 'Changed')
+        def PageHiddenHandler(src, value) -> None:
+            if value == 'Tech-SystemStatus':
+                Logger.Log('Status Page Hidden')
+                self.UpdateTimer.Stop()
     
     @property
-    def __HardwareCount(self) -> int:
-        return len(self.Hardware)
+    def __DeviceCount(self) -> int:
+        return len(self.Devices)
     
     @property
     def __DisplayPages(self) -> int:
-        return math.ceil(self.__HardwareCount / 15)
+        return math.ceil(self.__DeviceCount / 15)
     
     # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    def __PaginationHandler(self, button: 'Button', action: str):
-        if action == 'Pressed':
-            button.SetState(1)
-        elif action == 'Released':
-            button.SetState(0)
-            if button.Name.endswith('Up'):
-                # do page up
-                self.__CurrentPageIndex += 1
-                if self.__CurrentPageIndex >= self.__DisplayPages:
-                    self.__CurrentPageIndex = self.__DisplayPages
-            elif button.Name.endswith('Down'):
-                # do page down
-                self.__CurrentPageIndex -= 1
-                if self.__CurrentPageIndex < 0:
-                    self.__CurrentPageIndex = 0
+    def PaginationHandler(self, Offset: int):
+        # do page index change
+        self.__CurrentPageIndex += Offset
+        
+        # prevent overruns
+        if self.__CurrentPageIndex >= self.__DisplayPages:
+            self.__CurrentPageIndex = self.__DisplayPages
+        elif self.__CurrentPageIndex < 0:
+            self.__CurrentPageIndex = 0
                 
-            self.__UpdatePagination()
-            self.__ShowStatusIcons()
-            
-    def __UpdateHandler(self, timer: 'Timer', count: int):
-        self.UpdateStatusIcons()
+        self.__UpdatePagination()
+        self.__ShowStatusIcons()
 
     # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def __ClearStatusIcons(self):
-        for ico in self.__StatusIcons:
+        for ico in self.__ControlGroup.Objects:
             ico.SetEnable(False)
             ico.SetVisible(False)
-            ico.HW = None
-            
-        for lbl in self.__StatusLabels:
-            lbl.SetText('')
+            ico.Device = None
+            ico.Label.SetText('')
     
     def __ShowStatusIcons(self):
         self.__ClearStatusIcons()
@@ -125,33 +116,33 @@ class SystemStatusController:
 
         displayList = []
         for i in range(indexStart, indexEnd):
-            if i >= len(self.Hardware):
+            if i >= len(self.Devices):
                 break
-            displayList.append(self.Hardware[i])
+            displayList.append(self.Devices[i])
         
-        if len(displayList) < len(self.__StatusIcons):
+        if len(displayList) < len(self.__ControlGroup.Objects):
             loadRange = len(displayList)
         else:
             loadRange = 15
         
         for j in range(loadRange):
-            ico = self.__StatusIcons[j]
-            lbl = self.__StatusLabels[j]
-            hw = displayList[j]
+            ico = self.__ControlGroup.Objects[j]
+            lbl = ico.Label
+            dev = displayList[j]
             
-            ico.SetState(self.__GetStatusState(hw))
+            ico.SetState(self.__GetStatusState(dev))
             ico.SetVisible(True)
-            ico.HW = hw
-            lbl.SetText(hw.Name)
+            ico.Device = dev
+            lbl.SetText(dev.Name)
     
-    def __GetStatusState(self, hw) -> int: # pragma: no cover
-        if hw.ConnectionStatus == 'Connected':
+    def __GetStatusState(self, device: 'SystemHardwareController') -> int: # pragma: no cover
+        if device.ConnectionStatus == 'Connected':
             return 2
         else:
-            if type(hw.LastStatusChange) != datetime:
+            if not isinstance(device.LastStatusChange, datetime):
                 return 3
             else:
-                delta = datetime.now() - hw.LastStatusChange
+                delta = datetime.now() - device.LastStatusChange
                 secs = delta.total_seconds()
                 if secs < 180:
                     return 2
@@ -163,62 +154,56 @@ class SystemStatusController:
     def __UpdatePagination(self):
         if self.__DisplayPages == 1:
             # No page flips. Show no pagination
-            self.__Arrows['prev'].SetEnable(False)
-            self.__Arrows['prev'].SetVisible(False)
-            self.__Arrows['next'].SetEnable(False)
-            self.__Arrows['next'].SetVisible(False)
+            self.__ControlGroup.UIControls['Previous'].SetEnable(False)
+            self.__ControlGroup.UIControls['Previous'].SetVisible(False)
+            self.__ControlGroup.UIControls['Next'].SetEnable(False)
+            self.__ControlGroup.UIControls['Next'].SetVisible(False)
             
-            self.__PageLabels['current'].SetVisible(False)
-            self.__PageLabels['total'].SetVisible(False)
-            self.__PageLabels['div'].SetVisible(False)
+            self.__ControlGroup.HidePagination()
             
         elif self.__DisplayPages > 1 and self.__CurrentPageIndex == 0:
             # Show page flips, disable prev button
-            self.__Arrows['prev'].SetEnable(False)
-            self.__Arrows['prev'].SetVisible(True)
-            self.__Arrows['next'].SetEnable(True)
-            self.__Arrows['next'].SetVisible(True)
+            self.__ControlGroup.UIControls['Previous'].SetEnable(False)
+            self.__ControlGroup.UIControls['Previous'].SetVisible(True)
+            self.__ControlGroup.UIControls['Next'].SetEnable(True)
+            self.__ControlGroup.UIControls['Next'].SetVisible(True)
             
-            self.__Arrows['prev'].SetState(2)
-            self.__Arrows['next'].SetState(0)
+            self.__ControlGroup.UIControls['Previous'].SetState(2)
+            self.__ControlGroup.UIControls['Next'].SetState(0)
 
-            self.__PageLabels['current'].SetVisible(True)
-            self.__PageLabels['current'].SetText(str(self.__CurrentPageIndex + 1))
-            self.__PageLabels['total'].SetVisible(True)
-            self.__PageLabels['total'].SetText(str(self.__DisplayPages))
-            self.__PageLabels['div'].SetVisible(True)
+            self.__ControlGroup.ShowPagination()
+            self.__ControlGroup.SetCurrentPage(self.__CurrentPageIndex + 1)
+            self.__ControlGroup.SetTotalPages(self.__DisplayPages)            
             
         elif self.__DisplayPages > 1 and (self.__CurrentPageIndex + 1) == self.__DisplayPages:
             # Show page flips, disable next button
-            self.__Arrows['prev'].SetEnable(True)
-            self.__Arrows['prev'].SetVisible(True)
-            self.__Arrows['next'].SetEnable(False)
-            self.__Arrows['next'].SetVisible(True)
+            self.__ControlGroup.UIControls['Previous'].SetEnable(True)
+            self.__ControlGroup.UIControls['Previous'].SetVisible(True)
+            self.__ControlGroup.UIControls['Next'].SetEnable(False)
+            self.__ControlGroup.UIControls['Next'].SetVisible(True)
             
-            self.__Arrows['prev'].SetState(0)
-            self.__Arrows['next'].SetState(2)
+            self.__ControlGroup.UIControls['Previous'].SetState(0)
+            self.__ControlGroup.UIControls['Next'].SetState(2)
         
-            self.__PageLabels['current'].SetVisible(True)
-            self.__PageLabels['current'].SetText(str(self.__CurrentPageIndex + 1))
-            self.__PageLabels['total'].SetVisible(True)
-            self.__PageLabels['total'].SetText(str(self.__DisplayPages))
-            self.__PageLabels['div'].SetVisible(True)
+            self.__ControlGroup.ShowPagination()
+            self.__ControlGroup.SetCurrentPage(self.__CurrentPageIndex + 1)
+            self.__ControlGroup.SetTotalPages(self.__DisplayPages)
+
         
         elif self.__DisplayPages > 1:
             # Show page flips, both arrows enabled
-            self.__Arrows['prev'].SetEnable(True)
-            self.__Arrows['prev'].SetVisible(True)
-            self.__Arrows['next'].SetEnable(True)
-            self.__Arrows['next'].SetVisible(True)
+            self.__ControlGroup.UIControls['Previous'].SetEnable(True)
+            self.__ControlGroup.UIControls['Previous'].SetVisible(True)
+            self.__ControlGroup.UIControls['Next'].SetEnable(True)
+            self.__ControlGroup.UIControls['Next'].SetVisible(True)
             
-            self.__Arrows['prev'].SetState(0)
-            self.__Arrows['next'].SetState(0)
+            self.__ControlGroup.UIControls['Previous'].SetState(0)
+            self.__ControlGroup.UIControls['Next'].SetState(0)
             
-            self.__PageLabels['current'].SetVisible(True)
-            self.__PageLabels['current'].SetText(str(self.__CurrentPageIndex + 1))
-            self.__PageLabels['total'].SetVisible(True)
-            self.__PageLabels['total'].SetText(str(self.__DisplayPages))
-            self.__PageLabels['div'].SetVisible(True)
+            self.__ControlGroup.ShowPagination()
+            self.__ControlGroup.SetCurrentPage(self.__CurrentPageIndex + 1)
+            self.__ControlGroup.SetTotalPages(self.__DisplayPages)
+
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
@@ -228,13 +213,17 @@ class SystemStatusController:
         self.__ShowStatusIcons()
         
     def UpdateStatusIcons(self):
-        for ico in self.__StatusIcons:
-            if ico.HW is not None:
-                ico.SetState(self.__GetStatusState(ico.HW))
+        for ico in self.__ControlGroup.Objects:
+            if ico.Device is not None:
+                ico.SetState(self.__GetStatusState(ico.Device))
 
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+
+def SystemStatusPagination(source: 'ExButton', value: str) -> None:
+    uiDev = source.UIHost
+    uiDev.SystemStatusCtl.PaginationHandler(source.Offset)
 
 ## End Function Definitions ----------------------------------------------------
 

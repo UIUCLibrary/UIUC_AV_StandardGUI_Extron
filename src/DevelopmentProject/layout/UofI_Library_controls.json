@@ -143,5 +143,19 @@
         "PressShift": true,
         "Latching": true,
         "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "DeviceStatus-PageDown",
+        "PrimaryFunc": "SystemStatusPagination",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.SystemStatus"
+    },
+    {
+        "ControlObject": "DeviceStatus-PageUp",
+        "PrimaryFunc": "SystemStatusPagination",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.SystemStatus"
     }
 ]
