@@ -164,9 +164,7 @@ class ExUIDevice(UIDevice):
             self.AboutPageCtl = PanelAboutController(self, self.Interface.Objects.ControlGroups['Tech-About-Group'])
         
         ## set Room Label to system Room Name
-        RoomLabelBtn = self.Interface.Objects.Buttons['Room-Label']
-        RoomLabelBtn.SetText(System.CONTROLLER.RoomName)
-        RoomLabelBtn.SetEnable(False)
+        self.Interface.Objects.ControlGroups['Header-Control-Group'].SetRoomName(System.CONTROLLER.RoomName)
         
         ## show initial page
         self.ShowPage('Splash')

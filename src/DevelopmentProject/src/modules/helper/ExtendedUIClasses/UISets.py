@@ -733,6 +733,9 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
     
     def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
         Logger.Log('Attempting to set states of Header Control Group')
+        
+    def SetRoomName(self, RoomName: str) -> None:
+        self.__RoomButton.SetText(RoomName)
 
 class PINPadControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 

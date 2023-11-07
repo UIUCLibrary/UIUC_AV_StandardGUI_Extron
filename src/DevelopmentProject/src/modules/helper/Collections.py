@@ -24,7 +24,16 @@ if TYPE_CHECKING: # pragma: no cover
     from modules.device.classes.Sources import Source
     from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice
     from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
-    from modules.helper.ExtendedUIClasses.UISets import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet
+    from modules.helper.ExtendedUIClasses.UISets import (RadioSet, 
+                                                         SelectSet, 
+                                                         VariableRadioSet, 
+                                                         ScrollingRadioSet, 
+                                                         VolumeControlGroup,
+                                                         HeaderControlGroup,
+                                                         PINPadControlGroup,
+                                                         KeyboardControlGroup,
+                                                         SystemStatusControlGroup,
+                                                         AboutPageGroup)
     
     _KT = TypeVar('_KT')
 
@@ -269,7 +278,16 @@ class UIObjectCollection(UserDict):
             raise TypeError("__getitem__ key must be a string or int")
 
 class ControlGroupCollection(UserDict):
-    def __init__(self, _dict: None = None) -> Dict[str, Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']]:
+    def __init__(self, _dict: None = None) -> Dict[str, Union['RadioSet', 
+                                                              'SelectSet', 
+                                                              'VariableRadioSet', 
+                                                              'ScrollingRadioSet',
+                                                              'VolumeControlGroup',
+                                                              'HeaderControlGroup',
+                                                              'PINPadControlGroup',
+                                                              'KeyboardControlGroup',
+                                                              'SystemStatusControlGroup',
+                                                              'AboutPageGroup']]:
         return super().__init__(_dict)
     
     def __repr__(self) -> str:
@@ -277,16 +295,43 @@ class ControlGroupCollection(UserDict):
         return "[{}]".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, keys, and getitem
-    def values(self) -> ValuesView[Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']]:
+    def values(self) -> ValuesView[Union['RadioSet', 
+                                         'SelectSet', 
+                                         'VariableRadioSet', 
+                                         'ScrollingRadioSet',
+                                         'VolumeControlGroup',
+                                         'HeaderControlGroup',
+                                         'PINPadControlGroup',
+                                         'KeyboardControlGroup',
+                                         'SystemStatusControlGroup',
+                                         'AboutPageGroup']]:
         return super().values()
     
-    def items(self) -> ItemsView[str, Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']]:
+    def items(self) -> ItemsView[str, Union['RadioSet', 
+                                            'SelectSet', 
+                                            'VariableRadioSet', 
+                                            'ScrollingRadioSet',
+                                            'VolumeControlGroup',
+                                            'HeaderControlGroup',
+                                            'PINPadControlGroup',
+                                            'KeyboardControlGroup',
+                                            'SystemStatusControlGroup',
+                                            'AboutPageGroup']]:
         return super().items()
     
     def keys(self) -> KeysView[str]:
         return super().keys()
     
-    def __getitem__(self, key: str) -> Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']:
+    def __getitem__(self, key: str) -> Union['RadioSet', 
+                                             'SelectSet', 
+                                             'VariableRadioSet', 
+                                             'ScrollingRadioSet',
+                                             'VolumeControlGroup',
+                                             'HeaderControlGroup',
+                                             'PINPadControlGroup',
+                                             'KeyboardControlGroup',
+                                             'SystemStatusControlGroup',
+                                             'AboutPageGroup']:
         return super().__getitem__(key)
     
     def ShowPopups(self) -> None:
