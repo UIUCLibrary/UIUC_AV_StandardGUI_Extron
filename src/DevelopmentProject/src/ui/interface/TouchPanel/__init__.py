@@ -83,15 +83,23 @@ class TouchPanelInterface():
         
         ## Load Controls
         self.Objects.LoadControlGroups(UIHost=self.Device, jsonObj=self.LayoutDict)
-        # Logger.Log(self.Objects.ControlGroups)
         self.Objects.LoadControls(jsonObj=self.ControlDict)
 
         self.Transition.Label = self.Objects.Labels['PowerTransLabel-State']
         self.Transition.Level = self.Objects.Levels['PowerTransIndicator']
         self.Transition.Count = self.Objects.Labels['PowerTransLabel-Count']
 
+        ## Initialize Objects
         for btn in self.Objects.Buttons.values():
             btn.Initialize()
+        for knb in self.Objects.Knobs.values():
+            knb.Initialize()
+        for lbl in self.Objects.Labels.values():
+            lbl.Initialize()
+        for lvl in self.Objects.Levels.values():
+            lvl.Initialize()
+        for sld in self.Objects.Sliders.values():
+            sld.Initialize()
 
         self.Initialized = True
     

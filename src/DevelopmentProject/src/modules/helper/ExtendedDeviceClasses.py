@@ -34,7 +34,7 @@ from extronlib.system import Wait
 #### Project Imports
 import System
 
-from modules.helper.CommonUtilities import Logger
+# from modules.helper.CommonUtilities import Logger
 from modules.helper.ModuleSupport import WatchVariable
 from modules.helper.PrimitiveObjects import Alias, classproperty
 from ui.interface.ButtonPanel import ButtonPanelInterface
@@ -50,37 +50,38 @@ from Constants import SystemState
 ## Begin Class Definitions -----------------------------------------------------
 
 class ExProcessorDevice(ProcessorDevice):
-    ipcp_pro_xi_part_list = ['60-1911-01', '60-1911-01A', # IPCP Pro 250 xi
-                             '60-1914-01', '60-1914-01A', # IPCP Pro 250Q xi
-                             '60-1912-01', '60-1912-01A', # IPCP Pro 350 xi
-                             '60-1915-01', '60-1915-01A', # IPCP Pro 355DRQ xi
-                             '60-1916-01', '60-1916-01A', # IPCP Pro 360Q xi
-                             '60-1913-01', '60-1913-01A', # IPCP Pro 550 xi
-                             '60-1917-01', '60-1917-01A', # IPCP Pro 555Q xi
-                             '60-1979-01', '60-1979-01A', # IPCP Pro S1 xi
-                             ]
-    ipcp_pro_part_list = ['60-1429-01', '60-1429-01A', # IPCP Pro 250
-                          '60-1431-01', '60-1431-01A', # IPCP Pro 255
-                          '60-1417-01', '60-1417-01A', # IPCP Pro 350
-                          '60-1433-01', '60-1433-01A', # IPCP Pro 355DR
-                          '60-1432-01', '60-1432-01A', # IPCP Pro 360
-                          '60-1418-01', '60-1418-01A', # IPCP Pro 550
-                          '60-1434-01', '60-1434-01A', # IPCP Pro 555
-                          ]
-    
-    def __init__(self, DeviceAlias: str, PartNumber: str = None) -> object:
-        super().__init__(DeviceAlias, PartNumber)
-        self.Id = DeviceAlias
-    
-    def __repr__(self) -> str:
-        return 'ExProcessorDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
-    
+    ipcp_pro_xi_part_list =    ['60-1911-01', '60-1911-01A', # IPCP Pro 250 xi
+                                '60-1914-01', '60-1914-01A', # IPCP Pro 250Q xi
+                                '60-1912-01', '60-1912-01A', # IPCP Pro 350 xi
+                                '60-1915-01', '60-1915-01A', # IPCP Pro 355DRQ xi
+                                '60-1916-01', '60-1916-01A', # IPCP Pro 360Q xi
+                                '60-1913-01', '60-1913-01A', # IPCP Pro 550 xi
+                                '60-1917-01', '60-1917-01A', # IPCP Pro 555Q xi
+                                '60-1979-01', '60-1979-01A', # IPCP Pro S1 xi
+                                ]
+    ipcp_pro_part_list =       ['60-1429-01', '60-1429-01A', # IPCP Pro 250
+                                '60-1431-01', '60-1431-01A', # IPCP Pro 255
+                                '60-1417-01', '60-1417-01A', # IPCP Pro 350
+                                '60-1433-01', '60-1433-01A', # IPCP Pro 355DR
+                                '60-1432-01', '60-1432-01A', # IPCP Pro 360
+                                '60-1418-01', '60-1418-01A', # IPCP Pro 550
+                                '60-1434-01', '60-1434-01A', # IPCP Pro 555
+                                ]
     @classproperty
     def validation_part_list(cls) -> list:
         valid_list = []
         valid_list.extend(cls.ipcp_pro_part_list)
         valid_list.extend(cls.ipcp_pro_xi_part_list)
         return valid_list
+    
+    def __init__(self, DeviceAlias: str, PartNumber: str = None):
+        ProcessorDevice.__init__(self, DeviceAlias, PartNumber)
+        self.Id = DeviceAlias
+    
+    def __repr__(self) -> str:
+        return 'ExProcessorDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
+    
+    
 
 class ExUIDevice(UIDevice):
     tp_part_list = ['60-1791-02', '60-1791-12', '60-1792-02', '60-1792-12', # 17" panels
@@ -98,8 +99,20 @@ class ExUIDevice(UIDevice):
                     '60-1835-01', '60-1835-08' # Cable Cubby NBP panel
                     ]
     
-    def __init__(self, DeviceAlias: str, UI: str, PartNumber: str = None, Name: str=None, WebControlId: str=None) -> object:
-        super().__init__(DeviceAlias, PartNumber)
+    @classproperty
+    def validation_part_list(cls) -> list:
+        valid_list = []
+        valid_list.extend(cls.tp_part_list)
+        valid_list.extend(cls.bp_part_list)
+        return valid_list
+    
+    def __init__(self, 
+                 DeviceAlias: str, 
+                 UI: str, 
+                 PartNumber: str = None, 
+                 Name: str=None, 
+                 WebControlId: str=None):
+        UIDevice.__init__(self, DeviceAlias, PartNumber)
         self.Id = DeviceAlias
         self.Name = Name
         self.WebControlId = WebControlId
@@ -147,13 +160,6 @@ class ExUIDevice(UIDevice):
     @Page.setter
     def Page(self, val) -> None:
         raise AttributeError('Setting Page is disallowed. Use SetPage to set a UI page.')
-        
-    @classproperty
-    def validation_part_list(cls) -> list:
-        valid_list = []
-        valid_list.extend(cls.tp_part_list)
-        valid_list.extend(cls.bp_part_list)
-        return valid_list
     
     def Initialize(self) -> None:
         
@@ -187,7 +193,10 @@ class ExUIDevice(UIDevice):
         
         self.Initialized = True
     
-    def BlinkLights(self, Rate: str='Medium', StateList: List=None, Timeout: Union[int, float]=0):
+    def BlinkLights(self, 
+                    Rate: str='Medium', 
+                    StateList: List=None, 
+                    Timeout: Union[int, float]=0) -> None:
         if StateList is None:
             StateList = ['Off', 'Red']
         
@@ -203,17 +212,19 @@ class ExUIDevice(UIDevice):
         self.SetLEDBlinking(65533, Rate, StateList)
         
         if Timeout > 0:
-            Wait(float(Timeout), self.LightsOff())
+            Wait(float(Timeout), self.LightsOff)
     
-    def SetLights(self, State, Timeout: Union[int, float]=0):
+    def SetLights(self, 
+                  State, 
+                  Timeout: Union[int, float]=0) -> None:
         if State not in ['Off', 'Green', 'Red']:
             raise ValueError('State must be one of "Off", "Red", or "Green"')
         self.SetLEDState(65533, State)
         
         if Timeout > 0:
-            Wait(float(Timeout), self.LightsOff())
+            Wait(float(Timeout), self.LightsOff)
     
-    def LightsOff(self):
+    def LightsOff(self) -> None:
         # self.TP_Lights.SetState(self.TP_Lights.StateIds['off'])
         self.SetLEDState(65533, 'Off')
         
@@ -238,7 +249,7 @@ class ExUIDevice(UIDevice):
         UIDevice.ShowPage(self, page)
         
     def ShowPopup(self, page: Union[int, str], duration: float = 0) -> None:
-        Logger.Log('Popup Shown:', page, duration)
+        # Logger.Log('Popup Shown:', page, duration)
         if isinstance(page, int):
             page = self._popups[str(page)]['name']
         
@@ -250,7 +261,7 @@ class ExUIDevice(UIDevice):
         UIDevice.ShowPopup(self, page, duration)
         
     def HidePopup(self, popup: Union[int, str]) -> None:
-        Logger.Log('Hide Popup:', popup)
+        # Logger.Log('Hide Popup:', popup)
         if isinstance(popup, int):
             popup = self._popups[str(popup)]['name']
             
@@ -262,7 +273,7 @@ class ExUIDevice(UIDevice):
         UIDevice.HidePopup(self, popup)
         
     def HidePopupGroup(self, group: int) -> None:
-        Logger.Log('Hide Popup Group:', group)
+        # Logger.Log('Hide Popup Group:', group)
         popupList = [popup['name'] for popup in [self._popups.values()] if popup['group'] == group]
         for popup in popupList:
             self.PopupHidden.Change(popup)
@@ -272,7 +283,7 @@ class ExUIDevice(UIDevice):
         UIDevice.HidePopupGroup(self, group)
         
     def HideAllPopups(self) -> None:
-        Logger.Log('Hide All Popups')
+        # Logger.Log('Hide All Popups')
         for popup in self._popups.values():
             self.PopupHidden.Change(popup['name'])
         for wait in self.__PopupWaits.values():
@@ -282,8 +293,8 @@ class ExUIDevice(UIDevice):
 
 
 class ExSPDevice(SPDevice):
-    def __init__(self, DeviceAlias: str, PartNumber: str = None) -> None:
-        super().__init__(DeviceAlias, PartNumber)
+    def __init__(self, DeviceAlias: str, PartNumber: str = None):
+        SPDevice.__init__(self, DeviceAlias, PartNumber)
         self.Id = DeviceAlias
 
 class ExEBUSDevice(eBUSDevice):
@@ -300,10 +311,24 @@ class ExEBUSDevice(eBUSDevice):
                              "60-1086-01", # EBP NAV D
                              "60-1184-01", # EBP VC1
                              ]
-    def __init__(self, Host: Union[ProcessorDevice, ExProcessorDevice], UI: str, DeviceAlias: str, Name: str=None, WebControlId: str=None):
-        super().__init__(Host, DeviceAlias)
+    
+    @classproperty
+    def validation_part_list(cls) -> list:
+        valid_list = []
+        valid_list.extend(cls.us_ebus_part_list)
+        valid_list.extend(cls.decora_ebus_part_list)
+        return valid_list
+    
+    def __init__(self, 
+                 Host: Union[ProcessorDevice, ExProcessorDevice], 
+                 UI: str, 
+                 DeviceAlias: str, 
+                 Name: str=None, 
+                 WebControlId: str=None):
+        eBUSDevice.__init__(self, Host, DeviceAlias)
         # The super object has an ID prop for eBUS ID, unclear how that is populated
         self.Id = DeviceAlias
+        self.Name = Name
         self.eBUSID = Alias('ID')
         self.WebControlId = WebControlId
         if isinstance(UI, str):
@@ -312,13 +337,6 @@ class ExEBUSDevice(eBUSDevice):
             raise ValueError('Layout must be a string')
         self.Class = 'ButtonPanel'
         self.Interface = ButtonPanelInterface(self, self.UI)
-        
-    @classproperty
-    def validation_part_list(cls) -> list:
-        valid_list = []
-        valid_list.extend(cls.us_ebus_part_list)
-        valid_list.extend(cls.decora_ebus_part_list)
-        return valid_list
 
 ## End Class Definitions -------------------------------------------------------
 ##

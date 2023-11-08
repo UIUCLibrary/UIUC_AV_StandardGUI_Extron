@@ -30,7 +30,8 @@ from extronlib.ui import Button, Label, Level, Slider, Knob
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
-from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn
+from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn, GroupMixIn
+import Constants
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -38,7 +39,7 @@ from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn
 
 class RefButton(ControlMixIn, Button):
     def __init__(self,
-                 UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
+                 UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Button.__init__(self, UIHost, ID_Name, None, None)
@@ -46,7 +47,7 @@ class RefButton(ControlMixIn, Button):
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
-        self.Group = None
+        self.Initialized = False
         self.__RefName = None
         
         for kw, val in kwargs.items():
@@ -80,23 +81,14 @@ class RefButton(ControlMixIn, Button):
             self.__RefName = Name
         else:
             raise AttributeError('RefName is already set')
-    
-    def GetGroupList(self) -> List:
-        groupList = []
-        continueUp = True
-        obj = self
-        while continueUp:
-            groupList.insert(0, obj)
-            if obj.Group is not None:
-                obj = obj.Group
-            else:
-                continueUp = False
-                
-        return groupList
+        
+    def Initialize(self) -> None:
+        ControlMixIn.Initialize(self)
+        self.Initialized = True
 
 class ExButton(EventMixIn, ControlMixIn, Button):
     def __init__(self, 
-                 UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
+                 UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str], 
                  holdTime: float = None, 
                  repeatTime: float = None,
@@ -278,19 +270,18 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         
         return self.__FunctDict[Mode]
     
-class ExLabel(Label):
+class ExLabel(GroupMixIn, Label):
     def __init__(self, 
-                 UIHost: Union['UIDevice', 'ExUIDevice', 'ProcessorDevice', 'ExProcessorDevice'], 
+                 UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Label.__init__(self, UIHost, ID_Name)
+        GroupMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
-        
-        # Add group property without adding ControlMixIn to class (Label is not controllable)
-        self.Group = None
+        self.Initialized = False
         
         for kw, val in kwargs.items():
             if kw == 'Text':
@@ -306,20 +297,23 @@ class ExLabel(Label):
             text = ''
         self.Text = text
         super().SetText(text)
+        
+    def Initialize(self) -> None:
+        GroupMixIn.Initialize(self)
+        
+        self.Initialized = True
 
-class ExLevel(Level):
+class ExLevel(GroupMixIn, Level):
     def __init__(self, 
-                 UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice', 'ExSPDevice'], 
+                 UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Level.__init__(self, UIHost, ID_Name)
-        ControlMixIn.__init__(self)
+        GroupMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
-        
-        # Add group property without adding ControlMixIn to class (Level is not controllable)
-        self.Group = None
+        self.Initialized = False
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -338,16 +332,23 @@ class ExLevel(Level):
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Level, self.Min, self.Max)
 
-class ExSlider(ControlMixIn, Slider):
+    def Initialize(self) -> None:
+        GroupMixIn.Initialize(self)
+        
+        self.Initialized = True
+
+class ExSlider(EventMixIn, ControlMixIn, Slider):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Slider.__init__(self, UIHost, ID_Name)
         ControlMixIn.__init__(self)
+        EventMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
+        self.Initialized = False
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -366,21 +367,35 @@ class ExSlider(ControlMixIn, Slider):
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Fill, self.Min, self.Max)
 
-class ExKnob(ControlMixIn, Knob):
+    def Initialize(self) -> None:
+        ControlMixIn.Initialize(self)
+        EventMixIn.Initialize(self)
+        
+        self.Initialized = True
+
+class ExKnob(EventMixIn, ControlMixIn, Knob):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice'],
                  **kwargs) -> None:
         Knob.__init__(self, UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
         ControlMixIn.__init__(self)
+        EventMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
+        self.Initialized = False
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
             
     def __repr__(self) -> str:
         return "Knob ({})".format(self.Id)
+    
+    def Initialize(self) -> None:
+        ControlMixIn.Initialize(self)
+        EventMixIn.Initialize(self)
+        
+        self.Initialized = True
 
 ## End Class Definitions -------------------------------------------------------
 ##

@@ -17,50 +17,45 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, List, Union
+from typing import TYPE_CHECKING, List
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet, VolumeControlGroup, HeaderControlGroup
     from modules.helper.ExtendedUIClasses import ExButton
+    from modules.helper.PrimitiveObjects import ControlObject
 
 #### Python imports
 
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import Logger
+from modules.helper.CommonUtilities import Logger, isinstanceEx
 from modules.helper.ModuleSupport import eventEx
-from modules.helper.PrimitiveObjects import ControlObject
+import Constants
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class ControlMixIn():
+class GroupMixIn(object):
     def __init__(self) -> None:
-        self.Group = None
         
-        self.__Control = None
+        self.__Group = None
         self.__GroupList = None
-        self.__ControlList = None
         
     @property
-    def Control(self) -> 'ControlObject':
-        return self.__Control
+    def Group(self) -> Constants.UI_SETS:
+        return self.__Group
     
-    @Control.setter
-    def Control(self, val) -> None:
-        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
-    
-    def SetControlObject(self, Control: 'ControlObject'):
-        if type(Control) is ControlObject:
-            self.__Control = Control
+    @Group.setter
+    def Group(self, val) -> None:
+        if isinstanceEx(val, Constants.UI_SETS_MATCH):
+            self.__Group = val
+        elif val is None:
+            self.__Group = val
         else:
-            raise TypeError('Control must be a ControlObject')
-        
-        Logger.Log('{} ControlObject:'.format(type(self).__name__), Control)
-        
+            raise TypeError('Group ({}) must be one of {}'.format(type(val), Constants.UI_SETS_MATCH))
+    
     @property
-    def GroupList(self) -> List[Union['ExButton', 'RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet', 'VolumeControlGroup', 'HeaderControlGroup']]:
+    def GroupList(self) -> List[Constants.UI_ALL]:
         if self.__GroupList is None:
             self.__InitGroupList()
         
@@ -81,6 +76,32 @@ class ControlMixIn():
             else:
                 continueUp = False
         self.__GroupList = groupList
+        
+    def Initialize(self) -> None:
+        self.__InitGroupList()
+        
+class ControlMixIn(GroupMixIn, object):
+    def __init__(self) -> None:
+        GroupMixIn.__init__(self)
+        
+        self.__Control = None
+        self.__ControlList = None
+        
+    @property
+    def Control(self) -> 'ControlObject':
+        return self.__Control
+    
+    @Control.setter
+    def Control(self, val) -> None:
+        raise AttributeError('Overriding Control property directly is disallowed. Use "SetControlObject" instead.')
+    
+    def SetControlObject(self, Control: 'ControlObject'):
+        if isinstanceEx(Control, 'ControlObject'):
+            self.__Control = Control
+        else:
+            raise TypeError('Control must be a ControlObject')
+        
+        Logger.Log('{} ControlObject:'.format(type(self).__name__), Control)
     
     @property
     def ControlList(self) -> List['ControlObject']:
@@ -93,7 +114,7 @@ class ControlMixIn():
         self.__ControlList = [obj for obj in self.GroupList if obj.Control is not None]
     
     def Initialize(self) -> None:
-        self.__InitGroupList()
+        GroupMixIn.Initialize(self)
         self.__InitControlList()
     
 class EventMixIn():
@@ -101,12 +122,16 @@ class EventMixIn():
         pass
     
     def Initialize(self) -> None:
-        if type(self).__name__ == "ExButton":
-            @eventEx(self, ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped'])
+        if isinstanceEx(self, 'ExButton'):
+            @eventEx(self, Constants.EVENTS_BUTTON)
             def ExButtonHandler(source, event) -> None:
                 self.__ExButtonHandler(source, event)
-        elif type(self).__name__ == "ExSlider":
+        elif isinstanceEx(self, 'ExSlider'):
+            # TODO: slider event definition
             Logger.Log('Slider event def goes here')
+        elif isinstanceEx(self, 'ExKnob'):
+            # TODO: knob event definition
+            Logger.Log('Knob event def goes here')
     
     def __ExButtonHandler(self, source: 'ExButton', event: str) -> None:
         Logger.Log('ExButton Event', source, event)
