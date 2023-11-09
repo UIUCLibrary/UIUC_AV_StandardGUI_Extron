@@ -91,8 +91,10 @@ def FullName(o) -> str:
 
 def MergeLists(*Lists) -> List:
     rtnList = []
-    for l in Lists:  # noqa: E741
-        rtnList.extend(l)
+    for mergeList in Lists:  # noqa: E741
+        if isinstance(mergeList, tuple):
+            mergeList = list(mergeList)
+        rtnList.extend(mergeList)
     return rtnList
 
 class Logger():

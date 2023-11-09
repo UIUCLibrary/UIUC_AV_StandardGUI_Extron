@@ -62,18 +62,18 @@ class SystemState(Enum):
 
 BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 
-OFF =  ['off', 
+OFF =  ('off', 
         'Off', 
         'OFF', 
         False, 
-        0]
-ON =   ['on', 
+        0)
+ON =   ('on', 
         'On', 
         'ON', 
         True, 
-        1]
+        1)
 
-STANDBY =      ['off', 
+STANDBY =      ('off', 
                 'Off', 
                 'OFF', 
                 'standby', 
@@ -82,12 +82,12 @@ STANDBY =      ['off',
                 'STANDBY', 
                 ActivityMode.Standby, 
                 SystemState.Standby, 
-                0]
-SHARE =        ['share', 
+                0)
+SHARE =        ('share', 
                 'Share', 
                 ActivityMode.Share, 
-                1]
-ADVSHARE =     ['advshare', 
+                1)
+ADVSHARE =     ('advshare', 
                 'advShare', 
                 'AdvShare', 
                 'Adv.Share', 
@@ -97,8 +97,8 @@ ADVSHARE =     ['advshare',
                 'ADV_SHARE', 
                 'ADVSHARE', 
                 ActivityMode.AdvShare, 
-                2]
-GROUPWORK =    ['groupwork', 
+                2)
+GROUPWORK =    ('groupwork', 
                 'groupWork', 
                 'GroupWork', 
                 'GROUPWORK', 
@@ -110,12 +110,12 @@ GROUPWORK =    ['groupwork',
                 'Group Work', 
                 'GROUP WORK', 
                 ActivityMode.GroupWork, 
-                3]
+                3)
 
-ACTIVE = MergeLists([SystemState.Active], SHARE, ADVSHARE, GROUPWORK)
+ACTIVE = tuple(MergeLists([SystemState.Active], SHARE, ADVSHARE, GROUPWORK))
 
-EVENTS_BUTTON = ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped']
-EVENTS_SLIDER = ['Pressed', 'Released', 'Changed']
+EVENTS_BUTTON = ('Pressed', 'Released', 'Held', 'Repeated', 'Tapped')
+EVENTS_SLIDER = ('Pressed', 'Released', 'Changed')
 
 UI_SETS =     Union['RadioSet', 
                     'SelectSet', 
