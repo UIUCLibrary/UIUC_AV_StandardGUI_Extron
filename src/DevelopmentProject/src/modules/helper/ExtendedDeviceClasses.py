@@ -29,13 +29,13 @@ import functools
 #### Extron Library Imports
 from extronlib import event
 from extronlib.device import ProcessorDevice, SPDevice, UIDevice, eBUSDevice
-from extronlib.system import Wait
+from extronlib.system import Wait, Timer
 
 #### Project Imports
 import System
 
-# from modules.helper.CommonUtilities import Logger
-from modules.helper.ModuleSupport import WatchVariable
+from modules.helper.CommonUtilities import Logger
+from modules.helper.ModuleSupport import WatchVariable, eventEx
 from modules.helper.PrimitiveObjects import Alias, classproperty
 from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.interface.TouchPanel import TouchPanelInterface
@@ -149,6 +149,32 @@ class ExUIDevice(UIDevice):
         
         self.__PopupWaits = {}
         self.__Page = None
+        
+        self.__PanelSetupControlGroup = None
+        @eventEx(self.PopupShown, 'Changed')
+        def PageShownHandler(src, value) -> None:
+            if value == 'Tech-PanelSetup':
+                Logger.Log('Panel Setup Page Shown')
+                self.__PanelSetupControlGroup.SetPanelDetails()
+                self.__PanelSetupControlGroup.GetCurrentSettings()
+                self.__PanelFeedbackTimer.Restart()
+                
+        @eventEx(self.PopupHidden, 'Changed')
+        def PageHiddenHandler(src, value) -> None:
+            if value == 'Tech-PanelSetup':
+                Logger.Log('Panel Setup Page Hidden')
+                self.__PanelFeedbackTimer.Stop()
+                
+        self.__PanelFeedbackTimer = Timer(1, self.__PanelFeedbackHandler)
+        self.__PanelFeedbackTimer.Stop()
+        self.__PanelFeedbackTimer.LastData = {
+            'Brightness': None,
+            'AutoBrightness': None,
+            'Volume': None,
+            'SleepTimer': None,
+            'SleepTimerEnabled': None,
+            'WakeOnMotion': None
+        }
     
     def __repr__(self) -> str:
         return 'ExUIDevice: {} ({}|{})'.format(self.ModelName, self.DeviceAlias, self.IPAddress)
@@ -160,6 +186,14 @@ class ExUIDevice(UIDevice):
     @Page.setter
     def Page(self, val) -> None:
         raise AttributeError('Setting Page is disallowed. Use SetPage to set a UI page.')
+    
+    @property
+    def Volume(self) -> int:
+        return self.GetVolume('Master')
+    
+    @Volume.setter
+    def Volume(self, val) -> None:
+        raise AttributeError('Setting Volume is disallowed. Use SetVolume for the Master channel.')
     
     def Initialize(self) -> None:
         
@@ -182,6 +216,9 @@ class ExUIDevice(UIDevice):
         ## set Room Label to system Room Name
         self.Interface.Objects.ControlGroups['Header-Control-Group'].SetRoomName(System.CONTROLLER.RoomName)
         
+        ## set Panel Config Control Group
+        self.__PanelSetupControlGroup = self.Interface.Objects.ControlGroups['Tech-PanelSetup-Group']
+        
         ## show initial page
         self.ShowPage('Splash')
         
@@ -190,6 +227,10 @@ class ExUIDevice(UIDevice):
         def InactivityMethodHandler(uiDev: 'ExUIDevice', time: float):
             if int(time) in self.__InactivityConfig:
                 self.__InactivityConfig[time]() 
+        
+        for key in self.__PanelFeedbackTimer.LastData.keys():
+            curVal = getattr(self, key)
+            self.__PanelFeedbackTimer.LastData[key] = curVal
         
         self.Initialized = True
     
@@ -291,6 +332,52 @@ class ExUIDevice(UIDevice):
         self.__PopupWaits = {}
         UIDevice.HideAllPopups(self)
 
+    def __PanelFeedbackHandler(self, timer: 'Timer', count: int = None) -> None:
+        for key, lastVal in timer.LastData.items():
+            curVal = getattr(self, key)
+            if curVal != lastVal:
+                self.__PanelSetupControlGroup.GetCurrentSettings(key)
+                timer.LastData[key] = curVal
+                
+    def SetBrightness(self, level: int) -> None:
+        UIDevice.SetBrightness(self, level)
+        self.__PanelFeedbackTimer.LastData['Brightness'] = level
+        
+        if self.__PanelFeedbackTimer.State == 'Running':
+            self.__PanelSetupControlGroup.GetCurrentSettings(['Brightness', 'AutoBrightness'])
+        
+    def SetAutoBrightness(self, state: Union[bool, str]) -> None:
+        UIDevice.SetAutoBrightness(self, state)
+        if state in ['On', True]:
+            self.__PanelFeedbackTimer.LastData['AutoBrightness'] = True
+        elif state in ['Off', False]:
+            self.__PanelFeedbackTimer.LastData['AutoBrightness'] = False
+            
+        if self.__PanelFeedbackTimer.State == 'Running':
+            self.__PanelSetupControlGroup.GetCurrentSettings(['Brightness', 'AutoBrightness'])
+            
+    def SetSleepTimer(self, state: Union[bool, str], duration: int = None) -> None:
+        UIDevice.SetSleepTimer(self, state, duration)
+        if duration is not None:
+            self.__PanelFeedbackTimer.LastData['SleepTimer'] = duration
+        
+        if state in ['On', True]:
+            self.__PanelFeedbackTimer.LastData['SleepTimerEnabled'] = True
+        elif state in ['Off', False]:
+            self.__PanelFeedbackTimer.LastData['SleepTimerEnabled'] = False
+            
+        if self.__PanelFeedbackTimer.State == 'Running':
+            self.__PanelSetupControlGroup.GetCurrentSettings(['SleepTimer', 'SleepTimerEnabled'])
+            
+    def SetWakeOnMotoin(self, state: Union[bool, str]) -> None:
+        UIDevice.SetWakeOnMotion(self, state)
+        if state in ['On', True]:
+            self.__PanelFeedbackTimer.LastData['WakeOnMotion'] = True
+        elif state in ['Off', False]:
+            self.__PanelFeedbackTimer.LastData['WakeOnMotion'] = False
+            
+        if self.__PanelFeedbackTimer.State == 'Running':
+            self.__PanelSetupControlGroup.GetCurrentSettings(['WakeOnMotion'])
 
 class ExSPDevice(SPDevice):
     def __init__(self, DeviceAlias: str, PartNumber: str = None):

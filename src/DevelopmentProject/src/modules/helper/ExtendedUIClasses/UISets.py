@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel
+    from modules.helper.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel, ExSlider#, ExKnob
 
 #### Python imports
 from subprocess import Popen, PIPE
@@ -78,7 +78,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
     
     def __repr__(self) -> str:
         sep = ', '
-        return "RadioSet {} (Current: {}) [{}]".format(self.Name, self.GetCurrent(), sep.join([str(val) for val in self.Objects]))
+        return 'RadioSet {} (Current: {}) [{}]'.format(self.Name, self.GetCurrent(), sep.join([str(val) for val in self.Objects]))
     
     @property
     def Objects(self) -> List[Union['ExButton', 'RefButton']]:
@@ -117,7 +117,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
-            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
     
     def SetCurrent(self, obj: Union[int, str, 'ExButton', 'RefButton']) -> None:
         if isinstanceEx(obj, ('ExButton', 'RefButton')):
@@ -137,7 +137,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         elif isinstance(obj, int):
             super().SetCurrent(obj)
         else:
-            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
     
     def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
         if isinstance(obj, list):
@@ -156,7 +156,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
-            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
 
 class SelectSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
@@ -169,12 +169,12 @@ class SelectSet(ControlMixIn, UISetMixin, object):
         self.__Objects = Objects
         
         for btn in self.__Objects:
-            self.__StateList.append({"onState": 0, "offState": 1})
+            self.__StateList.append({'onState': 0, 'offState': 1})
             btn.Group = self
     
     def __repr__(self) -> str:
         sep = ', '
-        return "SelectSet {} (Current: [{}]) [{}]".format(self.Name, sep.join([str(val) for val in self.GetActive()]), sep.join([str(val) for val in self.Objects]))
+        return 'SelectSet {} (Current: [{}]) [{}]'.format(self.Name, sep.join([str(val) for val in self.GetActive()]), sep.join([str(val) for val in self.Objects]))
     
     @property
     def Objects(self) -> List[Union['ExButton', 'RefButton']]:
@@ -187,7 +187,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
     def Append(self, obj: Union['ExButton', 'RefButton']) -> None:
         setattr(obj, 'Group', self)
         self.__Objects.append(obj)
-        self.__StateList.append({"onState": 0, "offState": 1})
+        self.__StateList.append({'onState': 0, 'offState': 1})
         
     def GetActive(self) -> List[Union['ExButton', 'RefButton']]:
         activeList = []
@@ -224,7 +224,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
         elif obj is not None:
-            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
     
     def SetActive(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
         if isinstance(obj, list):
@@ -248,13 +248,41 @@ class SelectSet(ControlMixIn, UISetMixin, object):
                 self.__Objects[i].SetState(self.__StateList[i]['onState'])
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
-        elif type(obj).__name__ in ['ExButton', 'RefButton']:
+        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
             if obj in self.__Objects:
                 obj.SetState(self.__StateList[self.__Objects.index(obj)]['onState'])
             else:
                 raise IndexError('Object not found in select list')
         elif obj is not None:
-            raise TypeError('Object must be an object name, int index, the button object (Button or ExButton class), or List of these')
+            raise TypeError('Object must be an object name, int index, the button object (ExButton or RefButton class), or List of these')
+
+    def SetInactive(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
+        if isinstance(obj, list):
+            for item in obj:
+                self.SetInactive(item)
+        elif obj in ['all', 'All', 'ALL']:
+            for o in self.__Objects:
+                o.SetState(self.__StateList[self.__Objects.index(o)]['offState'])
+        elif isinstance(obj, int):
+            self.__Objects[obj].SetState(self.__StateList[obj]['offState'])
+        elif isinstance(obj, str):
+            i = None
+            for o in self.__Objects:
+                if o.Name == obj:
+                    i = self.__Objects.index(o)
+                    break
+            if i is not None:
+                self.__Objects[i].SetState(self.__StateList[i]['offState'])
+            else:
+                raise ValueError('No object found for name ({}) in select set'.format(obj))
+        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
+            if obj in self.__Objects:
+                obj.SetState(self.__StateList[self.__Objects.index(obj)]['offState'])
+            else:
+                raise IndexError('Object not found in select list')
+        else:
+            raise TypeError('Object must be an object name, int index, the button object (ExButton or RefButton class), or List of these')
+        
 
     def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
         if isinstance(obj, list):
@@ -279,7 +307,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
         elif obj is not None:
-            raise TypeError("Object must be string object name, int index, or the button object (Button or ExButton class)")
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
 
 class VariableRadioSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
@@ -298,7 +326,7 @@ class VariableRadioSet(ControlMixIn, UISetMixin, object):
     
     def __repr__(self) -> str:
         sep = ', '
-        return "VariableRadioSet {} (Current: {}, Popup: {}) [{}]".format(self.Name, self.GetCurrent(), self.PopupName, sep.join([str(val) for val in self.Objects]))
+        return 'VariableRadioSet {} (Current: {}, Popup: {}) [{}]'.format(self.Name, self.GetCurrent(), self.PopupName, sep.join([str(val) for val in self.Objects]))
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -399,7 +427,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
 
     def __repr__(self) -> str:
         sep = ', '
-        return "ScrollingRadioSet {} (Current: {}, Popup: {}) [{}]".format(self.Name, self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
+        return 'ScrollingRadioSet {} (Current: {}, Popup: {}) [{}]'.format(self.Name, self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -474,7 +502,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     def GetObjectByRef(self, ref: Union[int, str, 'RefButton']) -> Union[None, 'ExButton']:
         objIndex = None
         
-        Logger.Log("GetObjectByRef Ref:", ref, type(ref))
+        Logger.Log('GetObjectByRef Ref:', ref, type(ref))
         
         if isinstance(ref, int):
             objIndex = ref - self.__Offset
@@ -487,7 +515,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         elif isinstanceEx(ref, 'RefButton'):
             objIndex = self.__RefSet.Objects.index(ref) - self.__Offset
         
-        Logger.Log("ObjIndex", objIndex, self.__Offset)
+        Logger.Log('ObjIndex', objIndex, self.__Offset)
         
         if objIndex is None:
             return None
@@ -580,7 +608,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
             btn.SetText(curRefSet[index].Text)
             # TODO: Set Icon state
         
-        Logger.Log("Current Object", self.GetCurrentRef(), self.GetObjectByRef(self.GetCurrentRef()))
+        Logger.Log('Current Object', self.GetCurrentRef(), self.GetObjectByRef(self.GetCurrentRef()))
         
         curObj = self.GetObjectByRef(self.GetCurrentRef())
         if curObj is not None:
@@ -590,7 +618,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         if not isinstance(Offset, int):
             raise TypeError('Offset must be an integer')
         elif (Offset < 0 or Offset >= len(self.RefObjects)):
-            raise ValueError("Offset must be greater than or equal to 0 and less than the number of Ref Objects ({})".format(len(self.RefObjects)))
+            raise ValueError('Offset must be greater than or equal to 0 and less than the number of Ref Objects ({})'.format(len(self.RefObjects)))
         self.__Offset = Offset
         self.LoadButtonView()
         
@@ -612,31 +640,31 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
             self.VolUpBtn = VolUp
             self.VolUpBtn.Group = self
         else:
-            raise TypeError("VolUp must be an Extron Button object")
+            raise TypeError('VolUp must be an Extron Button object')
         
         if isinstanceEx(VolDown, 'ExButton'):
             self.VolDownBtn = VolDown
             self.VolDownBtn.Group = self
         else:
-            raise TypeError("VolDown must be an Extron Button object")
+            raise TypeError('VolDown must be an Extron Button object')
         
         if isinstanceEx(Mute, 'ExButton'):
             self.MuteBtn = Mute
             self.MuteBtn.Group = self
         else:
-            raise TypeError("Mute must be an Extron Button object")
+            raise TypeError('Mute must be an Extron Button object')
         
         if isinstanceEx(Feedback, 'ExLevel'):
             self.FeedbackLvl = Feedback
             self.FeedbackLvl.Group = self
         else:
-            raise TypeError("Feedback must be an Extron Level object")
+            raise TypeError('Feedback must be an Extron Level object')
         
         if isinstanceEx(ControlLabel, 'ExLabel') or ControlLabel is None:
             self.ControlLbl = ControlLabel
             self.ControlLbl.Group = self
         else:
-            raise TypeError("ControlLabel must either be an Extron Label object or None (default)")
+            raise TypeError('ControlLabel must either be an Extron Label object or None (default)')
         
         if DisplayName is not None:
             self.DisplayName = DisplayName
@@ -646,12 +674,12 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
         if type(Range) is tuple and len(Range) == 3:
             for i in Range:
                 if not isinstance(i, int):
-                    raise TypeError("Range tuple may only consist of int values")
+                    raise TypeError('Range tuple may only consist of int values')
             self.__Range = Range
             self.FeedbackLvl.SetRange(*Range)
             
     def __repr__(self) -> str:
-        return "VolumeControlSet {}".format(self.Name)
+        return 'VolumeControlSet {}'.format(self.Name)
 
 class HeaderControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 
@@ -704,7 +732,7 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
                 self.__CameraButton.SetVisible(False)
     
     def __repr__(self) -> str:
-        return "HeaderControlGroup {}".format(self.Name)
+        return 'HeaderControlGroup {}'.format(self.Name)
     
     @property
     def UIControls(self) -> Dict[str, 'ExButton']:
@@ -760,7 +788,7 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
         self.__TextArea.Group = self
         
     def __repr__(self) -> str:
-        return "PINPadControlGroup {}".format(self.Name)
+        return 'PINPadControlGroup {}'.format(self.Name)
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -824,7 +852,7 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
         self.__TextArea.Group = self
         
     def __repr__(self) -> str:
-        return "KeyboardControlGroup {}".format(self.Name)
+        return 'KeyboardControlGroup {}'.format(self.Name)
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -948,7 +976,7 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
                  AuthorLabel: 'ExLabel',
                  DiskLabel: 'ExLabel',
                  CPULabel: 'ExLabel',
-                 RAMLabel: 'ExLabel') -> None:
+                 RAMLabel: 'ExLabel'):
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -1002,7 +1030,7 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
         elif ModelNumber is None:
             string = ModelName
         else:
-            string = "{} | {}".format(ModelName, ModelNumber)
+            string = '{} | {}'.format(ModelName, ModelNumber)
             
         self.__Model.SetText(string)
         
@@ -1014,6 +1042,7 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
         self.__FW.SetText(FW)
         
     def SetProgramInfo(self, FileLoaded: str, SoftwareVersion: str, Author: str, **kwargs) -> None:
+        # using kwargs allow additional keywords to be thrown out when passing a dict to this function
         self.__Prog.SetText(FileLoaded)
         self.__Vers.SetText(SoftwareVersion)
         self.__Auth.SetText(Author)
@@ -1039,17 +1068,131 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
         if UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
             memTuple = (20, 25, 45)
         else:
-            filepath = "/proc/meminfo"
+            filepath = '/proc/meminfo'
             meminfo = dict(
-                (i.split()[0].rstrip(":"), int(i.split()[1]))
+                (i.split()[0].rstrip(':'), int(i.split()[1]))
                 for i in open(filepath).readlines()
             )
-            memTotalMB = round(meminfo["MemTotal"] / (2 ** 10), 2)
-            memFreeMB = round(meminfo["MemFree"] / (2 ** 10), 2)
-            memUsedMB = round(((meminfo["MemTotal"] - meminfo["MemFree"]) / (2 ** 10)), 2)
+            memTotalMB = round(meminfo['MemTotal'] / (2 ** 10), 2)
+            memFreeMB = round(meminfo['MemFree'] / (2 ** 10), 2)
+            memUsedMB = round(((meminfo['MemTotal'] - meminfo['MemFree']) / (2 ** 10)), 2)
             memTuple = (memUsedMB, memFreeMB, memTotalMB)
             
         self.__RAM.SetText('{} MB used; {} MB free;\n{} MB total'.format(*memTuple))
+
+class PanelSetupGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self,
+                 Name: str,
+                 BrightnessSlider: 'ExSlider',
+                 AutoBrightnessButton: 'ExButton',
+                 VolumeSlider: 'ExSlider',
+                 SleepSlider: 'ExSlider',
+                 AutoSleepButton: 'ExButton',
+                 WakeOnMotionButton: 'ExButton',
+                 SleepLabel: 'ExLabel',
+                 ModelLabel: 'ExLabel',
+                 SerialLabel: 'ExLabel',
+                 MACLabel: 'ExLabel',
+                 HostLabel: 'ExLabel',
+                 IPLabel: 'ExLabel',
+                 FirmwareLabel: 'ExLabel'
+                 ):
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__Brightness = BrightnessSlider
+        self.__Brightness.Group = self
+        self.__Brightness.SetRange(0, 100, 1)
+        
+        self.__AutoBrightness = AutoBrightnessButton
+        self.__AutoBrightness.Group = self
+        
+        self.__Volume = VolumeSlider
+        self.__Volume.Group = self
+        self.__Volume.SetRange(0, 100, 1)
+        
+        self.__Sleep = SleepSlider
+        self.__Sleep.Group = self
+        self.__Sleep.SetRange(0, 300, 5)
+        
+        self.__AutoSleep = AutoSleepButton
+        self.__AutoSleep.Group = self
+        
+        self.__WakeOnMotion = WakeOnMotionButton
+        self.__WakeOnMotion.Group = self
+        
+        self.__SleepLbl = SleepLabel
+        self.__SleepLbl.Group = self
+        
+        self.__ModelLbl = ModelLabel
+        self.__ModelLbl.Group = self
+        
+        self.__SNLbl = SerialLabel
+        self.__SNLbl.Group = self
+        
+        self.__MACLbl = MACLabel
+        self.__MACLbl.Group = self
+        
+        self.__HostLbl = HostLabel
+        self.__HostLbl.Group = self
+        
+        self.__IPLbl = IPLabel
+        self.__IPLbl.Group = self
+        
+        self.__FWLbl = FirmwareLabel
+        self.__FWLbl.Group = self
+        
+        self.__UIDev = self.__Brightness.UIHost
+    
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'Brightness': self.__Brightness,
+            'AutoBrightness': self.__AutoBrightness,
+            'Volume': self.__Volume,
+            'Sleep': self.__Sleep,
+            'AutoSleep': self.__AutoSleep,
+            'WakeOnMotion': self.__WakeOnMotion
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+    
+    def SetPanelDetails(self) -> None:
+        self.__ModelLbl.SetText('{} | {}'.format(self.__UIDev.ModelName, self.__UIDev.PartNumber))
+        self.__SNLbl.SetText(self.__UIDev.SerialNumber)
+        self.__MACLbl.SetText(self.__UIDev.MACAddress)
+        self.__HostLbl.SetText(self.__UIDev.Hostname)
+        self.__IPLbl.SetText(self.__UIDev.IPAddress)
+        self.__FWLbl.SetText(self.__UIDev.FirmwareVersion)
+        
+    def GetCurrentSettings(self, SettingList: List[str] = None) -> None:
+        Logger.Log('Panel Set Current List:', SettingList)
+        if SettingList is None or 'Brightness' in SettingList:
+            self.__Brightness.SetFill(self.__UIDev.Brightness)
+        
+        if SettingList is None or 'AutoBrightness' in SettingList:
+            self.__AutoBrightness.SetState(int(self.__UIDev.AutoBrightness))
+            
+        if SettingList is None or 'Volume' in SettingList:
+            self.__Volume.SetFill(self.__UIDev.Volume)
+            
+        if SettingList is None or 'SleepTimer' in SettingList or 'SleepTimerEnabled' in SettingList:
+            if not self.__UIDev.SleepTimerEnabled:
+                self.__Sleep.SetFill(0)
+                self.__Sleep.SetEnable(False)
+                self.__SleepLbl.SetText('--')
+            else:
+                self.__Sleep.SetFill(self.__UIDev.SleepTimer / 60)
+                self.__Sleep.SetEnable(True)
+                self.__SleepLbl.SetText(str(round(self.__UIDev.SleepTimer / 60)))
+                
+        if SettingList is None or 'SleepTimerEnabled' in SettingList:
+            self.__AutoSleep.SetState(int(self.__UIDev.SleepTimerEnabled))
+            
+        if SettingList is None or 'WakeOnMotion' in SettingList:
+            self.__WakeOnMotion.SetState(int(self.__UIDev.WakeOnMotion))
 
 ## End Class Definitions -------------------------------------------------------
 ##

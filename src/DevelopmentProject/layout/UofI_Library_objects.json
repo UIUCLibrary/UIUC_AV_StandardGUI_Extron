@@ -2631,7 +2631,7 @@
       "ID": 13002
     },
     {
-      "Name": "Slider-PanelSleepTime",
+      "Name": "Slider-PanelSleepTimer",
       "ID": 13003
     },
     {
@@ -2878,6 +2878,27 @@
         "DiskLabel": "ProcStatusLabel-Storage",
         "CPULabel": "ProcStatusLabel-CPU",
         "RAMLabel": "ProcStatusLabel-Memory"
+      }
+    },
+    {
+      "Name": "Tech-PanelSetup-Group",
+      "Class": "PanelSetupGroup",
+      "Controls": {
+        "BrightnessSlider": "Slider-PanelBrightness",
+        "AutoBrightnessButton": "PanelSetting-AutoBrightness",
+        "VolumeSlider": "Slider-PanelAudio",
+        "SleepSlider": "Slider-PanelSleepTimer",
+        "AutoSleepButton": "PanelSetting-AutoSleep",
+        "WakeOnMotionButton": "PanelSetting-WakeOnMotion"
+      },
+      "Labels": {
+        "SleepLabel": "PanelSleepLabel-Timer",
+        "ModelLabel": "PanelInfoLabel-Model",
+        "SerialLabel": "PanelInfoLabel-Serial",
+        "MACLabel": "PanelInfoLabel-MAC",
+        "HostLabel": "PanelInfoLabel-Host",
+        "IPLabel": "PanelInfoLabel-IP",
+        "FirmwareLabel": "PanelInfoLabel-FW"
       }
     }
   ],

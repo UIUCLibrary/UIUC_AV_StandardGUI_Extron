@@ -17,9 +17,9 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedUIClasses import ExButton
+    from modules.helper.ExtendedUIClasses import ExButton, ExSlider
     from modules.helper.PrimitiveObjects import ControlObject
 
 #### Python imports
@@ -127,8 +127,9 @@ class EventMixIn():
             def ExButtonHandler(source, event) -> None:
                 self.__ExButtonHandler(source, event)
         elif isinstanceEx(self, 'ExSlider'):
-            # TODO: slider event definition
-            Logger.Log('Slider event def goes here')
+            @eventEx(self, Constants.EVENTS_SLIDER)
+            def ExSliderHdnler(source, event, value) -> None:
+                self.__ExSliderHandler(source, event, value)
         elif isinstanceEx(self, 'ExKnob'):
             # TODO: knob event definition
             Logger.Log('Knob event def goes here')
@@ -146,34 +147,41 @@ class EventMixIn():
         elif event == 'Released':
             # Released no Hold
             if not source.HasHold():
-                # Do primary functionality
-                for fn in source.GetControlFunctionList('Primary'):
-                    fn(source, event)
-                
                 if source.Enabled:
                     # Determine after release state
                     ## Control is latching (active after release)
                     if source.GetControlLatching('Latching'):
-                        # Change state to Active state
-                        if source.Group is not None:
-                            if hasattr(source.Group, 'SetCurrent'):
-                                source.Group.SetCurrent(source)
-                            elif hasattr(source.Group, 'SetCurrentButton'):
-                                source.Group.SetCurrentButton(source)
-                            elif hasattr(source.Group, 'SetActive'):
-                                source.Group.SetActive(source)
-                        source.SetState(source.GetControlState('Active'))
+                        if source.GetInitialPressState() == source.GetControlState('Inactive'):
+                            # Change state to Active state if initially Inactive
+                            if source.Group is not None:
+                                if hasattr(source.Group, 'SetCurrent'):
+                                    source.Group.SetCurrent(source)
+                                elif hasattr(source.Group, 'SetCurrentButton'):
+                                    source.Group.SetCurrentButton(source)
+                                elif hasattr(source.Group, 'SetActive'):
+                                    source.Group.SetActive(source)
+                            source.SetState(source.GetControlState('Active'))
+                        elif source.GetInitialPressState() == source.GetControlState('Active'):
+                            # Change state to Inactive state if initially Active
+                            if source.Group is not None:
+                                if hasattr(source.Group, 'SetCurrent'):
+                                    source.Group.SetCurrent(None)
+                                elif hasattr(source.Group, 'SetCurrentButton'):
+                                    source.Group.SetCurrentButton(None)
+                                elif hasattr(source.Group, 'SetInactive'):
+                                    source.Group.SetInactive(source)
+                            source.SetState(source.GetControlState('Inactive'))
                     ## Control is non-latching (inactive after release)
                     else:
                         # Change state to Inactive state
                         source.SetState(source.GetControlState('Inactive'))
                     
+                
+                # Do primary functionality
+                for fn in source.GetControlFunctionList('Primary'):
+                    fn(source, event)
             # Relased after hold
             else:
-                # Do Hold functionality
-                for fn in source.GetControlFunctionList('Hold'):
-                    fn(source, event)
-                
                 if source.Enabled:
                     # Determine after release state
                     ## Control is hold latching (HoldActive after release)
@@ -183,6 +191,10 @@ class EventMixIn():
                     else:
                         # Return to initial press state
                         source.SetState(source.GetInitialPressState())
+                        
+                # Do Hold functionality
+                for fn in source.GetControlFunctionList('Hold'):
+                    fn(source, event)
                     
             # Clear initial press state
             source.ClearInitialPressState()
@@ -200,32 +212,56 @@ class EventMixIn():
                 fn(source, event)
             
         elif event == 'Tapped':
-            source.Control.Functions.Primary(source, event)
-            
-            # Do primary functionality
-            for fn in source.GetControlFunctionList('Primary'):
-                fn(source, event)
-            
             if source.Enabled:
                 # Determine after release state
                 ## Control is latching (active after release)
                 if source.GetControlLatching('Latching'):
-                    # Change state to Active state
-                    if source.Group is not None:
-                        if hasattr(source.Group, 'SetCurrent'):
-                            source.Group.SetCurrent(source)
-                        elif hasattr(source.Group, 'SetCurrentButton'):
-                            source.Group.SetCurrentButton(source)
-                        elif hasattr(source.Group, 'SetActive'):
-                            source.Group.SetActive(source)
-                    source.SetState(source.GetControlState('Active'))
+                    if source.GetInitialPressState() == source.GetControlState('Inactive'):
+                        # Change state to Active state if initially Inactive
+                        if source.Group is not None:
+                            if hasattr(source.Group, 'SetCurrent'):
+                                source.Group.SetCurrent(source)
+                            elif hasattr(source.Group, 'SetCurrentButton'):
+                                source.Group.SetCurrentButton(source)
+                            elif hasattr(source.Group, 'SetActive'):
+                                source.Group.SetActive(source)
+                        source.SetState(source.GetControlState('Active'))
+                    elif source.GetInitialPressState() == source.GetControlState('Active'):
+                        # Change state to Inactive state if initially Active
+                        if source.Group is not None:
+                            if hasattr(source.Group, 'SetCurrent'):
+                                source.Group.SetCurrent(None)
+                            elif hasattr(source.Group, 'SetCurrentButton'):
+                                source.Group.SetCurrentButton(None)
+                            elif hasattr(source.Group, 'SetInactive'):
+                                source.Group.SetInactive(source)
+                        source.SetState(source.GetControlState('Inactive'))
                 ## Control is non-latching (inactive after release)
                 else:
                     # Change state to Inactive state
                     source.SetState(source.GetControlState('Inactive'))
             
+            # Do primary functionality
+            for fn in source.GetControlFunctionList('Primary'):
+                fn(source, event)
+            
             # Clear initial press state
             source.ClearInitialPressState()
+
+    def __ExSliderHandler(self, source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+        Logger.Log('ExSlider Event', source, event, value)
+        
+        if event == 'Pressed':
+            source.SetInitialPressFill()
+        
+        elif event == 'Changed':
+            source.SetFill(value)
+        
+        elif event == 'Released':
+            source.SetFill(value)
+            
+            for fn in source.GetControlFunctionList('Primary'):
+                fn(source, event, value)
 
 ## End Class Definitions -------------------------------------------------------
 ##

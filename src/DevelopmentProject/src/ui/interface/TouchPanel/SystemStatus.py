@@ -211,7 +211,7 @@ class SystemStatusController:
         self.__UpdatePagination()
         self.__ShowStatusIcons()
         
-    def UpdateStatusIcons(self):
+    def UpdateStatusIcons(self, timer: 'Timer' = None, count: int = None):
         for ico in self.__ControlGroup.Objects:
             if ico.Device is not None:
                 ico.SetState(self.__GetStatusState(ico.Device))

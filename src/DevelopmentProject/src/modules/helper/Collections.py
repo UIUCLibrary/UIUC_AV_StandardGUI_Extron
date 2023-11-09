@@ -22,18 +22,7 @@ from typing import (TYPE_CHECKING, Dict, Iterator, List, Union, TypeVar,
 if TYPE_CHECKING: # pragma: no cover
     from modules.device.classes.Destinations import Destination
     from modules.device.classes.Sources import Source
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice, ExEBUSDevice, ExProcessorDevice
-    from modules.helper.ExtendedUIClasses import ExButton, ExKnob, ExLabel, ExLevel, ExSlider, RefButton
-    from modules.helper.ExtendedUIClasses.UISets import (RadioSet, 
-                                                         SelectSet, 
-                                                         VariableRadioSet, 
-                                                         ScrollingRadioSet, 
-                                                         VolumeControlGroup,
-                                                         HeaderControlGroup,
-                                                         PINPadControlGroup,
-                                                         KeyboardControlGroup,
-                                                         SystemStatusControlGroup,
-                                                         AboutPageGroup)
+    from modules.helper.ExtendedDeviceClasses import ExProcessorDevice
     
     _KT = TypeVar('_KT')
 
@@ -46,7 +35,7 @@ from collections import UserDict, UserList
 from modules.helper.ModuleSupport import WatchVariable
 from modules.project.SystemHardware import SystemHardwareController
 from control.PollController import PollObject
-from Constants import BLANK_SOURCE
+import Constants
     
 ## End Imports -----------------------------------------------------------------
 ##
@@ -175,7 +164,7 @@ class DeviceCollection(UserDict):
 
     def GetSourceByInput(self, inputNum: int) -> 'Source':
         if inputNum == 0:
-            return BLANK_SOURCE
+            return Constants.BLANK_SOURCE
         elif inputNum > 0:
             for src in self.Sources:
                 if src.Source.Input == inputNum:
@@ -246,7 +235,7 @@ class DeviceCollection(UserDict):
                 raise ValueError('No valid update to polling provided')
 
 class UIObjectCollection(UserDict):
-    def __init__(self, __dict: None = None) -> Dict[str, Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'RefButton']]:
+    def __init__(self, __dict: None = None) -> Dict[str, Constants.UI_OBJECTS]:
         super().__init__(__dict)
         
     def __repr__(self) -> str:
@@ -254,17 +243,17 @@ class UIObjectCollection(UserDict):
         return "[{}]".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, and keys
-    def values(self) -> ValuesView[Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'RefButton']]:
+    def values(self) -> ValuesView[Constants.UI_OBJECTS]:
         return super().values()
     
-    def items(self) -> ItemsView[str, Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'RefButton']]:
+    def items(self) -> ItemsView[str, Constants.UI_OBJECTS]:
         return super().items()
     
     def keys(self) -> KeysView[str]:
         return super().keys()
     
     # Typecasts __getitem__
-    def __getitem__(self, key: Union[str, int]) -> Union['ExButton', 'ExKnob', 'ExLabel', 'ExLevel', 'ExSlider', 'RefButton']:
+    def __getitem__(self, key: Union[str, int]) -> Constants.UI_OBJECTS:
         if isinstance(key, str) and not key.isnumeric():
             return super().__getitem__(key)
         elif isinstance(key, int) or (isinstance(key, str) and key.isnumeric()):
@@ -278,16 +267,7 @@ class UIObjectCollection(UserDict):
             raise TypeError("__getitem__ key must be a string or int")
 
 class ControlGroupCollection(UserDict):
-    def __init__(self, _dict: None = None) -> Dict[str, Union['RadioSet', 
-                                                              'SelectSet', 
-                                                              'VariableRadioSet', 
-                                                              'ScrollingRadioSet',
-                                                              'VolumeControlGroup',
-                                                              'HeaderControlGroup',
-                                                              'PINPadControlGroup',
-                                                              'KeyboardControlGroup',
-                                                              'SystemStatusControlGroup',
-                                                              'AboutPageGroup']]:
+    def __init__(self, _dict: None = None) -> Dict[str, Constants.UI_SETS]:
         return super().__init__(_dict)
     
     def __repr__(self) -> str:
@@ -295,43 +275,16 @@ class ControlGroupCollection(UserDict):
         return "[{}]".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, keys, and getitem
-    def values(self) -> ValuesView[Union['RadioSet', 
-                                         'SelectSet', 
-                                         'VariableRadioSet', 
-                                         'ScrollingRadioSet',
-                                         'VolumeControlGroup',
-                                         'HeaderControlGroup',
-                                         'PINPadControlGroup',
-                                         'KeyboardControlGroup',
-                                         'SystemStatusControlGroup',
-                                         'AboutPageGroup']]:
+    def values(self) -> ValuesView[Constants.UI_SETS]:
         return super().values()
     
-    def items(self) -> ItemsView[str, Union['RadioSet', 
-                                            'SelectSet', 
-                                            'VariableRadioSet', 
-                                            'ScrollingRadioSet',
-                                            'VolumeControlGroup',
-                                            'HeaderControlGroup',
-                                            'PINPadControlGroup',
-                                            'KeyboardControlGroup',
-                                            'SystemStatusControlGroup',
-                                            'AboutPageGroup']]:
+    def items(self) -> ItemsView[str, Constants.UI_SETS]:
         return super().items()
     
     def keys(self) -> KeysView[str]:
         return super().keys()
     
-    def __getitem__(self, key: str) -> Union['RadioSet', 
-                                             'SelectSet', 
-                                             'VariableRadioSet', 
-                                             'ScrollingRadioSet',
-                                             'VolumeControlGroup',
-                                             'HeaderControlGroup',
-                                             'PINPadControlGroup',
-                                             'KeyboardControlGroup',
-                                             'SystemStatusControlGroup',
-                                             'AboutPageGroup']:
+    def __getitem__(self, key: str) -> Constants.UI_SETS:
         return super().__getitem__(key)
     
     def ShowPopups(self) -> None:
@@ -340,7 +293,7 @@ class ControlGroupCollection(UserDict):
                 ctlGrp.ShowPopup()
 
 class UIDeviceCollection(UserList):
-    def __init__(self, __list: None = None) -> List[Union['ExUIDevice', 'ExEBUSDevice']]:
+    def __init__(self, __list: None = None) -> List[Constants.UI_HOSTS]:
         return super().__init__(__list)
         
     def __repr__(self) -> str:
@@ -348,10 +301,10 @@ class UIDeviceCollection(UserList):
         return "[{}]".format(sep.join([str(val) for val in self]))
     
     # Type cast getitem & iter
-    def __getitem__(self, index: int) -> Union['ExUIDevice', 'ExEBUSDevice']:
+    def __getitem__(self, index: int) -> Constants.UI_HOSTS:
         return super().__getitem__(index)
         
-    def __iter__(self) -> Iterator[Union['ExUIDevice', 'ExEBUSDevice']]:
+    def __iter__(self) -> Iterator[Constants.UI_HOSTS]:
         return super().__iter__()
     
 class ProcessorCollection(UserList):

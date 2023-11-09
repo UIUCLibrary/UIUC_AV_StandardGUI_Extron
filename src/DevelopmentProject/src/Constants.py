@@ -40,7 +40,8 @@ if TYPE_CHECKING: # pragma: no cover
                 PINPadControlGroup,
                 KeyboardControlGroup,
                 SystemStatusControlGroup,
-                AboutPageGroup)
+                AboutPageGroup,
+                PanelSetupGroup)
 
 # Python imports
 from enum import Enum
@@ -114,6 +115,7 @@ GROUPWORK =    ['groupwork',
 ACTIVE = MergeLists([SystemState.Active], SHARE, ADVSHARE, GROUPWORK)
 
 EVENTS_BUTTON = ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped']
+EVENTS_SLIDER = ['Pressed', 'Released', 'Changed']
 
 UI_SETS =     Union['RadioSet', 
                     'SelectSet', 
@@ -124,7 +126,8 @@ UI_SETS =     Union['RadioSet',
                     'PINPadControlGroup',
                     'KeyboardControlGroup',
                     'SystemStatusControlGroup',
-                    'AboutPageGroup']
+                    'AboutPageGroup',
+                    'PanelSetupGroup']
 UI_SETS_MATCH =    ('RadioSet', 
                     'SelectSet', 
                     'VariableRadioSet', 
@@ -134,7 +137,8 @@ UI_SETS_MATCH =    ('RadioSet',
                     'PINPadControlGroup',
                     'KeyboardControlGroup',
                     'SystemStatusControlGroup',
-                    'AboutPageGroup')
+                    'AboutPageGroup',
+                    'PanelSetupGroup')
 
 UI_OBJECTS =  Union['RefButton', 
                     'ExButton', 
@@ -159,6 +163,7 @@ UI_ALL =  Union['RadioSet',
                 'KeyboardControlGroup',
                 'SystemStatusControlGroup',
                 'AboutPageGroup',
+                'PanelSetupGroup',
                 'RefButton', 
                 'ExButton', 
                 'ExLabel', 
@@ -175,6 +180,7 @@ UI_ALL_MATCH = ('RadioSet',
                 'KeyboardControlGroup',
                 'SystemStatusControlGroup',
                 'AboutPageGroup',
+                'PanelSetupGroup',
                 'RefButton', 
                 'ExButton', 
                 'ExLabel', 

@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedDeviceClasses import ExUIDevice
-    from modules.helper.ExtendedUIClasses import ExButton
+    from modules.helper.ExtendedUIClasses import ExButton, ExSlider
     from extronlib.device import UIDevice
     from extronlib.ui import Button
     
@@ -34,7 +34,7 @@ from extronlib import event
 
 #### Project imports
 from modules.helper.PrimitiveObjects import DictObj
-from modules.helper.CommonUtilities import TimeIntToStr
+from modules.helper.CommonUtilities import TimeIntToStr, Logger
 from modules.helper.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
 from Constants import ActivityMode, SystemState
@@ -246,5 +246,49 @@ def TechPageSelect(button: 'ExButton', action: str) -> None:
     uiSet.SetCurrentRef(refBtn)
     
     uiDev.ShowPopup(refBtn.page)
+    
+def PanelBrightnessHandler(source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+    Logger.Log("Panel Brightness", source, int(value))
+    uiDev = source.UIHost
+    
+    uiDev.SetBrightness(int(value))
+
+def PanelAutoBrightnessHandler(source: 'ExButton', event: str) -> None:
+    Logger.Log("Panel Auto Brightness", source, bool(source.State))
+    uiDev = source.UIHost
+    
+    uiDev.SetAutoBrightness(bool(source.State))
+
+def PanelVolumeHandler(source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+    Logger.Log("Panel Volume", source, int(value))
+    uiDev = source.UIHost
+    
+    uiDev.SetVolume('Master', int(value))
+
+def PanelSleepHandler(source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+    Logger.Log("Panel Sleep", source, value)
+    uiDev = source.UIHost
+    
+    uiDev.SetSleepTimer(True, int(value * 60))
+
+def PanelAutoSleepHandler(source: 'ExButton', event: str) -> None:
+    Logger.Log("Panel Auto Sleep", source, bool(source.State))
+    uiDev = source.UIHost
+    
+    state = bool(source.State)
+    
+    if state:
+        sleepTime = uiDev.SleepTimer
+    else:
+        sleepTime = None
+        
+    uiDev.SetSleepTimer(state, sleepTime)
+        
+
+def PanelWakeOnMotionHandler(source: 'ExButton', event: str) -> None:
+    Logger.Log("Panel Wake On Motion", source, bool(source.State))
+    uiDev = source.UIHost
+    
+    uiDev.SetWakeOnMotion(bool(source.State))
 
 ## End Function Definitions ----------------------------------------------------

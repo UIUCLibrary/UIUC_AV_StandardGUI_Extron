@@ -350,6 +350,12 @@ class ExSlider(EventMixIn, ControlMixIn, Slider):
         self.Id = self.ID
         self.Initialized = False
         
+        self.__InitialFill = None
+        
+        self.__FunctDict = {
+            "Primary": None
+        }
+        
         for kw, val in kwargs.items():
             setattr(self, kw, val)
             
@@ -371,7 +377,33 @@ class ExSlider(EventMixIn, ControlMixIn, Slider):
         ControlMixIn.Initialize(self)
         EventMixIn.Initialize(self)
         
+        self.__InitControlFunctions()
+        
         self.Initialized = True
+        
+    def SetInitialPressFill(self) -> None:
+        self.__InitialFill = self.Fill
+        
+    def GetInitialPressFill(self) -> int:
+        return self.__InitialFill
+    
+    def __InitControlFunctions(self) -> None:
+        mode = 'Primary'
+        self.__FunctDict[mode] = []
+        for ctlobj in self.ControlList:
+            if hasattr(ctlobj.Control.Functions, mode):
+                fn = getattr(ctlobj.Control.Functions, mode)
+                if callable(fn):
+                    self.__FunctDict[mode].append(fn)
+    
+    def GetControlFunctionList(self, Mode: str = 'Primary') -> List[Callable]:
+        if Mode not in self.__FunctDict.keys():
+            raise ValueError('Mode must be in {}'.format(self.__FunctDict.keys()))
+        
+        if not self.Initialized:
+            raise RuntimeError('Slider object {} must be initialized prior to using this function'.format(self))
+        
+        return self.__FunctDict[Mode]
 
 class ExKnob(EventMixIn, ControlMixIn, Knob):
     def __init__(self, 

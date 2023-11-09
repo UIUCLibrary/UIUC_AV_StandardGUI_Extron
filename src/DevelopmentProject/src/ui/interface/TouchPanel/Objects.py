@@ -414,7 +414,14 @@ class TouchPanelObjects():
                 
             if 'Controls' in group.keys():
                 for key, val in group['Controls'].items():
-                    kwargs[key] = self.Buttons[val]
+                    if self.Buttons.get(val) is not None:
+                        kwargs[key] = self.Buttons[val]
+                    elif self.Sliders.get(val) is not None:
+                        kwargs[key] = self.Sliders[val]
+                    elif self.Knobs.get(val) is not None:
+                        kwargs[key] = self.Knobs[val]
+                    else:
+                        raise KeyError('Value ({}) for Key ({}) not found in Buttons, Sliders, or Knobs'.format(val, key))
             
             if 'Labels' in group.keys():
                 for key, val in group['Labels'].items():
@@ -466,12 +473,20 @@ class TouchPanelObjects():
             if 'ControlObject' in ctl and 'ControlCollection' not in ctl:
                 if ctl['ControlObject'] in self.Buttons.keys():
                     ctlObj.LinkControlObject(ControlObject=self.Buttons[ctl['ControlObject']])
+                elif ctl['ControlObject'] in self.Sliders.keys():
+                    ctlObj.LinkControlObject(ControlObject=self.Sliders[ctl['ControlObject']])
+                elif ctl['ControlObject'] in self.Knobs.keys():
+                    ctlObj.LinkControlObject(ControlObject=self.Knobs[ctl['ControlObject']])
             elif 'ControlCollection' in ctl and 'ControlObject' not in ctl:
                 if ctl['ControlCollection'] in self.ControlGroups.keys():
                     ctlObj.LinkControlObject(ControlCollection=self.ControlGroups[ctl['ControlCollection']])
             elif 'ControlObject' in ctl and 'ControlCollection' in ctl:
                 if ctl['ControlObject'] in self.Buttons.keys() and ctl['ControlCollection'] in self.ControlGroups.keys():
                     ctlObj.LinkControlObject(ControlObject=self.Buttons[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
+                elif ctl['ControlObject'] in self.Sliders.keys() and ctl['ControlCollection'] in self.ControlGroups.keys():
+                    ctlObj.LinkControlObject(ControlObject=self.Sliders[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
+                elif ctl['ControlObject'] in self.Knobs.keys() and ctl['ControlCollection'] in self.ControlGroups.keys():
+                    ctlObj.LinkControlObject(ControlObject=self.Knobs[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
     
     def GetPopupGroupByPage(self, PopupPage: str) -> str:
         for group, list in self.PopupGroups.items():

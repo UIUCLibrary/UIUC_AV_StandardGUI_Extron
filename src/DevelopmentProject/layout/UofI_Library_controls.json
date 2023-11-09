@@ -157,5 +157,41 @@
         "PressShift": true,
         "Latching": false,
         "FuncModule": "ui.interface.TouchPanel.SystemStatus"
+    },
+    {
+        "ControlObject": "Slider-PanelBrightness",
+        "PrimaryFunc": "PanelBrightnessHandler",
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "PanelSetting-AutoBrightness",
+        "PrimaryFunc": "PanelAutoBrightnessHandler",
+        "PressShift": false,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "Slider-PanelAudio",
+        "PrimaryFunc": "PanelVolumeHandler",
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "Slider-PanelSleepTimer",
+        "PrimaryFunc": "PanelSleepHandler",
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "PanelSetting-AutoSleep",
+        "PrimaryFunc": "PanelAutoSleepHandler",
+        "PressShift": false,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "PanelSetting-WakeOnMotion",
+        "PrimaryFunc": "PanelWakeOnMotionHandler",
+        "PressShift": false,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel"
     }
 ]
