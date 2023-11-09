@@ -72,7 +72,7 @@ def eventEx(Object, EventName, *args, **kwargs):
 
     def deco(handler):
         for obj, evtname in product(Object, EventName):
-
+            
             if not isinstance(evtname, str):
                 raise TypeError('EventName must be a string.')
 

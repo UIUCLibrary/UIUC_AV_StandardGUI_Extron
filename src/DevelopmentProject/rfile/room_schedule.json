@@ -1,0 +1,37 @@
+{
+    "auto_start": {
+        "pattern": {
+            "Days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ],
+            "Time": {
+                "min": "00",
+                "ampm": "AM",
+                "hr": "8"
+            }
+        },
+        "enabled": false,
+        "mode": "share"
+    },
+    "auto_shutdown": {
+        "pattern": {
+            "Days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday"
+            ],
+            "Time": {
+                "min": "00",
+                "ampm": "PM",
+                "hr": "10"
+            }
+        },
+        "enabled": false
+    }
+}

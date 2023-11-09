@@ -114,8 +114,8 @@ GROUPWORK =    ('groupwork',
 
 ACTIVE = tuple(MergeLists([SystemState.Active], SHARE, ADVSHARE, GROUPWORK))
 
-EVENTS_BUTTON = ('Pressed', 'Released', 'Held', 'Repeated', 'Tapped')
-EVENTS_SLIDER = ('Pressed', 'Released', 'Changed')
+EVENTS_BUTTON = ['Pressed', 'Released', 'Held', 'Repeated', 'Tapped']
+EVENTS_SLIDER = ['Pressed', 'Released', 'Changed']
 
 UI_SETS =     Union['RadioSet', 
                     'SelectSet', 

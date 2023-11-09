@@ -18,20 +18,26 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING, Union, Callable
+from _collections_abc import Iterable
+from typing import TYPE_CHECKING, Union, Callable, Any
 from types import ModuleType
+# from typing_extensions import SupportsIndex
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet
-    from modules.helper.ExtendedUIClasses import ExButton, ExSlider, RefButton
+    pass
 
 #### Python imports
 import importlib
 import importlib.util
+from collections import UserDict, UserList
+import json
 
 #### Extron Library Imports
+from extronlib.system import RFile
 
 #### Project imports
 import control.AV
+from modules.helper.ModuleSupport import WatchVariable, eventEx
+import Constants
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -180,7 +186,7 @@ class ControlObject():
             raise TypeError('IconId must be an int or None')
     
     @property
-    def LinkedObject(self) -> Union['ExButton', 'ExSlider', 'RefButton']:
+    def LinkedObject(self) -> Constants.UI_OBJECTS:
         return self.__LinkedObject
     
     @LinkedObject.setter
@@ -188,14 +194,14 @@ class ControlObject():
         raise AttributeError('Overriding LinkedObject property directly is disallowed. Use "LinkControlObject" instead.')
     
     @property
-    def LinkedCollection(self) -> Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet']:
+    def LinkedCollection(self) -> Constants.UI_SETS:
         return self.__LinkedCollection
     
     @LinkedCollection.setter
     def LinkedCollection(self, val) -> None:
         raise AttributeError('Overriding LinkedCollection property directly is disallowed. Use "LinkControlObject" instead.')
     
-    def LinkControlObject(self, ControlObject: Union['ExButton', 'ExSlider', 'RefButton'] = None, ControlCollection: Union['RadioSet', 'SelectSet', 'VariableRadioSet', 'ScrollingRadioSet'] = None):
+    def LinkControlObject(self, ControlObject: Constants.UI_OBJECTS = None, ControlCollection: Constants.UI_SETS = None):
         if ControlObject is not None:
             # if type(ControlObject) not in [ExButton, ExSlider, RefButton]:
             #     raise TypeError('Invalid ControlObject type ({}) provided'.format(type(ControlObject)))
@@ -219,6 +225,168 @@ class ControlObject():
 class FeedbackObject():
     def __init__(self) -> None:
         pass
+    
+    
+class WatchDict(UserDict):
+    def __init__(self, mapping: dict=None, **kwargs):
+        if mapping is not None:
+            mapping = {
+                key: value for key, value in mapping.items()
+            }
+        else:
+            mapping = {}
+            
+        if kwargs:
+            mapping.update(
+                {key: value for key, value in kwargs.items()}
+            )
+        
+        for key, value in mapping.items():
+            if isinstance(value, list):
+                mapping[key] = WatchList(*value)
+                @eventEx(mapping[key].Watch, 'Changed')
+                def WatchListHandler(source, event, evKey=None, evValue=None):
+                    if isinstance(evKey, list):
+                        watchKey = [key]
+                        watchKey.extend(evKey)
+                    else:
+                        watchKey = [key, evKey]
+                    self.Watch.Change(event, watchKey, evValue)
+            elif isinstance(value, dict):
+                mapping[key] = WatchDict(**value)
+                @eventEx(mapping[key].Watch, 'Changed')
+                def WatchDictHandler(source, event, evKey=None, evValue=None):
+                    if isinstance(evKey, list):
+                        watchKey = [key]
+                        watchKey.extend(evKey)
+                    else:
+                        watchKey = [key, evKey]
+                    self.Watch.Change(event, watchKey, evValue)
+        
+        self.Watch = WatchVariable('Dictionary Changed')
+        UserDict.__init__(self, **mapping)
+    
+    def __setitem__(self, key: Any, item: Any) -> None:
+        super().__setitem__(key, item)
+        self.Watch.Change('Updated', key, item)
+        
+    def __delitem__(self, key: Any) -> None:
+        delVal = self.data[key]
+        super().__delitem__(key)
+        self.Watch.Change('Deleted', key, delVal)
+        
+    def serialize(self) -> None:
+        serialDict = self.data
+        
+        for key, item in serialDict.items():
+            if isinstance(item, WatchDict):
+                serialDict[key] = item.serialize()
+            elif isinstance(item, WatchList):
+                serialDict[key] = item.serialize()
+                
+        return serialDict
+        
+        
+class WatchList(UserList):
+    def __init__(self, *args):
+        for item in args:
+            index = args.index(item)
+            if isinstance(item, list):
+                args[index] = WatchList(*item)
+                @eventEx(args[index].Watch, 'Changed')
+                def WatchListHandler(source, event, evKey=None, evValue=None):
+                    if isinstance(evKey, list):
+                        watchKey = [index]
+                        watchKey.extend(evKey)
+                    else:
+                        watchKey = [index, evKey]
+                    self.Watch.Change(event, watchKey, evValue)
+            elif isinstance(item, dict):
+                args[index] = WatchDict(**item)
+                @eventEx(args[index].Watch, 'Changed')
+                def WatchDictHandler(source, event, evKey=None, evValue=None):
+                    if isinstance(evKey, list):
+                        watchKey = [index]
+                        watchKey.extend(evKey)
+                    else:
+                        watchKey = [index, evKey]
+                    self.Watch.Change(event, watchKey, evValue)
+        
+        self.Watch = WatchVariable('List Changed')
+        UserList.__init__(self, args)
+        
+    def __setitem__(self, i: Union[int, slice], item: Any) -> None: # Use SupportsIndex instead of int if moving to Python > 3.8
+        super().__setitem__(i, item)
+        self.Watch.Change('Updated', i, item)
+        
+    def __delitem__(self, i: Union[int, slice]) -> None: # Use SupportsIndex instead of int if moving to Python > 3.8
+        delVal = self.data[i]
+        super().__delitem__(i)
+        self.Watch.Change('Deleted', i, delVal)
+        
+    def pop(self, i: int = -1) -> Any:
+        super().pop(i)
+        self.Watch.Change('Deleted', i, self.data[i])
+    
+    def remove(self, item: Any) -> None:
+        index = self.data.index(item)
+        super().remove(item)
+        self.Watch.Change('Deleted', index, item)
+    
+    def append(self, item: Any) -> None:
+        super().append(item)
+        self.Watch.Change('Updated', -1, item)
+    
+    def extend(self, other: Iterable) -> None:
+        super().extend(other)
+        
+        index = (len(other) * -1)
+        for item in other:
+            self.Watch.Change('Updated', index, item)
+            index += 1
+    
+    def insert(self, i: int, item: Any) -> None:
+        super().insert(i, item)
+        self.Watch.Change('Updated', i, item)
+        
+    def serialize(self) -> None:
+        serialList = self.data
+        
+        for item in serialList:
+            index = serialList.index(item)
+            if isinstance(item, WatchDict):
+                serialList[index] = item.serialize()
+            elif isinstance(item, WatchList):
+                serialList[index] = item.serialize()
+                
+        return serialList
+        
+class SettingsObject():
+    def __init__(self, SettingsFile: str) -> None:
+        self.FileName = SettingsFile
+        self.__JSON = None
+        self.__LoadFromFile()
+        
+        if isinstance(self.__JSON, list):
+            self.Settings = WatchList(*self.__JSON)
+        elif isinstance(self.__JSON, dict):
+            self.Settings = WatchDict(**self.__JSON)
+        
+        @eventEx(self.Settings.Watch, 'Changed')
+        def WatchHandler(source, event, key=None, value=None):
+            self.__WriteToFile()
+            
+    def __LoadFromFile(self) -> None:
+        file = RFile(self.FileName, 'r')
+        self.__JSON = file.read()
+        file.close()
+    
+    def __WriteToFile(self) -> None:
+        file = RFile(self.FileName, 'w')
+        self.__JSON = json.dumps(self.Settings.serialize(), indent=4)
+        file.write(self.__JSON)
+        file.close()
+        
 
 ## End Class Definitions -------------------------------------------------------
 ##

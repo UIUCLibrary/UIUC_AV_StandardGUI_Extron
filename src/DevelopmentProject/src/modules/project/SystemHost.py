@@ -30,7 +30,7 @@ if TYPE_CHECKING: # pragma: no cover
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExEBUSDevice
 from modules.helper.Collections import UIDeviceCollection, ProcessorCollection
-from modules.helper.PrimitiveObjects import DictObj
+from modules.helper.PrimitiveObjects import DictObj, SettingsObject
 from modules.helper.ModuleSupport import WatchVariable
 from control.ActivityController import ActivityController
 from control.PollController import PollingController
@@ -88,6 +88,10 @@ class SystemController:
         self.PrimaryDSPId = Variables.PRIMARY_DSP
         
         self.CameraSwitcherId = Variables.CAMERA_SW
+        
+        # Non-volitile Settings
+        self.RoomScheduleConfig = SettingsObject(Variables.SETTINGS_ROOM_SCHEDULE)
+        self.CameraPresetConfig = SettingsObject(Variables.SETTINGS_CAMERA_PRESETS)
         
         # System Properties
         self.SystemActivityWatch = WatchVariable("System Activity Mode")

@@ -43,3 +43,7 @@ PRIMARY_UI      = 'TP001'   # Primary User Interface Device
 PRIMARY_PROC    = 'CTL001'  # Primary Control Processor
 PRIMARY_DSP     = 'DSP001'  # Primary DSP for audio control
 CAMERA_SW       = 'DEC001'  # ID of hardware device to switch between cameras
+
+#### Non-Volatile Settings Files
+SETTINGS_ROOM_SCHEDULE = 'room_schedule.json'
+SETTINGS_CAMERA_PRESETS = 'camera_presets.json'

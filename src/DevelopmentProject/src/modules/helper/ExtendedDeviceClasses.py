@@ -41,6 +41,7 @@ from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.TouchPanel.SystemStatus import SystemStatusController
 from ui.interface.TouchPanel.PanelAbout import PanelAboutController
+from ui.interface.TouchPanel.Scheduler import ScheduleController
 from ui.utilities.Keyboard import KeyboardController
 from ui.utilities.PinPad import PINController
 from Constants import SystemState
@@ -211,6 +212,7 @@ class ExUIDevice(UIDevice):
             self.PINAccess = PINController(self, self.Interface.Objects.ControlGroups['PIN-Countrol-Group'])
             self.Keyboard = KeyboardController(self, self.Interface.Objects.ControlGroups['Keyboard-Control-Group'])
             self.SystemStatusCtl = SystemStatusController(self, self.Interface.Objects.ControlGroups['SystemStatus-Control-Group'])
+            self.ScheduleCtl = ScheduleController(self)
             self.AboutPageCtl = PanelAboutController(self, self.Interface.Objects.ControlGroups['Tech-About-Group'])
         
         ## set Room Label to system Room Name
@@ -222,12 +224,14 @@ class ExUIDevice(UIDevice):
         ## show initial page
         self.ShowPage('Splash')
         
+        ## configure inactivity time handler
         self.SetInactivityTime(list(self.__InactivityConfig.keys()))
         @event(self, 'InactivityChanged')
         def InactivityMethodHandler(uiDev: 'ExUIDevice', time: float):
             if int(time) in self.__InactivityConfig:
                 self.__InactivityConfig[time]() 
         
+        ## capture current panel state for feedback later
         for key in self.__PanelFeedbackTimer.LastData.keys():
             curVal = getattr(self, key)
             self.__PanelFeedbackTimer.LastData[key] = curVal
