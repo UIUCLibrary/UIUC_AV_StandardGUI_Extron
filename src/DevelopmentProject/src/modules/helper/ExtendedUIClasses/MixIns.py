@@ -101,7 +101,7 @@ class ControlMixIn(GroupMixIn, object):
         else:
             raise TypeError('Control must be a ControlObject')
         
-        Logger.Log('{} ControlObject:'.format(type(self).__name__), Control)
+        Logger.Debug('{} ControlObject:'.format(type(self).__name__), Control)
     
     @property
     def ControlList(self) -> List['ControlObject']:
@@ -135,7 +135,7 @@ class EventMixIn():
             Logger.Log('Knob event def goes here')
     
     def __ExButtonHandler(self, source: 'ExButton', event: str) -> None:
-        Logger.Log('ExButton Event', source, event)
+        Logger.Debug('ExButton Event', source, event)
         if event == 'Pressed':
             # Capture initial press state
             source.SetInitialPressState()
@@ -249,7 +249,7 @@ class EventMixIn():
             source.ClearInitialPressState()
 
     def __ExSliderHandler(self, source: 'ExSlider', event: str, value: Union[int, float]) -> None:
-        Logger.Log('ExSlider Event', source, event, value)
+        Logger.Debug('ExSlider Event', source, event, value)
         
         if event == 'Pressed':
             source.SetInitialPressFill()

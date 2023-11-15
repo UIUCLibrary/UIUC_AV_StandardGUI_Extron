@@ -151,22 +151,6 @@ class ActivityController:
             if Transition[1][0] is True:
                 Logger.Log('Changing Activity ({})'.format(Transition[1][1].name))
                 self.SystemActivityChange(Transition[1][1])
-        
-        # if val in ACTIVE:
-        #     Logger.Log(self.SystemHost.TransitionState)
-        #     if self.SystemHost.TransitionState[0][1] is SystemState.Active:
-        #         Logger.Log('Powering On System and Changing Activity')
-        #         # power on system
-        #         self.SystemStateChange(SystemState.Active)
-        #     else:
-        #         Logger.Log('Changing Activity')
-        #         self.SystemActivityChange(val)
-            
-        # elif val in STANDBY:
-        #     Logger.Log('Powering Off System')
-        #     # power off system
-        #     self.SystemStateChange(SystemState.Standby)
-        
                     
     def ActivitySwitchInit(self) -> None:
         pass

@@ -206,7 +206,7 @@ class SystemController:
         raise AttributeError('Setting TransitionState is disallowed')
     
     def ActivityTransitionComplete(self) -> None:
-        Logger.Log('Activity Mode Change: {} Complete'.format(self.SystemActivity.name))
+        Logger.Log('Activity Mode Change: {} Complete'.format(self.__NewSystemActivity.name))
         self.__SystemActivity = self.__NewSystemActivity
         self.__NewSystemActivity = None
         self.__ActivityTransition = False
@@ -339,11 +339,11 @@ class SystemController:
             #     self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
             #     # Ensure SVSI DEC endpoints are muted
             #     self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Video & Sync', None)
-            Logger.Log('Testing: Put AVoIP Switching Hardware into standby')
+            Logger.Debug('Testing: Put AVoIP Switching Hardware into standby')
         
         if count >= self.Timers.Shutdown or (destStatus is True and count > self.Timers.ShutdownMin):
             # self.SrcCtl.MatrixSwitch(0, 'All', 'untie')
-            Logger.Log('Untie matrix switcher')
+            Logger.Debug('Untie matrix switcher')
             
         if destStatus and count > self.Timers.ShutdownMin:
             timer.Wrapup()

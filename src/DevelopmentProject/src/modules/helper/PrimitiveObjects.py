@@ -37,7 +37,7 @@ from extronlib.system import RFile
 #### Project imports
 import control.AV
 from modules.helper.ModuleSupport import WatchVariable, eventEx
-from modules.helper.CommonUtilities import Logger
+from modules.helper.CommonUtilities import Logger, isinstanceEx
 import Constants
 
 ## End Imports -----------------------------------------------------------------
@@ -204,14 +204,14 @@ class ControlObject():
     
     def LinkControlObject(self, ControlObject: Constants.UI_OBJECTS = None, ControlCollection: Constants.UI_SETS = None):
         if ControlObject is not None:
-            # if type(ControlObject) not in [ExButton, ExSlider, RefButton]:
-            #     raise TypeError('Invalid ControlObject type ({}) provided'.format(type(ControlObject)))
+            if not isinstanceEx(ControlObject, Constants.UI_OBJECTS_MATCH):
+                raise TypeError('Invalid ControlObject type ({}) provided'.format(type(ControlObject)))
             
             self.__LinkedObject = ControlObject
             self.__LinkedObject.SetControlObject(self)
         if ControlCollection is not None:
-            # if type(ControlCollection) not in [RadioSet, SelectSet, VariableRadioSet, ScrollingRadioSet]:
-            #     raise TypeError('Invalid ControlCollection type ({}) provided'.format(type(ControlCollection)))
+            if not isinstanceEx(ControlCollection, Constants.UI_SETS_MATCH):
+                raise TypeError('Invalid ControlCollection type ({}) provided'.format(type(ControlCollection)))
             
             self.__LinkedCollection = ControlCollection
                     
@@ -417,7 +417,7 @@ class SettingsObject():
         
         @eventEx(self.Settings.Watch, 'Changed')
         def WatchHandler(source, event, key=None, value=None):
-            Logger.Log('Settings Object Changed -', source, event, key, value)
+            Logger.Debug('Settings Object Changed -', source, event, key, value)
             self.__WriteToFile()
 
     def __LoadSettings(self) -> None:
@@ -427,8 +427,7 @@ class SettingsObject():
         elif isinstance(jsonObj, dict):
             self.Settings = WatchDict(**jsonObj)
         else:
-            Logger.Log(type(jsonObj), jsonObj)
-            raise ValueError('JSON object ({}) must have a top level list or dict'.format(jsonObj))
+            raise ValueError('JSON object ({} - {}) must have a top level list or dict'.format(jsonObj, type(jsonObj)))
     
     def __LoadFromFile(self) -> None:
         file = RFile(self.FileName, 'r')

@@ -33,7 +33,7 @@ SHUTDOWN_TIMER_DUR          = 45   # Max shutdown timer duration, seconds
 SHUTDOWN_TIMER_MIN          = 30   # Min shutdown timer duration, seconds
 SHUTDOWN_CONF_TIMER_DUR     = 30   # Shutdown confirmation duration, seconds
 TIP_TIMER_DUR               = 15   # Duration to show activity tip pages for, seconds
-SPLASH_INACTIVITY_TIMER_DUR = 600  # Inactivity timeout before showing "Splash" page when Activity is Off, seconds
+SPLASH_INACTIVITY_TIMER_DUR = 120  # Inactivity timeout before showing "Splash" page when Activity is Off, seconds
 
 #### Defaults & Primary Device Settings
 DEFAULT_SOURCE  = 'PC001'   # Default source id on activity switch

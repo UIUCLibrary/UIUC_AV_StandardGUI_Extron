@@ -503,8 +503,6 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     def GetObjectByRef(self, ref: Union[int, str, 'RefButton']) -> Union[None, 'ExButton']:
         objIndex = None
         
-        Logger.Log('GetObjectByRef Ref:', ref, type(ref))
-        
         if isinstance(ref, int):
             objIndex = ref - self.__Offset
             
@@ -515,8 +513,6 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
                     
         elif isinstanceEx(ref, 'RefButton'):
             objIndex = self.__RefSet.Objects.index(ref) - self.__Offset
-        
-        Logger.Log('ObjIndex', objIndex, self.__Offset)
         
         if objIndex is None:
             return None
@@ -579,7 +575,6 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
         
     def LoadButtonView(self) -> None:
-        Logger.Log('Current Page', self.CurrentPage, 'Pages', self.Pages, 'Offset', self.Offset)
         if self.CurrentPage == 1:
             # Disabled Prev button
             self.__Prev.SetEnable(False)
@@ -608,8 +603,6 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
             
             btn.SetText(curRefSet[index].Text)
             # TODO: Set Icon state
-        
-        Logger.Log('Current Object', self.GetCurrentRef(), self.GetObjectByRef(self.GetCurrentRef()))
         
         curObj = self.GetObjectByRef(self.GetCurrentRef())
         if curObj is not None:
@@ -761,7 +754,7 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
         return str(len(System.CONTROLLER.Devices.Lights))
     
     def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
-        Logger.Log('Attempting to set states of Header Control Group')
+        Logger.Debug('Attempting to set states of Header Control Group')
         
     def SetRoomName(self, RoomName: str) -> None:
         self.__RoomButton.SetText(RoomName)
@@ -1170,7 +1163,6 @@ class PanelSetupGroup(ControlMixIn, UISetMixin, object):
         self.__FWLbl.SetText(self.__UIDev.FirmwareVersion)
         
     def GetCurrentSettings(self, SettingList: List[str] = None) -> None:
-        Logger.Log('Panel Set Current List:', SettingList)
         if SettingList is None or 'Brightness' in SettingList:
             self.__Brightness.SetFill(self.__UIDev.Brightness)
         

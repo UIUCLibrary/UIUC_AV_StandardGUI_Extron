@@ -134,10 +134,15 @@ class Logger():
             cls.__Prog.Log(*recordobjs, trace_msg, sep=separator, severity=logSeverity)
         else:
             cls.__Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
-        
+    
     @classmethod
     def Trace(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
         cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
+        
+    @classmethod
+    def Debug(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
+        if Variables.TESTING:
+            cls.Log(*recordobjs, separator=separator, logSeverity=logSeverity)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string
@@ -284,11 +289,11 @@ def debug(func): # pragma: no cover
         try:
             value = func(*args, **kwargs)
             rtnStr = "{!r} returned {!r}".format(func.__name__, value)
-            Logger.Log(callStr, rtnStr, separator='\n')
+            Logger.Debug(callStr, rtnStr, separator='\n')
             return value
         except Exception as inst:
             tb = traceback.format_exc()
-            Logger.Log('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), logSeverity='error')
+            Logger.Debug('An error occured attempting to call function. {} ({})\n    Exception ({}):\n        {}\n    Traceback:\n        {}'.format(func.__name__, signature, type(inst), inst, tb), logSeverity='error')
     return wrapper_debug
 
 def RunAsync(func, callback: Callable=print):

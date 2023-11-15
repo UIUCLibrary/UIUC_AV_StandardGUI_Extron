@@ -163,7 +163,7 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         
     def SetState(self, state: int) -> None:
         if state is None:
-            Logger.Log('None state sent to button set state', self, separator=' | ', logSeverity='warning')
+            Logger.Debug('None state sent to button set state', self, separator=' | ', logSeverity='warning')
             return None
         # update indicator state
         if self.Indicator is not None:
@@ -179,15 +179,12 @@ class ExButton(EventMixIn, ControlMixIn, Button):
     
     def SetInitialPressState(self) -> None:
         self.__InitialState = self.State
-        # Logger.Log(self, 'Set Initial State', self.__InitialState)
         
     def GetInitialPressState(self) -> int:
-        # Logger.Log(self, 'Get Initial State', self.__InitialState)
         return self.__InitialState
     
     def ClearInitialPressState(self) -> None:
         self.__InitialState = None
-        # Logger.Log(self, 'Clear Initial State')
     
     def Initialize(self) -> None:
         ControlMixIn.Initialize(self)
@@ -205,7 +202,7 @@ class ExButton(EventMixIn, ControlMixIn, Button):
                 self.__Indicator = ind
                 setattr(ind, 'ind-ref', self)
             except LookupError:
-                Logger.Log('No button found for indicator name: {}'.format(self.indicatorName))
+                Logger.Debug('No button found for indicator name: {}'.format(self.indicatorName))
         
         self.Initialized = True
     

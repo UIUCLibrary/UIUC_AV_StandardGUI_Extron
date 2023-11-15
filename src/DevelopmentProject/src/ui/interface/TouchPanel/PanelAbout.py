@@ -58,14 +58,14 @@ class PanelAboutController:
         @eventEx(self.UIHost.PopupShown, 'Changed')
         def PageShownHandler(src, value) -> None:
             if value == 'Tech-About':
-                Logger.Log('About Page Shown')
+                Logger.Debug('About Page Shown')
                 self.__ControlGroup.RefreshStatusInfo()
                 self.UpdateTimer.Restart()
                 
         @eventEx(self.UIHost.PopupHidden, 'Changed')
         def PageHiddenHandler(src, value) -> None:
             if value == 'Tech-About':
-                Logger.Log('About Page Hidden')
+                Logger.Debug('About Page Hidden')
                 self.UpdateTimer.Stop()
         
     def __PanelInfoUpdate(self, timer: 'Timer', count: int) -> None:

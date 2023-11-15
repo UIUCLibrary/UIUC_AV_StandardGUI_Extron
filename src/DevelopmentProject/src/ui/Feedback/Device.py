@@ -122,7 +122,7 @@ def VMX_InputHandler(command, value, qualifier, hardware=None):
     
 def VMX_OutputHandler(command, value, qualifier, hardware=None):
     __LogFeedback(hardware.Name, command, value, Qualifier=qualifier)
-    Logger.Log('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
+    Logger.Debug('Tie: {}\n    {} -> {}'.format(qualifier['Tie Type'], qualifier['Output'], value))
 
 
 ## End Function Definitions ----------------------------------------------------

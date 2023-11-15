@@ -155,7 +155,7 @@ class ExUIDevice(UIDevice):
         @eventEx(self.PopupShown, 'Changed')
         def PageShownHandler(src, value) -> None:
             if value == 'Tech-PanelSetup':
-                Logger.Log('Panel Setup Page Shown')
+                Logger.Debug('Panel Setup Page Shown')
                 self.__PanelSetupControlGroup.SetPanelDetails()
                 self.__PanelSetupControlGroup.GetCurrentSettings()
                 self.__PanelFeedbackTimer.Restart()
@@ -163,7 +163,7 @@ class ExUIDevice(UIDevice):
         @eventEx(self.PopupHidden, 'Changed')
         def PageHiddenHandler(src, value) -> None:
             if value == 'Tech-PanelSetup':
-                Logger.Log('Panel Setup Page Hidden')
+                Logger.Debug('Panel Setup Page Hidden')
                 self.__PanelFeedbackTimer.Stop()
                 
         self.__PanelFeedbackTimer = Timer(1, self.__PanelFeedbackHandler)
@@ -300,7 +300,7 @@ class ExUIDevice(UIDevice):
         UIDevice.ShowPage(self, page)
         
     def ShowPopup(self, page: Union[int, str], duration: float = 0) -> None:
-        # Logger.Log('Popup Shown:', page, duration)
+        Logger.Debug('Popup Shown:', page, duration)
         if isinstance(page, int):
             page = self._popups[str(page)]['name']
         
@@ -312,7 +312,7 @@ class ExUIDevice(UIDevice):
         UIDevice.ShowPopup(self, page, duration)
         
     def HidePopup(self, popup: Union[int, str]) -> None:
-        # Logger.Log('Hide Popup:', popup)
+        Logger.Debug('Hide Popup:', popup)
         if isinstance(popup, int):
             popup = self._popups[str(popup)]['name']
             
@@ -324,7 +324,7 @@ class ExUIDevice(UIDevice):
         UIDevice.HidePopup(self, popup)
         
     def HidePopupGroup(self, group: int) -> None:
-        # Logger.Log('Hide Popup Group:', group)
+        Logger.Debug('Hide Popup Group:', group)
         popupList = [popup['name'] for popup in [self._popups.values()] if popup['group'] == group]
         for popup in popupList:
             self.PopupHidden.Change(popup)
@@ -334,7 +334,7 @@ class ExUIDevice(UIDevice):
         UIDevice.HidePopupGroup(self, group)
         
     def HideAllPopups(self) -> None:
-        # Logger.Log('Hide All Popups')
+        Logger.Debug('Hide All Popups')
         for popup in self._popups.values():
             self.PopupHidden.Change(popup['name'])
         for wait in self.__PopupWaits.values():

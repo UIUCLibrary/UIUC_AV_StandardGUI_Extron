@@ -78,7 +78,6 @@ class DeviceCollection(UserDict):
         
         self.data[item.Id] = item
         
-        # Logger.Trace.Log('Devices Changed')
         self.DevicesChanged.Change(self.data)
     
     # Typecasts __getitem__
@@ -175,7 +174,6 @@ class DeviceCollection(UserDict):
         
     # Polling
     def AddPolling(self, device, command, qualifier=None, active_duration: int=None, inactive_duration: int=None):
-        # Logger.Log(device, self.data.values(), sep='\n')
         if device not in self.data.values():
             raise LookupError('device must be in DeviceCollection')
             

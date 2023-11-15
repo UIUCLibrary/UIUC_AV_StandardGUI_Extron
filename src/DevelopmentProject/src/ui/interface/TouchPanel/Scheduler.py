@@ -80,14 +80,14 @@ class ScheduleController():
         @eventEx(self.UIHost.PopupShown, 'Changed')
         def PageShownHandler(src, value) -> None:
             if value == 'Tech-RoomSchedule':
-                Logger.Log('Room Schedule Page Shown')
+                Logger.Debug('Room Schedule Page Shown')
                 self.UpdateTechPage(force=True)
                 self.UpdateTimer.Restart()
                 
         @eventEx(self.UIHost.PopupHidden, 'Changed')
         def PageHiddenHandler(src, value) -> None:
             if value == 'Tech-RoomSchedule':
-                Logger.Log('Room Schedule Page Hidden')
+                Logger.Debug('Room Schedule Page Hidden')
                 self.UpdateTimer.Stop()
     
     def __StartHandler(self, clock: 'Clock'=None, dt: 'datetime'=None) -> None:
@@ -104,7 +104,6 @@ class ScheduleController():
         System.CONTROLLER.SystemActivity = mode
     
     def __ShutdownHandler(self, clock: 'Clock'=None, dt: 'datetime'=None) -> None:
-        Logger.Log('System Auto-Shutdown Activated')
         ctlGrp = self.UIHost.Interface.Objects.ControlGroups['Activity-Select']
         ctlGrp.SetCurrent('ActivitySelect-Off')
         StartShutdownConfirmation(System.CONTROLLER.SystemActivity, click=True)

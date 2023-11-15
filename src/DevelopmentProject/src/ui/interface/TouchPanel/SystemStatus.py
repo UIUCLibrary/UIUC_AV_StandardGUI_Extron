@@ -64,7 +64,7 @@ class SystemStatusController:
         @eventEx(self.UIHost.PopupShown, 'Changed')
         def PageShownHandler(src, value) -> None:
             if value == 'Tech-SystemStatus':
-                Logger.Log('Status Page Shown')
+                Logger.Debug('Status Page Shown')
                 self.UpdateStatusIcons()
                 self.UpdateTimer.Restart()
                 self.ResetPages()
@@ -72,7 +72,7 @@ class SystemStatusController:
         @eventEx(self.UIHost.PopupHidden, 'Changed')
         def PageHiddenHandler(src, value) -> None:
             if value == 'Tech-SystemStatus':
-                Logger.Log('Status Page Hidden')
+                Logger.Debug('Status Page Hidden')
                 self.UpdateTimer.Stop()
     
     @property

@@ -107,9 +107,9 @@ class PollingController:
     def __PollInterface(self, interface, command: str, qualifier: Dict=None): # pragma: no cover
         if Variables.TESTING:
             if qualifier is not None:
-                Logger.Log('Test Poll: {} {} on {}'.format(command, qualifier, FullName(interface)))
+                Logger.Debug('Test Poll: {} {} on {}'.format(command, qualifier, FullName(interface)))
             else:
-                Logger.Log('Test Poll: {} on {}'.format(command, FullName(interface)))
+                Logger.Debug('Test Poll: {} on {}'.format(command, FullName(interface)))
             
             return
         

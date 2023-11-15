@@ -466,9 +466,6 @@ class TouchPanelObjects():
             if 'ControlCollection' in kwargs.keys():
                 kwargs.pop('ControlCollection')
             
-            # Logger.Log('Ctl Dict:', ctl)
-            # Logger.Log('KwArgs Dict:', kwargs)
-            
             ctlObj = ControlObject(**kwargs)
             
             if 'ControlObject' in ctl and 'ControlCollection' not in ctl:
