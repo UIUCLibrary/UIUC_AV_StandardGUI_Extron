@@ -227,9 +227,6 @@ class ExUIDevice(UIDevice):
         ## set Panel Config Control Group
         self.__PanelSetupControlGroup = self.Interface.Objects.ControlGroups['Tech-PanelSetup-Group']
         
-        ## show initial page
-        self.ShowPage('Splash')
-        
         ## configure inactivity time handler
         self.SetInactivityTime(list(self.__InactivityConfig.keys()))
         @event(self, 'InactivityChanged')

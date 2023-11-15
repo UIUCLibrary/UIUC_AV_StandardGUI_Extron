@@ -233,6 +233,7 @@ class SystemController:
         
         Logger.Log('System Initialized')
         for uiDev in self.UIDevices:
+            uiDev.ShowPage('Splash')
             uiDev.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
             uiDev.Click(5, 0.2)
             
