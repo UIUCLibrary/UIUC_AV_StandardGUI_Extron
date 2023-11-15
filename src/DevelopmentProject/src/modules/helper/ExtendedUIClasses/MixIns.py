@@ -46,7 +46,7 @@ class GroupMixIn(object):
         return self.__Group
     
     @Group.setter
-    def Group(self, val) -> None:
+    def Group(self, val: Constants.UI_SETS) -> None:
         if isinstanceEx(val, Constants.UI_SETS_MATCH):
             self.__Group = val
         elif val is None:

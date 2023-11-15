@@ -1,17 +1,17 @@
 {
     "auto_start": {
         "pattern": {
-            "Days": [
+            "days": [
                 "Monday",
                 "Tuesday",
                 "Wednesday",
                 "Thursday",
                 "Friday"
             ],
-            "Time": {
+            "time": {
                 "min": "00",
                 "ampm": "AM",
-                "hr": "8"
+                "hr": "08"
             }
         },
         "enabled": false,
@@ -19,19 +19,19 @@
     },
     "auto_shutdown": {
         "pattern": {
-            "Days": [
+            "days": [
                 "Monday",
                 "Tuesday",
                 "Wednesday",
                 "Thursday",
                 "Friday"
             ],
-            "Time": {
+            "time": {
                 "min": "00",
                 "ampm": "PM",
                 "hr": "10"
             }
         },
-        "enabled": false
+        "enabled": true
     }
 }

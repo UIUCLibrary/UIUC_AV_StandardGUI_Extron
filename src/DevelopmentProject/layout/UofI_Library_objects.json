@@ -1439,43 +1439,50 @@
       "Name": "Schedule-Mon",
       "ID": 12501,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Monday"
     },
     {
       "Name": "Schedule-Tue",
       "ID": 12502,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Tuesday"
     },
     {
       "Name": "Schedule-Wed",
       "ID": 12503,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Wednesday"
     },
     {
       "Name": "Schedule-Thu",
       "ID": 12504,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Thursday"
     },
     {
       "Name": "Schedule-Fri",
       "ID": 12505,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Friday"
     },
     {
       "Name": "Schedule-Sat",
       "ID": 12506,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Saturday"
     },
     {
       "Name": "Schedule-Sun",
       "ID": 12507,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "day": "Sunday"
     },
     {
       "Name": "Schedule-All",
@@ -1493,37 +1500,47 @@
       "Name": "Schedule-Hr-Up",
       "ID": 12510,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": 1,
+      "mode": "hour"
     },
     {
       "Name": "Schedule-Hr-Dn",
       "ID": 12511,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": -1,
+      "mode": "hour"
     },
     {
       "Name": "Schedule-Min-Up",
       "ID": 12512,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": 1,
+      "mode": "minute"
     },
     {
       "Name": "Schedule-Min-Dn",
       "ID": 12513,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": -1,
+      "mode": "minute"
     },
     {
       "Name": "Schedule-AM",
       "ID": 12514,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "value": "AM"
     },
     {
       "Name": "Schedule-PM",
       "ID": 12515,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "value": "PM"
     },
     {
       "Name": "Schedule-Save",
@@ -1541,43 +1558,50 @@
       "Name": "Schedule-Start-Toggle",
       "ID": 12518,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "mode": "auto_start"
     },
     {
       "Name": "Schedule-Start-Pattern",
       "ID": 12519,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "mode": "auto_start"
     },
     {
       "Name": "Schedule-Start-Act-share",
       "ID": 12520,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "value": "share"
     },
     {
       "Name": "Schedule-Start-Act-adv_share",
       "ID": 12521,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "value": "adv_share"
     },
     {
       "Name": "Schedule-Start-Act-group_work",
       "ID": 12522,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "value": "group_work"
     },
     {
       "Name": "Schedule-Shutdown-Toggle",
       "ID": 12523,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "mode": "auto_shutdown"
     },
     {
       "Name": "Schedule-Shutdown-Pattern",
       "ID": 12524,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "mode": "auto_shutdown"
     },
     {
       "Name": "AudIn1-Gain-Up",
@@ -2516,15 +2540,15 @@
     },
     {
       "Name": "Schedule-Hr",
-      "ID": 10171
+      "ID": 10501
     },
     {
       "Name": "Schedule-Min",
-      "ID": 10172
+      "ID": 10502
     },
     {
-      "Name": "Schedule-Calc",
-      "ID": 10174
+      "Name": "Scheduler-Calc",
+      "ID": 10503
     },
     {
       "Name": "AudIn1-Label",
@@ -2899,6 +2923,51 @@
         "HostLabel": "PanelInfoLabel-Host",
         "IPLabel": "PanelInfoLabel-IP",
         "FirmwareLabel": "PanelInfoLabel-FW"
+      }
+    },
+    {
+      "Name": "Tech-RoomScheduler-Group",
+      "Class": "ScheduleConfigGroup",
+      "Buttons": [
+        "Schedule-Start-Act-share",
+        "Schedule-Start-Act-adv_share",
+        "Schedule-Start-Act-group_work"
+      ],
+      "Controls": {
+        "AutoStartButton": "Schedule-Start-Toggle",
+        "AutoShutdownButton": "Schedule-Shutdown-Toggle",
+        "StartPatternButton": "Schedule-Start-Pattern",
+        "ShutdownPatternButton": "Schedule-Shutdown-Pattern"
+      }
+    },
+    {
+      "Name": "Tech-RoomScheduleEditor-Group",
+      "Class": "ScheduleEditGroup",
+      "Buttons": [
+        "Schedule-Mon",
+        "Schedule-Tue",
+        "Schedule-Wed",
+        "Schedule-Thu",
+        "Schedule-Fri",
+        "Schedule-Sat",
+        "Schedule-Sun"
+      ],
+      "Controls": {
+        "SelectAllButton": "Schedule-All",
+        "SelectWeekdaysButton": "Schedule-Weekdays",
+        "HourUpButton": "Schedule-Hr-Up",
+        "HourDnButton": "Schedule-Hr-Dn",
+        "MinUpButton": "Schedule-Min-Up",
+        "MinDnButton": "Schedule-Min-Dn",
+        "AMButton": "Schedule-AM",
+        "PMButton": "Schedule-PM",
+        "SaveButton": "Schedule-Save",
+        "CancelButton": "Schedule-Cancel"
+      },
+      "Labels": {
+        "HourLabel": "Schedule-Hr",
+        "MinLabel": "Schedule-Min",
+        "ScheduleLabel": "Scheduler-Calc"
       }
     }
   ],

@@ -222,7 +222,7 @@ class SystemStatusController:
 
 def SystemStatusPagination(source: 'ExButton', value: str) -> None:
     uiDev = source.UIHost
-    uiDev.SystemStatusCtl.PaginationHandler(source.Offset)
+    uiDev.SysStatusCtl.PaginationHandler(source.Offset)
 
 ## End Function Definitions ----------------------------------------------------
 

@@ -33,7 +33,7 @@ from extronlib.system import MESet
 #### Project imports
 import System
 from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
-from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys
+from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys, SchedulePatternToString
 from modules.helper.ModuleSupport import eventEx
 from Constants import SystemState
 from Variables import UNIT_TESTING
@@ -55,13 +55,14 @@ class UISetMixin(object):
         raise AttributeError('Overriding the Name property is disallowed')
     
     def GetSubGroups(self) -> List:
-        module = type(self).__name__
+        className = type(self).__name__
         groupNameList = ['BtnSet', 'RefSet']
+        groupNameList.extend(['AuxSet{}'.format(x) for x in range(10)])
         rtnList = []
         
         for grpName in groupNameList:
-            if hasattr(self, '_{}__{}'.format(module, grpName)):
-                rtnList.append(getattr(self, '_{}__{}'.format(module, grpName)))
+            if hasattr(self, '_{}__{}'.format(className, grpName)):
+                rtnList.append(getattr(self, '_{}__{}'.format(className, grpName)))
         
         return rtnList
 
@@ -169,7 +170,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
         self.__Objects = Objects
         
         for btn in self.__Objects:
-            self.__StateList.append({'onState': 0, 'offState': 1})
+            self.__StateList.append({'onState': 1, 'offState': 0})
             btn.Group = self
     
     def __repr__(self) -> str:
@@ -899,16 +900,17 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
-        self.__Objects = Objects
-        self.__Objects.sort(key=SortKeys.StatusSort)
+        self.__ObjectSet = Objects
+        self.__ObjectSet.sort(key=SortKeys.StatusSort)
             
         self.__ObjectLabels = ObjectLabels
         self.__ObjectLabels.sort(key=SortKeys.StatusSort)
         
-        for obj in self.__Objects:
-            index = self.__Objects.index(obj)
+        for obj in self.__ObjectSet:
+            index = self.__ObjectSet.index(obj)
             obj.Label = self.__ObjectLabels[index]
             obj.Group = self
+            obj.SetEnable(False)
             
         for lbl in self.__ObjectLabels:
             lbl.Group = self
@@ -928,7 +930,7 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
         
     @property
     def Objects(self) -> List['ExButton']:
-        return self.__Objects
+        return self.__ObjectSet
     
     @Objects.setter
     def Objects(self, val) -> None:
@@ -1157,7 +1159,7 @@ class PanelSetupGroup(ControlMixIn, UISetMixin, object):
     
     @UIControls.setter
     def UIControls(self) -> None:
-        raise AttributeError('Overriding the Objects property is disallowed')
+        raise AttributeError('Overriding the UIControls property is disallowed')
     
     def SetPanelDetails(self) -> None:
         self.__ModelLbl.SetText('{} | {}'.format(self.__UIDev.ModelName, self.__UIDev.PartNumber))
@@ -1193,6 +1195,214 @@ class PanelSetupGroup(ControlMixIn, UISetMixin, object):
             
         if SettingList is None or 'WakeOnMotion' in SettingList:
             self.__WakeOnMotion.SetState(int(self.__UIDev.WakeOnMotion))
+
+class ScheduleConfigGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self,
+                 Name: str,
+                 Objects: List['ExButton'],
+                 AutoStartButton: 'ExButton',
+                 AutoShutdownButton: 'ExButton',
+                 StartPatternButton: 'ExButton',
+                 ShutdownPatternButton: 'ExButton') -> None:
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__BtnSet = RadioSet('{}-StartActivity'.format(Name), Objects)
+        self.__BtnSet.Group = self
+        
+        self.__AutoStartBtn = AutoStartButton
+        self.__AutoShutdownBtn = AutoShutdownButton
+        self.__StartPatternBtn = StartPatternButton
+        self.__ShutdownPatternBtn = ShutdownPatternButton
+        
+        for btn in self.UIControls.values():
+            btn.Group = self
+        
+    @property
+    def Objects(self) -> List['ExButton']:
+        return self.__BtnSet.Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+        
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'AutoStart': self.__AutoStartBtn,
+            'AutoShutdown': self.__AutoShutdownBtn,
+            'StartPattern': self.__StartPatternBtn,
+            'ShutdownPattern': self.__ShutdownPatternBtn
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the UIControls property is disallowed')
+    
+    def LoadCurrentSettings(self, Mode: str, SettingDict: Dict) -> None:
+        if Mode == 'auto_start':  
+            if SettingDict.get('pattern'):
+                self.__StartPatternBtn.SetText(SchedulePatternToString(SettingDict['pattern']))
+                      
+            if SettingDict.get('enabled'):
+                self.__AutoStartBtn.SetState(int(SettingDict['enabled']))
+            
+            if SettingDict.get('mode'):
+                self.__BtnSet.SetCurrent('Schedule-Start-Act-{}'.format(SettingDict['mode']))
+            
+        elif Mode == 'auto_shutdown':
+            if SettingDict.get('pattern'):
+                self.__ShutdownPatternBtn.SetText(SchedulePatternToString(SettingDict['pattern']))
+                
+            if SettingDict.get('enabled'):
+                self.__AutoShutdownBtn.SetState(int(SettingDict['enabled']))
+    
+class ScheduleEditGroup(ControlMixIn, UISetMixin, object):
+    def __init__(self,
+                 Name: str,
+                 Objects: List['ExButton'],
+                 SelectAllButton: 'ExButton',
+                 SelectWeekdaysButton: 'ExButton',
+                 HourUpButton: 'ExButton',
+                 HourDnButton: 'ExButton',
+                 HourLabel: 'ExLabel',
+                 MinUpButton: 'ExButton',
+                 MinDnButton: 'ExButton',
+                 MinLabel: 'ExLabel',
+                 AMButton: 'ExButton',
+                 PMButton: 'ExButton',
+                 ScheduleLabel: 'ExLabel',
+                 SaveButton: 'ExButton',
+                 CancelButton: 'ExButton') -> None:
+        ControlMixIn.__init__(self)
+        UISetMixin.__init__(self, Name)
+        
+        self.__BtnSet = SelectSet('{}-DaySelect'.format(Name), Objects)
+        self.__BtnSet.Group = self
+        
+        self.__AuxSet0 = RadioSet('{}-AmPmSelect'.format(Name), [AMButton, PMButton])
+        self.__AuxSet0.Group = self
+        
+        self.__SelectAllBtn = SelectAllButton
+        self.__SelectWkDysBtn = SelectWeekdaysButton
+        self.__HrUpBtn = HourUpButton
+        self.__HrDnBtn = HourDnButton
+        self.__MinUpBtn = MinUpButton
+        self.__MinDnBtn = MinDnButton
+        
+        self.__SaveBtn = SaveButton
+        self.__CancelBtn = CancelButton
+        
+        for btn in self.UIControls.values():
+            if btn not in self.__AuxSet0.Objects:
+                btn.Group = self
+        
+        self.__HrLabel = HourLabel
+        self.__HrLabel.Group = self
+        
+        self.__MinLabel = MinLabel
+        self.__MinLabel.Group = self
+        
+        self.__SchedLabel = ScheduleLabel
+        self.__SchedLabel.Group = self
+        
+        self.__CurHour = None
+        self.__CurMin = None
+        self.__CurAmPm = None
+        
+    @property
+    def Objects(self) -> List['ExButton']:
+        return self.__BtnSet.Objects
+    
+    @Objects.setter
+    def Objects(self, val) -> None:
+        raise AttributeError('Overriding the Objects property is disallowed')
+        
+    @property
+    def UIControls(self) -> Dict[str, 'ExButton']:
+        return {
+            'SelectAllDays': self.__SelectAllBtn,
+            'SelectAllWeekdays': self.__SelectWkDysBtn,
+            'HrUp': self.__HrUpBtn,
+            'HrDn': self.__HrDnBtn,
+            'MinUp': self.__MinUpBtn,
+            'MinDn': self.__MinDnBtn,
+            'AM': self.__AuxSet0.Objects[0],
+            'PM': self.__AuxSet0.Objects[1],
+            'Save': self.__SaveBtn,
+            'Cancel': self.__CancelBtn
+        }
+    
+    @UIControls.setter
+    def UIControls(self) -> None:
+        raise AttributeError('Overriding the UIControls property is disallowed')
+
+    def LoadPattern(self, Pattern: Dict) -> None:
+        self.__BtnSet.SetActive(None)
+        actList = ['Schedule-{}'.format(val[:3]) for val in Pattern['days']]
+        self.__BtnSet.SetActive(actList)
+        
+        self.__HrLabel.SetText(str(Pattern['time']['hr']).zfill(2))
+        self.__CurHour = int(Pattern['time']['hr'])
+        self.__MinLabel.SetText(str(Pattern['time']['min']).zfill(2))
+        self.__CurMin =  int(Pattern['time']['min'])
+        
+        self.__CurAmPm = Pattern['time']['ampm']
+        if Pattern['time']['ampm'] == 'AM':
+            self.__AuxSet0.SetCurrent('Schedule-AM')
+        elif Pattern['time']['ampm'] == 'PM':
+            self.__AuxSet0.SetCurrent('Schedule-PM')
+        
+        self.__SchedLabel.SetText(SchedulePatternToString(Pattern))
+        
+    def GetActive(self) -> List['ExButton']:
+        return self.__BtnSet.GetActive()
+    
+    def GetTime(self) -> Dict:
+        return {
+                "hr": str(self.__CurHour).zfill(2),
+                "min": str(self.__CurMin).zfill(2),
+                "ampm": str(self.__CurAmPm).upper()
+            }
+        
+    def AdjustTime(self, mode: str, offset: int) -> None:
+        if not isinstance(offset, int):
+            raise TypeError('Offset must be an integer')
+        
+        if mode == 'hour':
+            newHr = self.__CurHour + offset
+            
+            if newHr > 12:
+                self.__CurHour = newHr - 12
+            elif newHr < 1:
+                self.__CurHour = newHr + 12
+            else:
+                self.__CurHour = newHr
+                
+            self.__HrLabel.SetText(str(self.__CurHour).zfill(2))
+        elif mode == 'minute':
+            newMin = self.__CurMin + offset
+            
+            if newMin > 59:
+                self.__CurMin = newMin - 60
+            elif newMin < 0:
+                self.__CurMin = newMin + 60
+            else:
+                self.__CurMin = newMin
+                
+            self.__MinLabel.SetText(str(self.__CurMin).zfill(2))
+        
+    def UpdatePattern(self) -> None:
+        days = [dayBtn.day for dayBtn in self.__BtnSet.GetActive()]
+        pattern = {
+            "days": days,
+            "time": {
+                "min": str(self.__CurMin).zfill(2),
+                "ampm": str(self.__AuxSet0.GetCurrent().value).upper(),
+                "hr": str(self.__CurHour).zfill(2)
+            }
+        }
+        self.LoadPattern(pattern)
 
 ## End Class Definitions -------------------------------------------------------
 ##

@@ -41,7 +41,9 @@ if TYPE_CHECKING: # pragma: no cover
                 KeyboardControlGroup,
                 SystemStatusControlGroup,
                 AboutPageGroup,
-                PanelSetupGroup)
+                PanelSetupGroup,
+                ScheduleConfigGroup,
+                ScheduleEditGroup)
 
 # Python imports
 from enum import Enum
@@ -127,7 +129,9 @@ UI_SETS =     Union['RadioSet',
                     'KeyboardControlGroup',
                     'SystemStatusControlGroup',
                     'AboutPageGroup',
-                    'PanelSetupGroup']
+                    'PanelSetupGroup',
+                    'ScheduleConfigGroup',
+                    'ScheduleEditGroup']
 UI_SETS_MATCH =    ('RadioSet', 
                     'SelectSet', 
                     'VariableRadioSet', 
@@ -138,7 +142,9 @@ UI_SETS_MATCH =    ('RadioSet',
                     'KeyboardControlGroup',
                     'SystemStatusControlGroup',
                     'AboutPageGroup',
-                    'PanelSetupGroup')
+                    'PanelSetupGroup',
+                    'ScheduleConfigGroup',
+                    'ScheduleEditGroup')
 
 UI_OBJECTS =  Union['RefButton', 
                     'ExButton', 
@@ -164,6 +170,8 @@ UI_ALL =  Union['RadioSet',
                 'SystemStatusControlGroup',
                 'AboutPageGroup',
                 'PanelSetupGroup',
+                'ScheduleConfigGroup',
+                'ScheduleEditGroup',
                 'RefButton', 
                 'ExButton', 
                 'ExLabel', 
@@ -181,6 +189,8 @@ UI_ALL_MATCH = ('RadioSet',
                 'SystemStatusControlGroup',
                 'AboutPageGroup',
                 'PanelSetupGroup',
+                'ScheduleConfigGroup',
+                'ScheduleEditGroup',
                 'RefButton', 
                 'ExButton', 
                 'ExLabel', 

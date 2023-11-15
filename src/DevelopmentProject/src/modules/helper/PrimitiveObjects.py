@@ -19,7 +19,7 @@
 
 #### Type Checking
 from _collections_abc import Iterable
-from typing import TYPE_CHECKING, Union, Callable, Any
+from typing import TYPE_CHECKING, Union, Callable, Any, List, Dict
 from types import ModuleType
 # from typing_extensions import SupportsIndex
 if TYPE_CHECKING: # pragma: no cover
@@ -37,6 +37,7 @@ from extronlib.system import RFile
 #### Project imports
 import control.AV
 from modules.helper.ModuleSupport import WatchVariable, eventEx
+from modules.helper.CommonUtilities import Logger
 import Constants
 
 ## End Imports -----------------------------------------------------------------
@@ -227,8 +228,54 @@ class FeedbackObject():
         pass
     
     
-class WatchDict(UserDict):
+class WatchMixIn():
+    def __init__(self, watchType: type) -> None:
+        if watchType is list:
+            watchStr = "List Changed"
+        elif watchType is dict:
+            watchStr = "Dictionary Changed"
+            
+        self.Watch = WatchVariable(watchStr)
+    
+    def __GetKey(self, key: str, eventKey: Union[str, list]) -> list:
+        if key is None:
+            if isinstance(eventKey, list):
+                watchKey = eventKey
+            else:
+                watchKey = [eventKey]
+        else:
+            if isinstance(eventKey, list):
+                watchKey = [key]
+                watchKey.extend(eventKey)
+            else:
+                watchKey = [key, eventKey]
+                
+        return watchKey
+    
+    def CreateWatchList(self, value: List, key: str=None) -> 'WatchList':
+        rtnList = WatchList(*value)
+        @eventEx(rtnList.Watch, 'Changed')
+        def WatchListHandler(source, event, evKey=None, evValue=None):
+            watchKey = self.__GetKey(key, evKey)
+                    
+            self.Watch.Change(event, watchKey, evValue)
+            
+        return rtnList
+            
+    def CreateWatchDict(self, value: Dict, key: str=None) -> 'WatchDict':
+        rtnDict = WatchDict(**value)
+        @eventEx(rtnDict.Watch, 'Changed')
+        def WatchListHandler(source, event, evKey=None, evValue=None):
+            watchKey = self.__GetKey(key, evKey)
+
+            self.Watch.Change(event, watchKey, evValue)
+            
+        return rtnDict
+    
+class WatchDict(WatchMixIn, UserDict):
     def __init__(self, mapping: dict=None, **kwargs):
+        WatchMixIn.__init__(self, dict)
+        
         if mapping is not None:
             mapping = {
                 key: value for key, value in mapping.items()
@@ -243,40 +290,30 @@ class WatchDict(UserDict):
         
         for key, value in mapping.items():
             if isinstance(value, list):
-                mapping[key] = WatchList(*value)
-                @eventEx(mapping[key].Watch, 'Changed')
-                def WatchListHandler(source, event, evKey=None, evValue=None):
-                    if isinstance(evKey, list):
-                        watchKey = [key]
-                        watchKey.extend(evKey)
-                    else:
-                        watchKey = [key, evKey]
-                    self.Watch.Change(event, watchKey, evValue)
+                mapping[key] = self.CreateWatchList(value, key)
             elif isinstance(value, dict):
-                mapping[key] = WatchDict(**value)
-                @eventEx(mapping[key].Watch, 'Changed')
-                def WatchDictHandler(source, event, evKey=None, evValue=None):
-                    if isinstance(evKey, list):
-                        watchKey = [key]
-                        watchKey.extend(evKey)
-                    else:
-                        watchKey = [key, evKey]
-                    self.Watch.Change(event, watchKey, evValue)
+                mapping[key] = self.CreateWatchDict(value, key)
         
-        self.Watch = WatchVariable('Dictionary Changed')
         UserDict.__init__(self, **mapping)
     
     def __setitem__(self, key: Any, item: Any) -> None:
-        super().__setitem__(key, item)
+        if isinstance(item, list):
+            newItem = self.CreateWatchList(item, key)
+        elif isinstance(item, dict):
+            newItem = self.CreateWatchDict(item, key)
+        else:
+            newItem = item
+            
+        UserDict.__setitem__(self, key, newItem)
         self.Watch.Change('Updated', key, item)
         
     def __delitem__(self, key: Any) -> None:
         delVal = self.data[key]
-        super().__delitem__(key)
+        UserDict.__delitem__(self, key)
         self.Watch.Change('Deleted', key, delVal)
         
     def serialize(self) -> None:
-        serialDict = self.data
+        serialDict = self.data.copy()
         
         for key, item in serialDict.items():
             if isinstance(item, WatchDict):
@@ -286,71 +323,80 @@ class WatchDict(UserDict):
                 
         return serialDict
         
-        
-class WatchList(UserList):
+class WatchList(WatchMixIn, UserList):
     def __init__(self, *args):
+        WatchMixIn.__init__(self, list)
+        
         for item in args:
             index = args.index(item)
             if isinstance(item, list):
-                args[index] = WatchList(*item)
-                @eventEx(args[index].Watch, 'Changed')
-                def WatchListHandler(source, event, evKey=None, evValue=None):
-                    if isinstance(evKey, list):
-                        watchKey = [index]
-                        watchKey.extend(evKey)
-                    else:
-                        watchKey = [index, evKey]
-                    self.Watch.Change(event, watchKey, evValue)
+                args[index] = self.CreateWatchList(item, index)
             elif isinstance(item, dict):
-                args[index] = WatchDict(**item)
-                @eventEx(args[index].Watch, 'Changed')
-                def WatchDictHandler(source, event, evKey=None, evValue=None):
-                    if isinstance(evKey, list):
-                        watchKey = [index]
-                        watchKey.extend(evKey)
-                    else:
-                        watchKey = [index, evKey]
-                    self.Watch.Change(event, watchKey, evValue)
+                args[index] = self.CreateWatchDict(item, index)
         
-        self.Watch = WatchVariable('List Changed')
         UserList.__init__(self, args)
         
     def __setitem__(self, i: Union[int, slice], item: Any) -> None: # Use SupportsIndex instead of int if moving to Python > 3.8
-        super().__setitem__(i, item)
-        self.Watch.Change('Updated', i, item)
+        if isinstance(item, list):
+            newItem = self.CreateWatchList(item, i)
+        elif isinstance(item, dict):
+            newItem = self.CreateWatchDict(item, i)
+        else:
+            newItem = item
+        
+        UserList.__setitem__(self, i, newItem)
+        self.Watch.Change('Updated', i, newItem)
         
     def __delitem__(self, i: Union[int, slice]) -> None: # Use SupportsIndex instead of int if moving to Python > 3.8
         delVal = self.data[i]
-        super().__delitem__(i)
+        UserList.__delitem__(self, i)
         self.Watch.Change('Deleted', i, delVal)
         
     def pop(self, i: int = -1) -> Any:
-        super().pop(i)
+        UserList.pop(self, i)
         self.Watch.Change('Deleted', i, self.data[i])
     
     def remove(self, item: Any) -> None:
         index = self.data.index(item)
-        super().remove(item)
+        UserList.remove(self, item)
         self.Watch.Change('Deleted', index, item)
     
     def append(self, item: Any) -> None:
-        super().append(item)
-        self.Watch.Change('Updated', -1, item)
+        UserList.append(self, item)
+        
+        index = self.data.index(item)
+        if isinstance(item, list):
+            self.data[index] = self.CreateWatchList(item, index)
+        elif isinstance(item, dict):
+            self.data[index] = self.CreateWatchDict(item, index)
+        
+        self.Watch.Change('Updated', index, item)
     
     def extend(self, other: Iterable) -> None:
-        super().extend(other)
+        UserList.extend(self, other)
         
-        index = (len(other) * -1)
         for item in other:
+            index = self.data.index(item)
+            if isinstance(item, list):
+                self.data[index] = self.CreateWatchList(item, index)
+            elif isinstance(item, dict):
+                self.data[index] = self.CreateWatchDict(item, index)
+            
             self.Watch.Change('Updated', index, item)
-            index += 1
     
     def insert(self, i: int, item: Any) -> None:
-        super().insert(i, item)
+        if isinstance(item, list):
+            newItem = self.CreateWatchList(item, i)
+        elif isinstance(item, dict):
+            newItem = self.CreateWatchDict(item, i)
+        else:
+            newItem = item
+        
+        UserList.insert(i, newItem)
         self.Watch.Change('Updated', i, item)
         
     def serialize(self) -> None:
-        serialList = self.data
+        serialList = self.data.copy()
         
         for item in serialList:
             index = serialList.index(item)
@@ -367,15 +413,23 @@ class SettingsObject():
         self.__JSON = None
         self.__LoadFromFile()
         
-        if isinstance(self.__JSON, list):
-            self.Settings = WatchList(*self.__JSON)
-        elif isinstance(self.__JSON, dict):
-            self.Settings = WatchDict(**self.__JSON)
+        self.__LoadSettings()
         
         @eventEx(self.Settings.Watch, 'Changed')
         def WatchHandler(source, event, key=None, value=None):
+            Logger.Log('Settings Object Changed -', source, event, key, value)
             self.__WriteToFile()
-            
+
+    def __LoadSettings(self) -> None:
+        jsonObj = json.loads(self.__JSON)
+        if isinstance(jsonObj, list):
+            self.Settings = WatchList(*jsonObj)
+        elif isinstance(jsonObj, dict):
+            self.Settings = WatchDict(**jsonObj)
+        else:
+            Logger.Log(type(jsonObj), jsonObj)
+            raise ValueError('JSON object ({}) must have a top level list or dict'.format(jsonObj))
+    
     def __LoadFromFile(self) -> None:
         file = RFile(self.FileName, 'r')
         self.__JSON = file.read()

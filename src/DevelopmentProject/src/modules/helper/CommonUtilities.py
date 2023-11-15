@@ -25,6 +25,7 @@ from extronlib.system import Wait
 ## End ControlScript Import ----------------------------------------------------
 ##
 ## Begin Python Imports --------------------------------------------------------
+import inspect
 import re
 import functools
 import traceback
@@ -33,6 +34,8 @@ import traceback
 ##
 ## Begin Project Import -----------------------------------------------------------
 from modules.helper.ModuleSupport import ProgramLogLogger, TraceLogger
+
+import Variables
 
 ## End User Import -------------------------------------------------------------
 ##
@@ -103,8 +106,34 @@ class Logger():
 
     @classmethod
     def Log(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
-        cls.__Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
-        # cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
+        if Variables.TRACING:
+            current_frame = inspect.currentframe()
+            current_frame_info = inspect.getframeinfo(current_frame)
+            frame_stack = inspect.getouterframes(current_frame, 2)
+            
+            index = None
+            for frame in frame_stack:
+                if frame.filename == current_frame_info.filename:
+                    index = frame_stack.index(frame) + 1
+                    break
+            
+            caller_frame_info = frame_stack[index]
+            
+            regex = r"^(?:\/var\/nortxe\/proj\/eup\/|\/var\/nortxe\/uf\/admin\/modules\/|\/usr\/lib\/python3.5\/)?(.+)\.py$"
+            
+            re_match = re.match(regex, caller_frame_info.filename)
+            fileName = re_match.group(1)
+            mod = fileName.replace('/', '.')
+            
+            trace_msg = '\n    {module} [{func} ({line})]'.format(
+                module = mod,
+                func   = caller_frame_info.function,
+                line   = caller_frame_info.lineno
+            )
+            
+            cls.__Prog.Log(*recordobjs, trace_msg, sep=separator, severity=logSeverity)
+        else:
+            cls.__Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
         
     @classmethod
     def Trace(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
@@ -222,6 +251,26 @@ def DictValueSearchByKey(dict: Dict, search_term: str, regex: bool=False, captur
         return find_dict
     else:
         raise ValueError('regex must be true if capture_dict is true')
+
+def SchedulePatternToString(Pattern: Dict) -> str:
+    DoW = ''
+    Pattern['days'].sort(key = SortKeys.SortDaysOfWeek)
+    if len(Pattern['days']) == 0:
+        return 'None'
+    for d in Pattern['days']:
+        if len(DoW) > 0:
+            DoW = DoW + ','
+        if d[0] == 'S' or d[0] == 'T':
+            DoW = DoW + d[0:2]
+        else:
+            DoW = DoW + d[0]
+        
+    text = '{dow} {h}:{m} {a}'.format(dow = DoW, 
+                                        h = str(Pattern['time']['hr']).zfill(2),
+                                        m = str(Pattern['time']['min']).zfill(2),
+                                        a = str(Pattern['time']['ampm']).upper())
+    
+    return text
 
 def debug(func): # pragma: no cover
     """Print the function signature and return value"""

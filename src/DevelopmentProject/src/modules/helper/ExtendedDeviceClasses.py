@@ -119,7 +119,7 @@ class ExUIDevice(UIDevice):
         self.WebControlId = WebControlId
         self.PINAccess = None
         self.Keyboard = None
-        self.SystemStatusCtl = None
+        self.SysStatusCtl = None
         
         self.Initialized = False
         
@@ -209,11 +209,17 @@ class ExUIDevice(UIDevice):
         
         ## initialize SubControllers
         if self.Class == 'TouchPanel':
-            self.PINAccess = PINController(self, self.Interface.Objects.ControlGroups['PIN-Countrol-Group'])
-            self.Keyboard = KeyboardController(self, self.Interface.Objects.ControlGroups['Keyboard-Control-Group'])
-            self.SystemStatusCtl = SystemStatusController(self, self.Interface.Objects.ControlGroups['SystemStatus-Control-Group'])
-            self.ScheduleCtl = ScheduleController(self)
-            self.AboutPageCtl = PanelAboutController(self, self.Interface.Objects.ControlGroups['Tech-About-Group'])
+            self.PINAccess    = PINController(self, 
+                                    self.Interface.Objects.ControlGroups['PIN-Countrol-Group'])
+            self.Keyboard     = KeyboardController(self, 
+                                    self.Interface.Objects.ControlGroups['Keyboard-Control-Group'])
+            self.SysStatusCtl = SystemStatusController(self, 
+                                    self.Interface.Objects.ControlGroups['SystemStatus-Control-Group'])
+            self.ScheduleCtl  = ScheduleController(self, 
+                                    self.Interface.Objects.ControlGroups["Tech-RoomScheduler-Group"], 
+                                    self.Interface.Objects.ControlGroups["Tech-RoomScheduleEditor-Group"])
+            self.AboutPageCtl = PanelAboutController(self, 
+                                    self.Interface.Objects.ControlGroups['Tech-About-Group'])
         
         ## set Room Label to system Room Name
         self.Interface.Objects.ControlGroups['Header-Control-Group'].SetRoomName(System.CONTROLLER.RoomName)

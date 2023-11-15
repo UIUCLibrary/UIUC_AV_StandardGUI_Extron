@@ -193,5 +193,119 @@
         "PressShift": false,
         "Latching": true,
         "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlCollection": "Tech-RoomScheduler-Group-StartActivity",
+        "PrimaryFunc": "ScheduleModeHandler",
+        "PressShift": true,
+        "Latching": true,
+        "ActiveState": 1,
+        "InactiveState": 0,
+        "ShiftState": 2,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Start-Toggle",
+        "PrimaryFunc": "ScheduleToggleHandler",
+        "PressShift": false,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Shutdown-Toggle",
+        "PrimaryFunc": "ScheduleToggleHandler",
+        "PressShift": false,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Start-Pattern",
+        "PrimaryFunc": "ScheduleEditHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Shutdown-Pattern",
+        "PrimaryFunc": "ScheduleEditHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlCollection": "Tech-RoomScheduleEditor-Group-DaySelect",
+        "PrimaryFunc": "ScheduleDayHandler",
+        "PressShift": true,
+        "ActiveState": 1,
+        "InactiveState": 0,
+        "ShiftState": 2,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-All",
+        "PrimaryFunc": "ScheduleAllDaysHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Weekdays",
+        "PrimaryFunc": "ScheduleWeekDaysHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlCollection": "Tech-RoomScheduleEditor-Group-AmPmSelect",
+        "PrimaryFunc": "ScheduleAmPmHandler",
+        "PressShift": true,
+        "ActiveState": 1,
+        "InactiveState": 0,
+        "ShiftState": 2,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Hr-Up",
+        "PrimaryFunc": "ScheduleTimeHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Hr-Dn",
+        "PrimaryFunc": "ScheduleTimeHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Min-Up",
+        "PrimaryFunc": "ScheduleTimeHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Min-Dn",
+        "PrimaryFunc": "ScheduleTimeHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Save",
+        "PrimaryFunc": "ScheduleSaveHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "Schedule-Cancel",
+        "PrimaryFunc": "ScheduleCancelHandler",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel.Scheduler"
     }
 ]

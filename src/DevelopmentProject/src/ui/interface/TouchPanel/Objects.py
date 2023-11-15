@@ -33,6 +33,7 @@ from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLevel, ExSlide
 import modules.helper.ExtendedUIClasses.UISets
 from modules.helper.PrimitiveObjects import ControlObject
 from modules.helper.Collections import UIObjectCollection, ControlGroupCollection
+from modules.helper.CommonUtilities import Logger
 import modules.project.callbacks.RefCallbacks
 import modules.project.callbacks.PopupCallbacks
 
@@ -477,9 +478,13 @@ class TouchPanelObjects():
                     ctlObj.LinkControlObject(ControlObject=self.Sliders[ctl['ControlObject']])
                 elif ctl['ControlObject'] in self.Knobs.keys():
                     ctlObj.LinkControlObject(ControlObject=self.Knobs[ctl['ControlObject']])
+                else:
+                    Logger.Log('Control Object ({}) not found'.format(ctl['ControlObject']), logSeverity='warning')
             elif 'ControlCollection' in ctl and 'ControlObject' not in ctl:
                 if ctl['ControlCollection'] in self.ControlGroups.keys():
                     ctlObj.LinkControlObject(ControlCollection=self.ControlGroups[ctl['ControlCollection']])
+                else: 
+                    Logger.Log('Control Collection ({}) not found'.format(ctl['ControlCollection']), logSeverity='warning')
             elif 'ControlObject' in ctl and 'ControlCollection' in ctl:
                 if ctl['ControlObject'] in self.Buttons.keys() and ctl['ControlCollection'] in self.ControlGroups.keys():
                     ctlObj.LinkControlObject(ControlObject=self.Buttons[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
@@ -487,7 +492,8 @@ class TouchPanelObjects():
                     ctlObj.LinkControlObject(ControlObject=self.Sliders[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
                 elif ctl['ControlObject'] in self.Knobs.keys() and ctl['ControlCollection'] in self.ControlGroups.keys():
                     ctlObj.LinkControlObject(ControlObject=self.Knobs[ctl['ControlObject']], ControlCollection=self.ControlGroups[ctl['ControlCollection']])
-    
+                else:
+                    Logger.Log('Control Object ({}) not found'.format(ctl['ControlObject']), 'Control Collection ({}) not found'.format(ctl['ControlCollection']), logSeverity='warning')
     def GetPopupGroupByPage(self, PopupPage: str) -> str:
         for group, list in self.PopupGroups.items():
             if PopupPage in list:

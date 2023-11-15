@@ -6,6 +6,7 @@ throughout the system.
 import sys
 UNIT_TESTING = ('unittest' in sys.modules.keys())
 TESTING = True
+TRACING = False
 
 
 ## PROJECT CONSTANTS -----------------------------------------------------------
