@@ -288,6 +288,7 @@ class ExUIDevice(UIDevice):
                 self.ShowPage('Main')
     
     def ShowPage(self, page: Union[int, str]) -> None:
+        Logger.Debug('Popup Shown:', page)
         if isinstance(page, int):
             page = self._pages[str(page)]
         
@@ -296,17 +297,17 @@ class ExUIDevice(UIDevice):
         self.PageChanged.Change(page)
         UIDevice.ShowPage(self, page)
         
-    def ShowPopup(self, page: Union[int, str], duration: float = 0) -> None:
-        Logger.Debug('Popup Shown:', page, duration)
-        if isinstance(page, int):
-            page = self._popups[str(page)]['name']
+    def ShowPopup(self, popup: Union[int, str], duration: float = 0) -> None:
+        Logger.Debug('Popup Shown:', popup, duration)
+        if isinstance(popup, int):
+            popup = self._popups[str(popup)]['name']
         
-        self.PopupShown.Change(page)
+        self.PopupShown.Change(popup)
         if duration > 0:
-            closefunc = functools.partial(self.PopupHidden.Change, page)
-            closefunc.__name__ = "Wait-{}".format(page)
-            self.__PopupWaits[page] = Wait(duration, closefunc)
-        UIDevice.ShowPopup(self, page, duration)
+            closefunc = functools.partial(self.PopupHidden.Change, popup)
+            closefunc.__name__ = "Wait-{}".format(popup)
+            self.__PopupWaits[popup] = Wait(duration, closefunc)
+        UIDevice.ShowPopup(self, popup, duration)
         
     def HidePopup(self, popup: Union[int, str]) -> None:
         Logger.Debug('Hide Popup:', popup)
