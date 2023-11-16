@@ -64,7 +64,7 @@ class DeviceCollection(UserDict):
         return super().keys()
     
     # Overwrite __setitem__
-    # TODO: test this for being able to set a value with a blank index, ie Devices[] = SystemHardwareControllerObject
+    # TEST_THIS: test this for being able to set a value with a blank index, ie Devices[] = SystemHardwareControllerObject
     def __setitem__(self, key: '_KT', item: 'SystemHardwareController') -> None:
         if type(item) is not SystemHardwareController:
             raise ValueError('DeviceCollection items must be of type SystemHardwareController')

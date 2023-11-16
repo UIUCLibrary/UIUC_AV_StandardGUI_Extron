@@ -32,7 +32,7 @@ from extronlib.system import Timer, Clock
 #### Project imports
 from modules.helper.ModuleSupport import eventEx
 from modules.helper.CommonUtilities import Logger
-from Constants import ActivityMode
+from Constants import ActivityMode, SystemState
 from ui.interface.TouchPanel import StartShutdownConfirmation
 import System
 
@@ -104,9 +104,12 @@ class ScheduleController():
         System.CONTROLLER.SystemActivity = mode
     
     def __ShutdownHandler(self, clock: 'Clock'=None, dt: 'datetime'=None) -> None:
-        ctlGrp = self.UIHost.Interface.Objects.ControlGroups['Activity-Select']
-        ctlGrp.SetCurrent('ActivitySelect-Off')
-        StartShutdownConfirmation(System.CONTROLLER.SystemActivity, click=True)
+        if System.CONTROLLER.SystemState is not SystemState.Standby:
+            ctlGrp = self.UIHost.Interface.Objects.ControlGroups['Activity-Select']
+            ctlGrp.SetCurrent('ActivitySelect-Off')
+            StartShutdownConfirmation(System.CONTROLLER.SystemActivity, click=True)
+        else:
+            Logger.Debug('Automatic shutdown not running. System already in standby.')
     
     def __TimeConverter(self, timeDict: Dict[str, str]) -> str:
         if timeDict['ampm'] == 'PM':
