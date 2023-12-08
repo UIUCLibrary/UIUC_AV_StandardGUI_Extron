@@ -8,3 +8,7 @@ eup/*
 .coverage
 htmlcov/*
 *.log
+
+# ignore Extron certification and credential files
+**/*-certification.dat
+**/*-credential.dat
