@@ -54,7 +54,7 @@ class AutoScheduleController:
             {
                 180: self.__PopoverInactivityHandler,
                 300: self.__TechPageInactivityHandler,
-                10800: self.__SystemInactivityHandler
+                # 10800: self.__SystemInactivityHandler
             }
             
         self.UIHost.SetInactivityTime(list(self.__inactivityHandlers.keys()))
