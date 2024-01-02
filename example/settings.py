@@ -1079,17 +1079,8 @@ hardware = [
                   'command': 'Input',
                   'value': 'HDMI 1'
                },
-            'MuteCommand':
-               {
-                  'command': 'AudioMute',
-               },
-            'VolumeCommand':
-               {
-                  'command': 'Volume'
-               },
-            'VolumeRange': (0, 100)
          }
-   },
+   }
 ]
 
 ##==============================================================================
