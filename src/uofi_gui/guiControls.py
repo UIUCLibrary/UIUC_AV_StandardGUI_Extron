@@ -18,9 +18,9 @@
 from extronlib.device import ProcessorDevice
 ## End ControlScript Import ----------------------------------------------------
 
-from typing import Dict, Tuple, List, Callable, Union
+from typing import List, Union
 
-from utilityFunctions import Log, RunAsync, debug
+from utilityFunctions import Log
 
 from uofi_gui.uiObjects import ExUIDevice
 from uofi_gui.activityControls import ActivityController
@@ -245,8 +245,6 @@ class GUIController:
         else:
             return False
                 
-                
-
     def Initialize(self) -> None:
         ## Create Controllers --------------------------------------------------
         # Log(['Button: {} ({}, {})'.format(btn.Name, btn.ID, btn) for btn in self.TPs[0].Btn_Grps['Activity-Select'].Objects])

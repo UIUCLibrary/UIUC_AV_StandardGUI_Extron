@@ -16,7 +16,7 @@
 
 
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
 
@@ -90,13 +90,21 @@ class DeviceClass:
 ## =============================================================================
 ## Start Command & Callback Functions
 ## -----------------------------------------------------------------------------
-
     def UpdateAllMatrixTie(self, value=None, qualifier=None):
         # ProgramLog('Matrix Size: {}'.format(self.MatrixSize), 'info')
+        
+        # run UpdateStream for each piece of output hardware
         for OutputHw in self.VirtualOutputDevices.values():
             OutputHw.interface.Update('Stream', None) # This will query both Stream and AudioStream
-            StreamTuple = (OutputHw.interface.ReadStatus('Stream'),
-                           OutputHw.interface.ReadStatus('AudioStream'))
+        
+        # this seems duplicitive, but allows all updates to process before attempting to read the updated status
+        for OutputHw in self.VirtualOutputDevices.values():
+            if OutputHw.Model == 'NMX-ATC-N4321':
+                StreamTuple = (None,
+                               OutputHw.interface.ReadStatus('Stream', {'Instance': 'Tx'}))
+            else:
+                StreamTuple = (OutputHw.interface.ReadStatus('Stream'),
+                               OutputHw.interface.ReadStatus('AudioStream'))
             # utilityFunctions.Log('Output {} ({}) StreamTuple = {}'.format(OutputHw.MatrixOutput, OutputHw.Name, StreamTuple), 'info')
             # If elements 0 & 1 of StreamTuple match, tie type must be Audio/Video
             # if StreamTuple[1] == 0 audio follows video and tie type must be Audio/Video
@@ -107,7 +115,13 @@ class DeviceClass:
                         devStatus = InputHw.interface.ReadStatus('DeviceStatus')
                         if devStatus is not None:
                             # utilityFunctions.Log('{} Enc Stream {} ({})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0])))
-                            if devStatus['Stream'] == StreamTuple[0]:
+                            if InputHw.Model == 'NMX-ATC-N4321':
+                                inputStream = devStatus['Transmit']['Stream']
+                            else:
+                                inputStream = devStatus['Stream']
+                            
+                            mInput = None
+                            if inputStream == StreamTuple[0]:
                                 mInput = InputHw.MatrixInput
                                 self.WriteStatus('InputTieStatus', 'Audio/Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                             else:
@@ -124,10 +138,17 @@ class DeviceClass:
                         devStatus = InputHw.interface.ReadStatus('DeviceStatus')
                         if devStatus is not None:
                             # utilityFunctions.Log('{} Enc Stream {} ({}/{})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0]), (devStatus['Stream'] == StreamTuple[1])))
-                            if devStatus['Stream'] == StreamTuple[0]:
+                            if InputHw.Model == 'NMX-ATC-N4321':
+                                inputStream = devStatus['Transmit']['Stream']
+                            else:
+                                inputStream = devStatus['Stream']
+                            
+                            mInputV = None
+                            mInputA = None
+                            if inputStream == StreamTuple[0]:
                                 mInputV = InputHw.MatrixInput
                                 self.WriteStatus('InputTieStatus', 'Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
-                            elif devStatus['Stream'] == StreamTuple[1]:
+                            elif inputStream == StreamTuple[1]:
                                 mInputA = InputHw.MatrixInput
                                 self.WriteStatus('InputTieStatus', 'Audio', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                             else:
@@ -138,20 +159,26 @@ class DeviceClass:
                     self.WriteStatus('OutputTieStatus', mInputV, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInputA, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
             else:
-                utilityFunctions.Log('Stream info for {} is undefined'.format(OutputHw.Name))
+                utilityFunctions.Log('Stream info for {} is undefined'.format(OutputHw.Name), 'error')
                 
         self.__ConnectHelper()
 
     def UpdateInputSignalStatus(self, value, qualifier):
         if qualifier is not None and 'Input' in qualifier:
             InputHw = self.VirtualInputDevices[qualifier['Input']]
-            InputHw.interface.Update('HDMIStatus')
-            InputStatus = 'Active' if InputHw.interface.ReadStatus('HDMIStatus') == 'connected' else 'Not Active'
+            if InputHw.Model == 'NMX-ATC-N4321':
+                InputStatus = None
+            else:
+                InputHw.interface.Update('HDMIStatus')
+                InputStatus = 'Active' if InputHw.interface.ReadStatus('HDMIStatus') == 'connected' else 'Not Active'
             self.WriteStatus('InputSignalStatus', InputStatus, {'Input': InputHw.MatrixInput})
         else:
             for InputHw in self.VirtualInputDevices.values():
-                InputHw.interface.Update('HDMIStatus')
-                InputStatus = 'Active' if InputHw.interface.ReadStatus('HDMIStatus') == 'connected' else 'Not Active'
+                if InputHw.Model == 'NMX-ATC-N4321':
+                    InputStatus = None
+                else:
+                    InputHw.interface.Update('HDMIStatus')
+                    InputStatus = 'Active' if InputHw.interface.ReadStatus('HDMIStatus') == 'connected' else 'Not Active'
                 self.WriteStatus('InputSignalStatus', InputStatus, {'Input': InputHw.MatrixInput})
                 
             self.__ConnectHelper()
@@ -178,9 +205,13 @@ class DeviceClass:
                 Stream = 0
             elif qualifier['Input'] in self.VirtualInputDevices:
                 # utilityFunctions.Log('Getting Stream from Encoder')
-                devStatus = self.VirtualInputDevices[qualifier['Input']].interface.ReadStatus('DeviceStatus')
+                inputHw = self.VirtualInputDevices[qualifier['Input']]
+                devStatus = inputHw.interface.ReadStatus('DeviceStatus')
                 if devStatus is not None:
-                    Stream = devStatus['Stream']
+                    if inputHw.Model == 'NMX-ATC-N4321':
+                        Stream = devStatus['Transmit']['Stream']
+                    else:
+                        Stream = devStatus['Stream']
                 else:
                     Stream = 9999
             else:
@@ -193,18 +224,25 @@ class DeviceClass:
             
                 # Use tie type to send commands to output device to switch
                 if qualifier['Tie Type'] == 'Audio/Video':
-                    Output.interface.Set('Stream', Stream)
-                    Output.interface.Set('AudioStream', Stream)
+                    if Output.Model == 'NMX-ATC-N4321':
+                        Output.interface.Set('Stream', Stream, {'Instance': 'Rx'})
+                    else:
+                        Output.interface.Set('Stream', Stream)
+                        Output.interface.Set('AudioStream', Stream)
                 elif qualifier['Tie Type'] == 'Video':
-                    if Output.interface.ReadStatus('AudioStream') == 0:
-                        # If audio is following video, grab the current video stream,
-                        # then set audio stream to previous stream and video stream
-                        # to the new stream
-                        PrevStream = Output.interface.ReadStatus('Stream')
-                        Output.interface.Set('AudioStream', PrevStream)
-                    Output.interface.Set('Stream', Stream)
+                    if Output.Model != 'NMX-ATC-N4321':
+                        if Output.interface.ReadStatus('AudioStream') == 0:
+                            # If audio is following video, grab the current video stream,
+                            # then set audio stream to previous stream and video stream
+                            # to the new stream
+                            PrevStream = Output.interface.ReadStatus('Stream')
+                            Output.interface.Set('AudioStream', PrevStream)
+                        Output.interface.Set('Stream', Stream)
                 elif qualifier['Tie Type'] == 'Audio':
-                    Output.interface.Set('AudioStream', Stream)
+                    if Output.Model == 'NMX-ATC-N4321':
+                        Output.interface.Set('Stream', Stream, {'Instance': 'Rx'})
+                    else:
+                        Output.interface.Set('AudioStream', Stream)
             else:
                 self.Discard('Invalid Output provided.')
                 return
@@ -244,16 +282,7 @@ class DeviceClass:
     def SetVideoMute(self, value, qualifier):
         if qualifier is not None and 'Output' in qualifier:
             Output = self.VirtualOutputDevices[qualifier['Output']]
-            if value == 'Video':
-                Output.interface.Set('LiveLocal', self.__Mute_Local_Playlist)
-            elif value == 'Video & Sync':
-                Output.interface.Set('LiveLocal', self.__Mute_Local_Playlist)
-                Output.interface.Set('HDMIOutput', 'off')
-            elif value == 'Off':
-                Output.interface.Set('LiveLocal', 'live')
-                Output.interface.Set('HDMIOutput', 'on')
-        else:
-            for Output in self.VirtualOutputDevices.values():
+            if Output.Model != 'NMX-ATC-N4321':
                 if value == 'Video':
                     Output.interface.Set('LiveLocal', self.__Mute_Local_Playlist)
                 elif value == 'Video & Sync':
@@ -262,22 +291,34 @@ class DeviceClass:
                 elif value == 'Off':
                     Output.interface.Set('LiveLocal', 'live')
                     Output.interface.Set('HDMIOutput', 'on')
+        else:
+            for Output in self.VirtualOutputDevices.values():
+                if Output.Model != 'NMX-ATC-N4321':
+                    if value == 'Video':
+                        Output.interface.Set('LiveLocal', self.__Mute_Local_Playlist)
+                    elif value == 'Video & Sync':
+                        Output.interface.Set('LiveLocal', self.__Mute_Local_Playlist)
+                        Output.interface.Set('HDMIOutput', 'off')
+                    elif value == 'Off':
+                        Output.interface.Set('LiveLocal', 'live')
+                        Output.interface.Set('HDMIOutput', 'on')
             
         self.Update('VideoMute')
         self.__ConnectHelper()
     
     def UpdateVideoMute(self, value, qualifier):
         for OutputHw in self.VirtualOutputDevices.values():
-            OutputHw.interface.Update('DeviceStatus')
-            VideoMuteStatus = OutputHw.interface.ReadStatus('LiveLocal')
-            SyncMuteStatus = OutputHw.interface.ReadStatus('HDMIOutput')
-            
-            if VideoMuteStatus != 'live' and not SyncMuteStatus: # Video&Sync
-                self.WriteStatus('VideoMute', 'Video & Sync', {'Output': OutputHw.MatrixOutput})
-            elif VideoMuteStatus != 'live' and SyncMuteStatus: # Video
-                self.WriteStatus('VideoMute', 'Video', {'Output': OutputHw.MatrixOutput})
-            elif VideoMuteStatus == 'live' and SyncMuteStatus: # Off
-                self.WriteStatus('VideoMute', 'Off', {'Output': OutputHw.MatrixOutput})
+            if OutputHw.Model != 'NMX-ATC-N4321':
+                OutputHw.interface.Update('DeviceStatus')
+                VideoMuteStatus = OutputHw.interface.ReadStatus('LiveLocal')
+                SyncMuteStatus = OutputHw.interface.ReadStatus('HDMIOutput')
+                
+                if VideoMuteStatus != 'live' and not SyncMuteStatus: # Video&Sync
+                    self.WriteStatus('VideoMute', 'Video & Sync', {'Output': OutputHw.MatrixOutput})
+                elif VideoMuteStatus != 'live' and SyncMuteStatus: # Video
+                    self.WriteStatus('VideoMute', 'Video', {'Output': OutputHw.MatrixOutput})
+                elif VideoMuteStatus == 'live' and SyncMuteStatus: # Off
+                    self.WriteStatus('VideoMute', 'Off', {'Output': OutputHw.MatrixOutput})
         self.__ConnectHelper()
     
     def FeedbackOutputTieStatusHandler(self, command, value, qualifier, hardware=None):

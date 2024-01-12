@@ -14,9 +14,8 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.ui import Button
 
@@ -38,7 +37,7 @@ import json
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
 from uofi_gui.systemHardware import SystemHardwareController
-from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug
+from utilityFunctions import DictValueSearchByKey, Log
 
 ## End User Import -------------------------------------------------------------
 ##
@@ -346,13 +345,13 @@ class CameraController:
                     
                 for i in range(1, 4): # Preset 0 is home, Presets 1-3 are displayed buttons
                     if i in cam['Hw'].Presets:
-                        presetObj[cam['Id']][i] = cam['Hw'].Presets[i]
+                        presetObj[cam['Id']][str(i)] = cam['Hw'].Presets[i]
                     else:
-                        presetObj[cam['Id']][i] = None
+                        presetObj[cam['Id']][str(i)] = None
             
             #### save object to file
             presetsFile = File(self.__PresetsFilePath, 'wt')
-            presetsFile.write(json.dumps(presetObj))
+            presetsFile.write(json.dumps(presetObj, indent=2, sort_keys=True))
             presetsFile.close()
         else:
             # file does not exist -> create object, save object to file
@@ -371,7 +370,7 @@ class CameraController:
             
             #### save object to file
             presetsFile = File(self.__PresetsFilePath, 'xt')
-            presetsFile.write(json.dumps(presetObj))
+            presetsFile.write(json.dumps(presetObj, indent=2, sort_keys=True))
             presetsFile.close()
     
     def LoadPresetStates(self):

@@ -14,23 +14,16 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from extronlib.ui import Button
 
 ## Begin ControlScript Import --------------------------------------------------
-from extronlib import event, Version
-from extronlib.device import eBUSDevice, ProcessorDevice, UIDevice
-from extronlib.interface import (CircuitBreakerInterface, ContactInterface,
-    DigitalInputInterface, DigitalIOInterface, EthernetClientInterface,
-    EthernetServerInterfaceEx, FlexIOInterface, IRInterface, PoEInterface,
-    RelayInterface, SerialInterface, SWACReceptacleInterface, SWPowerInterface,
-    VolumeInterface)
+from extronlib import event
 
-from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
-    ProgramLog, SaveProgramLog, Ping, WakeOnLan, SetAutomaticTime, SetTimeZone)
+from extronlib.system import Timer
 
 ## End ControlScript Import ----------------------------------------------------
 ##
@@ -38,7 +31,6 @@ from extronlib.system import (Email, Clock, MESet, Timer, Wait, File, RFile,
 from datetime import datetime
 import importlib
 import math
-import re
 import functools
 
 ## End Python Imports ----------------------------------------------------------
@@ -47,7 +39,7 @@ import functools
 #### Custom Code Modules
 
 from ConnectionHandler import GetConnectionHandler
-from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey, SortKeys
+from utilityFunctions import Log, DictValueSearchByKey, SortKeys
 
 #### Extron Global Scripter Modules
 

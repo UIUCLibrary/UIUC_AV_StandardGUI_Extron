@@ -14,11 +14,11 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, cast
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
-    from uofi_gui.sourceControls import MatrixTuple, Destination
+    from uofi_gui.sourceControls import Destination
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
@@ -33,7 +33,7 @@ from extronlib.system import Timer
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from utilityFunctions import Log, RunAsync, TimeIntToStr, debug
+from utilityFunctions import Log, TimeIntToStr
 from hardware.mersive_solstice_pod import PodFeedbackHelper
 #### Extron Global Scripter Modules
 
@@ -305,7 +305,7 @@ class ActivityController:
 
         destStatus = True
         for dest in self.GUIHost.Destinations:
-            if dest['type'] not in ['conf']:
+            if dest['type'] not in ['conf', 'aud']:
                 self.GUIHost.Hardware[dest['id']].interface.Update('Power')
                 curStatus = self.GUIHost.Hardware[dest['id']].interface.ReadStatus('Power')
                 if curStatus not in ['On', 'on', 'Power On', 'ON', 'Power on', 'POWER ON']:
@@ -348,7 +348,7 @@ class ActivityController:
 
         destStatus = True
         for dest in self.GUIHost.Destinations:
-            if dest['type'] not in ['conf']:
+            if dest['type'] not in ['conf', 'aud']:
                 self.GUIHost.Hardware[dest['id']].interface.Update('Power')
                 curStatus = self.GUIHost.Hardware[dest['id']].interface.ReadStatus('Power')
                 if curStatus not in ['Off', 'off', 'Power Off', 'Standby (Power Save)', 'Suspend (Power Save)', 'OFF', 'Power off', 'POWER OFF']:

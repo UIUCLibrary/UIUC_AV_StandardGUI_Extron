@@ -14,18 +14,15 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Dict, Union, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
-    from uofi_gui.uiObjects import ExUIDevice
     from uofi_gui.sourceControls import SourceController, MatrixRow, LayoutTuple, RelayTuple
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from extronlib.ui import Button, Label
 
 from collections import namedtuple
 from extronlib import event
 from uofi_gui.sourceControls.sources import Source
 from hardware.mersive_solstice_pod import PodFeedbackHelper
-from utilityFunctions import Log
 
 MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
 
@@ -36,9 +33,9 @@ class Destination:
                  name: str,
                  output: int,
                  type: str,
-                 rly: 'RelayTuple',
-                 groupWrkSrc: str,
-                 advLayout: 'LayoutTuple',
+                 rly: 'RelayTuple'=None,
+                 groupWrkSrc: str=None,
+                 advLayout: 'LayoutTuple'=None,
                  confFollow: str=None) -> None:
         
         self.SourceController = SrcCtl
@@ -46,7 +43,7 @@ class Destination:
         self.Name = name
         self.Output = output
         self.AdvLayoutPosition = advLayout
-        self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc)
+        self.GroupWorkSource = self.SourceController.GetSource(id = groupWrkSrc) if groupWrkSrc is not None else self.SourceController.BlankSource
         self.Type = type
         self.ConfFollow = confFollow
         
@@ -243,84 +240,87 @@ class Destination:
         self.__MatrixRow.MakeTie(source.Input, tieType)
 
     def AssignAdvUI(self, ui: Dict[str, Union['Button', 'Label']]) -> None:
-        self.__AdvSelectBtn = ui['select']
-        self.__AdvCtlBtn = ui['ctl']
-        self.__AdvAudBtn = ui['aud']
-        self.__AdvAlertBtn = ui['alert']
-        self.__AdvScnBtn = ui['scn']
-        self.__AdvLabel = ui['label']
-        
-        # set distination label text
-        self.__AdvLabel.SetText(self.Name)
-        
-        # clear selected source text
-        self.__AdvSelectBtn.SetText("") 
-        
-        @event(self.__AdvSelectBtn, 'Pressed') # pragma: no cover
-        def advSelectHandler(button: 'Button', action: str):
-            self.__SelectHandler(button, action)
+        if self.Type != 'aud':
+            self.__AdvSelectBtn = ui['select']
+            self.__AdvCtlBtn = ui['ctl']
+            self.__AdvAudBtn = ui['aud']
+            self.__AdvAlertBtn = ui['alert']
+            self.__AdvScnBtn = ui['scn']
+            self.__AdvLabel = ui['label']
             
-        # Source Control Buttons
-        self.__AdvCtlBtn.SetVisible(False)
-        self.__AdvCtlBtn.SetEnable(False)
-        
-        @event(self.__AdvCtlBtn, 'Pressed') # pragma: no cover
-        def advSrcCtlHandler(button: 'Button', action: str):
-            self.__SourceControlHandler(button, action)
-        
-        # Destination Audio Buttons
-        if self.Type == 'conf':
-            self.__AdvAudBtn.SetEnable(False)
-            self.__AdvAudBtn.SetVisible(False)
-        else:
-            if self is self.SourceController.PrimaryDestination:
-                self.__AdvAudBtn.SetState(0)
-            else:
-                self.__AdvAudBtn.SetState(1)
-        
-        @event(self.__AdvAudBtn, ['Tapped', 'Released', 'Held']) # pragma: no cover
-        def advAudHandler(button: 'Button', action: str):
-            self.__AudioHandler(button, action)
-        
-        # Destination Alert Buttons
-        self.__AdvAlertBtn.SetVisible(False)
-        self.__AdvAlertBtn.SetEnable(False)
-        
-        @event(self.__AdvAlertBtn, 'Pressed') # pragma: no cover
-        def advAlertHandler(button: 'Button', action: str):
-            self.__AlertHandler(button, action)
-        
-        # Screen Control Buttons
-        if self.Type == "proj+scn":
-            self.__AdvScnBtn.SetVisible(True)
-            self.__AdvScnBtn.SetEnable(True)
-        else:
-            self.__AdvScnBtn.SetVisible(False)
-            self.__AdvScnBtn.SetEnable(False)
+            # set distination label text
+            self.__AdvLabel.SetText(self.Name)
             
-        @event(self.__AdvScnBtn, 'Pressed') # pragma: no cover
-        def advScnHandler(button: 'Button', action: str):
-            self.__ScreenHandler(button, action)
-    
-    def UpdateAdvUI(self) -> None:
-        vidSrc = self.AssignedSource.Vid
-        vidSrc = cast('Source', vidSrc)
-        self.__AdvSelectBtn.SetText(vidSrc.Name)
-        
-        if vidSrc.AdvSourceControlPage == None:
+            # clear selected source text
+            self.__AdvSelectBtn.SetText("") 
+            
+            @event(self.__AdvSelectBtn, 'Pressed') # pragma: no cover
+            def advSelectHandler(button: 'Button', action: str):
+                self.__SelectHandler(button, action)
+                
+            # Source Control Buttons
             self.__AdvCtlBtn.SetVisible(False)
             self.__AdvCtlBtn.SetEnable(False)
-        else:
-            self.__AdvCtlBtn.SetVisible(True)
-            self.__AdvCtlBtn.SetEnable(True)
             
-    def AdvSourceAlertHandler(self) -> None:
-        if self.AssignedSource != None and self.AssignedSource.Vid.AlertFlag:
-            self.__AdvAlertBtn.SetVisible(True)
-            self.__AdvAlertBtn.SetEnable(True)
-            self.__AdvAlertBtn.SetBlinking('Medium', [0,1])
-        else:
+            @event(self.__AdvCtlBtn, 'Pressed') # pragma: no cover
+            def advSrcCtlHandler(button: 'Button', action: str):
+                self.__SourceControlHandler(button, action)
+            
+            # Destination Audio Buttons
+            if self.Type == 'conf':
+                self.__AdvAudBtn.SetEnable(False)
+                self.__AdvAudBtn.SetVisible(False)
+            else:
+                if self is self.SourceController.PrimaryDestination:
+                    self.__AdvAudBtn.SetState(0)
+                else:
+                    self.__AdvAudBtn.SetState(1)
+            
+            @event(self.__AdvAudBtn, ['Tapped', 'Released', 'Held']) # pragma: no cover
+            def advAudHandler(button: 'Button', action: str):
+                self.__AudioHandler(button, action)
+            
+            # Destination Alert Buttons
             self.__AdvAlertBtn.SetVisible(False)
             self.__AdvAlertBtn.SetEnable(False)
-            self.__AdvAlertBtn.SetState(1)
+            
+            @event(self.__AdvAlertBtn, 'Pressed') # pragma: no cover
+            def advAlertHandler(button: 'Button', action: str):
+                self.__AlertHandler(button, action)
+            
+            # Screen Control Buttons
+            if self.Type == "proj+scn":
+                self.__AdvScnBtn.SetVisible(True)
+                self.__AdvScnBtn.SetEnable(True)
+            else:
+                self.__AdvScnBtn.SetVisible(False)
+                self.__AdvScnBtn.SetEnable(False)
+                
+            @event(self.__AdvScnBtn, 'Pressed') # pragma: no cover
+            def advScnHandler(button: 'Button', action: str):
+                self.__ScreenHandler(button, action)
+    
+    def UpdateAdvUI(self) -> None:
+        if self.Type != 'aud':
+            vidSrc = self.AssignedSource.Vid
+            vidSrc = cast('Source', vidSrc)
+            self.__AdvSelectBtn.SetText(vidSrc.Name)
+            
+            if vidSrc.AdvSourceControlPage is None:
+                self.__AdvCtlBtn.SetVisible(False)
+                self.__AdvCtlBtn.SetEnable(False)
+            else:
+                self.__AdvCtlBtn.SetVisible(True)
+                self.__AdvCtlBtn.SetEnable(True)
+            
+    def AdvSourceAlertHandler(self) -> None:
+        if self.Type != 'aud':
+            if self.AssignedSource is not None and self.AssignedSource.Vid.AlertFlag:
+                self.__AdvAlertBtn.SetVisible(True)
+                self.__AdvAlertBtn.SetEnable(True)
+                self.__AdvAlertBtn.SetBlinking('Medium', [0,1])
+            else:
+                self.__AdvAlertBtn.SetVisible(False)
+                self.__AdvAlertBtn.SetEnable(False)
+                self.__AdvAlertBtn.SetState(1)
             

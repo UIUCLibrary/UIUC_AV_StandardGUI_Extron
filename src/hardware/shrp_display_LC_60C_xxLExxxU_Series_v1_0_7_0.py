@@ -1,5 +1,5 @@
 from extronlib.interface import SerialInterface, EthernetClientInterface
-from struct import pack
+from extronlib.system import ProgramLog
 from re import compile, search
 import utilityFunctions
 

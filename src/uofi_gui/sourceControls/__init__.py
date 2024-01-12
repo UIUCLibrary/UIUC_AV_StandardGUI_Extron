@@ -14,9 +14,8 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable, cast
+from typing import TYPE_CHECKING, Dict, List, Union, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
 
 ## Begin ControlScript Import --------------------------------------------------
@@ -32,13 +31,13 @@ from collections import namedtuple
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from uofi_gui.sourceControls.destinations import Destination, Source, MatrixTuple
+from uofi_gui.sourceControls.destinations import Destination, Source
 # from uofi_gui.sourceControls.sources import Source
-from uofi_gui.sourceControls.matrix import MatrixController, MatrixRow
+from uofi_gui.sourceControls.matrix import MatrixController
 
 from hardware.mersive_solstice_pod import PodFeedbackHelper
 
-from utilityFunctions import Log, RunAsync, debug, DictValueSearchByKey
+from utilityFunctions import RunAsync, DictValueSearchByKey
 
 #### Extron Global Scripter Modules
 
@@ -71,13 +70,13 @@ class SourceController:
         for dest in self.GUIHost.Destinations:
             if dest.get('rly', None) is not None:
                 dest['rly'] = RelayTuple(Up=dest['rly'][0], Down=dest['rly'][1])
-            else:
-                dest['rly'] = RelayTuple(Up=None, Down=None)
+            # else:
+            #     dest['rly'] = RelayTuple(Up=None, Down=None)
                 
             if dest.get('advLayout', None) is not None:
                 dest['advLayout'] = LayoutTuple(Row=dest['advLayout']['row'], Pos=dest['advLayout']['pos'])
-            else:
-                raise ValueError('No advLayout provided for destination')
+            # else:
+            #     raise ValueError('No advLayout provided for destination')
             
             
             destObj = Destination(self, **dest)
@@ -116,6 +115,7 @@ class SourceController:
                                         DictValueSearchByKey(self.UIHost.Lbls, r'MatrixLabel-In-\d+', regex=True),
                                         DictValueSearchByKey(self.UIHost.Lbls, r'MatrixLabel-Out-\d+', regex=True))
         self.__SystemAudioFollowDestination = self.PrimaryDestination
+        # Log("Destinations: {}".format(self.Destinations))
         self.__SystemAudioOutputDestination = self.GetDestinationByOutput(self.__Matrix.Hardware.SystemAudioOuput)
         
         for dest in self.Destinations: # Set advanced gui buttons for each destination
@@ -180,6 +180,7 @@ class SourceController:
         self.__SystemAudioFollowDestination = dest
         
         audInput = self.__GetSystemAudioInput()
+        # Log("Audio Input: {}; System Audio Output: {}".format(audInput, self.__Matrix.Hardware.SystemAudioOuput))
         audDest = self.GetDestinationByOutput(self.__Matrix.Hardware.SystemAudioOuput)
         audDest.AssignMatrixByInput(audInput, 'Aud')
         
@@ -196,7 +197,7 @@ class SourceController:
                 d = cast('Destination', d)
                 if d is dest:
                     d.DestAudioFeedbackHandler(0)
-                else:
+                elif d.Type != 'aud':
                     if d.Type == 'mon' \
                         and self.GUIHost.ActCtl.CurrentActivity in ['adv_share', 'group_work'] \
                         and d.SystemAudioState in [2, 3]: # pragma: no cover
@@ -372,6 +373,9 @@ class SourceController:
         
         location = dest.AdvLayoutPosition
         
+        if dest.Type == 'aud':
+            return
+        
         if type(location) is not LayoutTuple: 
             raise LookupError("Provided Destination Object ({}) not found in Destinations."
                             .format(dest.Name))
@@ -417,11 +421,12 @@ class SourceController:
     def GetAdvShareLayout(self) -> str:
         layout = {}
         for dest in self.Destinations:
-            r = str(dest.AdvLayoutPosition.Row)
-            if r not in layout:
-                layout[r] = [dest]
-            else:
-                layout[r].append(dest)
+            if dest.Type != 'aud':
+                r = str(dest.AdvLayoutPosition.Row)
+                if r not in layout:
+                    layout[r] = [dest]
+                else:
+                    layout[r].append(dest)
                 
         rows = []
         i = 0
@@ -444,7 +449,7 @@ class SourceController:
                 if dest.Name == name:
                     return dest
         raise LookupError('Provided Name ({}) or Id ({}) not found'.format(name, id))
-                
+    
     def GetDestinationByOutput(self, outputNum: int) -> Destination:
         for dest in self.Destinations:
             if dest.Output == outputNum:

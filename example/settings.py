@@ -27,10 +27,10 @@ activityMode = 2                # Activity mode popup to display
    # 3 - Share, Adv. Share, and Group Work
 
 startupTimer = 30             # Max startup timer duration, seconds
-startupMin = 20               # Minium startup timer duration, seconds
+startupMin = 10               # Minium startup timer duration, seconds
 switchTimer = 3               # Max switch timer duration, seconds
 shutdownTimer = 45            # Max shutdown timer duration, seconds
-shutdownMin = 30              # Minium shutdown timer duration, seconds
+shutdownMin = 5               # Minium shutdown timer duration, seconds
 shutdownConfTimer = 30        # Shutdown confirmation duration, seconds
 activitySplashTimer = 60      # Duration to show activity splash pages for, seconds
 initPageTimer = 600           # Inactivity timeout before showing "Splash" page when Activity is Off
@@ -59,7 +59,7 @@ sources = \
          "id": "PC001",
          "name": "Room PC",
          "icon": 2,
-         "input": 4,
+         "input": 2,
          "alert": "Ensure the PC is awake.",
          "srcCtl": "PC",
          "advSrcCtl": None
@@ -68,7 +68,7 @@ sources = \
          "id": "WPD001",
          "name": "Wireless Pod",
          "icon": 3,
-         "input": 5,
+         "input": 3,
          "alert": "Contact Library IT for Assistance with this Wireless Device",
          "srcCtl": "WPD",
          "advSrcCtl": "WPD"
@@ -83,19 +83,19 @@ sources = \
          "advSrcCtl": None
       },
       {
-         "id": "ENC002",
+         "id": "ENC004",
          "name": "West HDMI",
          "icon": 1,
-         "input": 2,
+         "input": 4,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
          "srcCtl": "HDMI",
          "advSrcCtl": None
       },
       {
-         "id": "ENC003",
+         "id": "ENC005",
          "name": "East HDMI",
          "icon": 1,
-         "input": 3,
+         "input": 5,
          "alert": "Ensure all cables and adapters to your HDMI device are fully seated",
          "srcCtl": "HDMI",
          "advSrcCtl": None
@@ -108,6 +108,7 @@ sources = \
 #  mon      - Large format monitor
 #  conf     - Instructor confidence monitor (no power control)
 #  c-conf   - Instructor confidence monitor (with display control)
+#  aud      - Audio only destination
 destinations = \
    [
       {
@@ -130,22 +131,29 @@ destinations = \
          "rly": None,
          "groupWrkSrc": "WPD001",
          "advLayout": {
-            "row": 1,
-            "pos": 1
+            "row": 0,
+            "pos": 0
          }
       },
       {
          'id': 'MON003',
          'name': 'East Monitor',
-         'output': 1,
+         'output': 3,
          'type': 'mon',
          'rly': None,
          'groupWrkSrc': 'WPD001',
          'advLayout': {
-            "row": 0,
+            "row": 1,
             "pos": 1
          }
       },
+      {
+         'id': 'ATC001',
+         'name': 'Audio Transciever',
+         'output': 4,
+         'type': 'aud',
+         'rly': None
+      }
    ]
    
 cameras = \
@@ -293,7 +301,7 @@ hardware = [
             },
             {
                'command': 'LevelControl',
-               'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'},
+               'qualifier': {'Instance Tag': 'RFLevel', 'Channel': '1'},
                'callback': 'FeedbackLevelHandler',
                'tag': ('mics', '1'),
                'active_int': 30,
@@ -325,7 +333,7 @@ hardware = [
             },
             {
                'command': 'MuteControl',
-               'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'},
+               'qualifier': {'Instance Tag': 'RFLevel', 'Channel': '1'},
                'callback': 'FeedbackMuteHandler',
                'tag': ('mics', '1'),
                'active_int': 30,
@@ -374,6 +382,7 @@ hardware = [
          ],
       'Options':
          {
+            'HasParle': True,
             'Program': 
                {
                   'Range': (-36, 12),
@@ -393,17 +402,17 @@ hardware = [
             'Mic1MuteCommand': 
                {
                   'command': 'MuteControl',
-                  'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'}
+                  'qualifier': {'Instance Tag': 'RFLevel', 'Channel': '1'}
                },
             'Mic1LevelCommand':
                {
                   'command': 'LevelControl',
-                  'qualifier': {'Instance Tag': 'Mic1Level', 'Channel': '1'}
+                  'qualifier': {'Instance Tag': 'RFLevel', 'Channel': '1'}
                },
             'Mic2MuteCommand': 
                {
-                  'command': 'LogicState',
-                  'qualifier': {'Instance Tag': 'CeilingMicLogic', 'Channel': '1'}
+                  'command': 'MuteControl',
+                  'qualifier': {'Instance Tag': 'CeilingMicMute', 'Channel': '1'}
                },
             'Mic2LevelCommand':
                {
@@ -698,10 +707,64 @@ hardware = [
       }
    },
    {
-      'Id': 'ENC002',
+      'Id': 'ENC004',
       'Name': 'West HDMI Encoder',
       'Manufacturer': 'AMX',
       'Model': 'NMX-ENC-N2315-WP',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'mainlib106-enc004.library.illinois.edu',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2315-WP'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 4
+      }
+   },
+   {
+      'Id': 'ENC005',
+      'Name': 'East HDMI Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2315-WP',
+      'Interface':
+         {
+            'module': 'hardware.amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+               'keepAliveQuery': 'DeviceStatus',
+               'DisconnectLimit': 15,
+               'pollFrequency': 60
+            },
+            'interface_configuration': {
+               'Hostname': 'mainlib106-enc005.library.illinois.edu',
+               'IPPort': 50002,
+               'Model': 'NMX-ENC-N2315-WP'
+            }
+         },
+      'Subscriptions': [],
+      'Polling': [],
+      'Options': {
+         'MatrixAssignment': 'VMX001',
+         'MatrixInput': 5
+      }
+   },
+   {
+      'Id': 'ENC002',
+      'Name': 'Room PC Encoder',
+      'Manufacturer': 'AMX',
+      'Model': 'NMX-ENC-N2312',
       'Interface':
          {
             'module': 'hardware.amx_avoip_n2300_series',
@@ -726,9 +789,9 @@ hardware = [
    },
    {
       'Id': 'ENC003',
-      'Name': 'East HDMI Encoder',
+      'Name': 'Wireless Pod Encoder',
       'Manufacturer': 'AMX',
-      'Model': 'NMX-ENC-N2315-WP',
+      'Model': 'NMX-ENC-N2312',
       'Interface':
          {
             'module': 'hardware.amx_avoip_n2300_series',
@@ -749,60 +812,6 @@ hardware = [
       'Options': {
          'MatrixAssignment': 'VMX001',
          'MatrixInput': 3
-      }
-   },
-   {
-      'Id': 'ENC004',
-      'Name': 'Room PC Encoder',
-      'Manufacturer': 'AMX',
-      'Model': 'NMX-ENC-N2312',
-      'Interface':
-         {
-            'module': 'hardware.amx_avoip_n2300_series',
-            'interface_class': 'EthernetClass',
-            'ConnectionHandler': {
-               'keepAliveQuery': 'DeviceStatus',
-               'DisconnectLimit': 15,
-               'pollFrequency': 60
-            },
-            'interface_configuration': {
-               'Hostname': 'mainlib106-enc004.library.illinois.edu',
-               'IPPort': 50002,
-               'Model': 'NMX-ENC-N2312'
-            }
-         },
-      'Subscriptions': [],
-      'Polling': [],
-      'Options': {
-         'MatrixAssignment': 'VMX001',
-         'MatrixInput': 4
-      }
-   },
-   {
-      'Id': 'ENC005',
-      'Name': 'Wireless Pod Encoder',
-      'Manufacturer': 'AMX',
-      'Model': 'NMX-ENC-N2312',
-      'Interface':
-         {
-            'module': 'hardware.amx_avoip_n2300_series',
-            'interface_class': 'EthernetClass',
-            'ConnectionHandler': {
-               'keepAliveQuery': 'DeviceStatus',
-               'DisconnectLimit': 15,
-               'pollFrequency': 60
-            },
-            'interface_configuration': {
-               'Hostname': 'mainlib106-enc005.library.illinois.edu',
-               'IPPort': 50002,
-               'Model': 'NMX-ENC-N2312'
-            }
-         },
-      'Subscriptions': [],
-      'Polling': [],
-      'Options': {
-         'MatrixAssignment': 'VMX001',
-         'MatrixInput': 5
       }
    },
    {
@@ -870,8 +879,7 @@ hardware = [
                   {'Input': 2},
                   {'Input': 3},
                   {'Input': 4},
-                  {'Input': 5},
-                  {'Input': 6}
+                  {'Input': 5}
                ],
                'callback': 'FeedbackInputSignalStatusHandler'
             }
@@ -1079,6 +1087,15 @@ hardware = [
                   'command': 'Input',
                   'value': 'HDMI 1'
                },
+            'MuteCommand':
+               {
+                  'command': 'AudioMute',
+               },
+            'VolumeCommand':
+               {
+                  'command': 'Volume'
+               },
+            'VolumeRange': (0, 100)
          }
    },
    {
@@ -1091,12 +1108,12 @@ hardware = [
             'module': 'hardware.shur_other_QLX_D_ULX_D_Series_v1_1_5_0',
             'interface_class': 'EthernetClass',
             'ConnectionHandler': {
-               'keepAliveQuery': 'AntennaStatus',
+               'keepAliveQuery': 'FirmwareVersion',
                'DisconnectLimit': 5,
                'pollFrequency': 60
             },
             'interface_configuration': {
-               'Hostname': 'mainlib314-rf001.library.illinois.edu',
+               'Hostname': 'mainlib106-rf001.library.illinois.edu',
                'IPPort': 2202,
                'Model': 'QLX-D',
             }

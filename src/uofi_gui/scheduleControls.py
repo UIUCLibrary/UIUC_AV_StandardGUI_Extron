@@ -14,12 +14,11 @@
 # limitations under the License.
 ################################################################################
 
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING, Dict, Union
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import GUIController
     from uofi_gui.uiObjects import ExUIDevice
     from extronlib.device import UIDevice
-    from extronlib.ui import Button, Knob, Label, Level, Slider
+    from extronlib.ui import Button
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib import event
@@ -35,7 +34,7 @@ import re
 ##
 ## Begin User Import -----------------------------------------------------------
 #### Custom Code Modules
-from utilityFunctions import DictValueSearchByKey, Log, RunAsync, debug, SortKeys
+from utilityFunctions import Log, SortKeys
 
 #### Extron Global Scripter Modules
 
@@ -455,7 +454,7 @@ class AutoScheduleController:
             
             #### save object to file
             scheduleFile = File(self.__scheduleFilePath, 'wt')
-            scheduleFile.write(json.dumps(scheduleObj))
+            scheduleFile.write(json.dumps(scheduleObj, indent=2, sort_keys=True))
             scheduleFile.close()
             
         else:
@@ -483,7 +482,7 @@ class AutoScheduleController:
             
             #### save object to file
             scheduleFile = File(self.__scheduleFilePath, 'xt')
-            scheduleFile.write(json.dumps(scheduleObj))
+            scheduleFile.write(json.dumps(scheduleObj, indent=2, sort_keys=True))
             scheduleFile.close()
             
         if bool(scheduleObj['auto_start']['enabled']):

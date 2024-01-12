@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
+from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     from uofi_gui import GUIController
 
-from extronlib.interface import SerialInterface, EthernetClientInterface
+from extronlib.interface import EthernetClientInterface
 import re
-from extronlib.system import Wait, ProgramLog
+from extronlib.system import ProgramLog
 
 class DeviceClass:
     def __init__(self):
@@ -27,7 +27,7 @@ class DeviceClass:
         self.Models = {
             'NMX-ENC-N2312': self.amx_svsi_n2300_enc,
             'NMX-ENC-N2312-C': self.amx_svsi_n2300_enc,
-            'NMX-ENC-N2315-WP': self.amx_svsi_n2300_enc,
+            'NMX-ENC-N2315-WP': self.amx_svsi_n2315_enc,
             'NMX-DEC-N2322': self.amx_svsi_n2300_dec
             }
 
@@ -48,10 +48,10 @@ class DeviceClass:
         
         # Add match strings for callbacks
         self.AddMatchString(re.compile(b'SVSI_NETSTATS:.+\\rchassisID:(.+)\\rsysName:(.+)\\rsysDescr:(.+)\\rportID:(.+)\\rportDescr:(.+)\\r'), self.__CallbackNetStatus, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)MUTE:(\d)\\r'), self.__CallbackMute, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)PLAYLIST:([0-7])\\r(?:.+)PLAYMODE:(live|local|off)\\r'), self.__CallbackLiveLocal, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)BAUD:(\d+)\\rSNUMB:(7|8)\\rSPAR:(even|odd|none)\\rSP2S:(1|2)\\r'), self.__CallbackSerialConfig, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)DVI(?:STATUS|INPUT):(connected|disconnected)\\r'), self.__CallbackHDMIStatus, None)
+        self.AddMatchString(re.compile(b'MUTE:(\d)\\r'), self.__CallbackMute, None)
+        self.AddMatchString(re.compile(b'PLAYLIST:([0-7])\\r(?:.+)PLAYMODE:(live|local|off)\\r'), self.__CallbackLiveLocal, None)
+        self.AddMatchString(re.compile(b'BAUD:(\d+)\\rSNUMB:(7|8)\\rSPAR:(even|odd|none)\\rSP2S:(1|2)\\r'), self.__CallbackSerialConfig, None)
+        self.AddMatchString(re.compile(b'DVI(?:STATUS|INPUT):(connected|disconnected)\\r'), self.__CallbackHDMIStatus, None)
         
         self.UpdateMute = self.UpdateDeviceStatus
         self.UpdateLiveLocal = self.UpdateDeviceStatus
@@ -67,6 +67,27 @@ class DeviceClass:
     def amx_svsi_n2300_enc(self):
         self.EndpointType = 'ENC'
         self.AddMatchString(re.compile(b'SVSI_TXGEN2:(\w+)\\rNAME:(.+)\\rMAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})\\rIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rNM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rGW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rIPTRIAL:(0|1)\\rIPMODE:(.+)\\rID:(.+)\\rrel:(.+)\\rSWVER:(.+)\\rWEBVER:(.+)\\rUPDATE:(.+)\\rUPDTRY:(.+)\\rUPDFAILED:(.+)\\rMEDIAPORT0:(on|off)\\rMEDIAPORT1:(on|off)\\rDIVASEN:(.+)\\rDIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)PORTSD1:(yes|no)\\rDVICEVTDLY:(\d{1,5})\\rDVIDEVTDLY:(\d{1,5})\\rUSERMCMODE:(on|off)\\rUSERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?:\\r.+\\r)STREAM:(\d{1,4})\\rSAMPLE:(\d+)\\rHDMIAUDIO:(auto|on|off)\\rvidDetectMode:(auto|digital|analog)(?:\\r.+\\r)DVIINPUT:(connected|disconnected)\\rMODE:(.*?)\\rLINEINVOL_L:(\d{1,3})\\rLINEINVOL_R:(\d{1,3})\\rLIVEAUDIOHP:(on|off)\\r'), self.__CallbackDeviceStatus_Enc, None)
+
+        enc_commands = \
+            {
+                'Tx': {'Status': {}},
+                'VidSource': {'Status': {}},
+            }
+        
+        self.Commands.update(enc_commands)
+        
+        # No match string for Tx or VidSource.
+        # Tx is set for encoders in __CallbackLiveLocal
+        # VidSource status is not provided by N2300 encoders, so the status is emulated in SetVidSource
+        
+        self.UpdateTx = self.UpdateDeviceStatus
+        self.UpdateVidSource = self.UpdateDeviceStatus
+        
+    def amx_svsi_n2315_enc(self):
+        self.EndpointType = 'ENC'
+        self.AddMatchString(re.compile(b'SVSI_TXGEN2:([\w\-]+)\\rNAME:(.+)\\rMAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})\\rIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rNM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rGW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rIPTRIAL:(0|1)\\rIPMODE:(.+)\\rID:(.+)\\rrel:(.+)\\rSWVER:(.+)\\rWEBVER:(.+)\\rUPDATE:(.+)\\rUPDTRY:(.+)\\rUPDFAILED:(.+)\\rMEDIAPORT0:(on|off)\\rMEDIAPORT1:(on|off)\\rDIVASEN:(.+)\\rDIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d)\\rBAUD:(\d{1,6})\\rSNUMB:(\d{1})\\rSPAR:(.+)\\rPORTSD1:(yes|no)\\rDVICEVTDLY:(\d{1,5})\\rDVIDEVTDLY:(\d{1,5})\\rUSERMCMODE:(on|off)\\rUSERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\rPLAYLIST:(\d{1,2})\\rMUTE:(0|1)\\rSTREAM:(\d{1,4})\\rSAMPLE:(\d+)\\rHDMIAUDIO:(auto|on|off)\\rvidDetectMode:(auto|digital|analog)\\rPLAYMODE:(.+?)\\rDVIINPUT:(connected|disconnected)\\rINPUTRES:(\d{1,4}x\d{1,4})\\rLINEINVOL_L:(\d{1,3})\\rLINEINVOL_R:(\d{1,3})'),
+                            self.__CallbackDeviceStatus_WPEnc,
+                            None)
 
         enc_commands = \
             {
@@ -107,23 +128,53 @@ class DeviceClass:
                 'VideoWall_Stretch': {'Status': {}},
                 'VideoWall_HShift': {'Status': {}},
                 'VideoWall_VShift': {'Status': {}},
+                'VideoWall_Rotate': {'Status': {}}
             }
         
         self.Commands.update(dec_commands)
         
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)STREAM:(\d{1,4})\\r'), self.__CallbackStream, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)STREAMAUDIO:(\d{1,4})\\r'), self.__CallbackAudioStream, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)KVMMasterIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\r'), self.__CallbackKVMMasterIP, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)LINEOUTVOL_L:(\d{1,3})\\rLINEOUTVOL_R:(\d{1,3})\\r'), self.__CallbackVolume, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)DVIOFF:(0|1)\\r'), self.__CallbackHDMIOutput, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)MODE:(auto|1080p59\.94|1080p60|720p60|4K30|4K25)\\r'), self.__CallbackScalerMode, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)SCALERBYPASS:(on|off)\\r'), self.__CallbackScaler, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallEnable:(0|1)\\r'), self.__CallbackVideoWall, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallHorMons:(\d{1,2})\\r'), self.__CallbackVideoWall_HorMons, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallVerMons:(\d{1})\\r'), self.__CallbackVideoWall_VerMons, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallMonPosH:(\d{1,2})\\r'), self.__CallbackVideoWall_PosHor, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallMonPosV:(\d{1})\\r'), self.__CallbackVideoWall_PosVer, None)
-        self.AddMatchString(re.compile(b'(?:SVSI_.+)wallStretch:(.+?)\\r'), self.__CallbackVideoWall_Stretch, None)
+        self.AddMatchString(re.compile(b'STREAM:(\d{1,4})\\r'), 
+                            self.__CallbackStream, 
+                            None)
+        self.AddMatchString(re.compile(b'STREAMAUDIO:(\d{1,4})\\r'), 
+                            self.__CallbackAudioStream, 
+                            None)
+        self.AddMatchString(re.compile(b'KVMMasterIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\\r'), 
+                            self.__CallbackKVMMasterIP, 
+                            None)
+        self.AddMatchString(re.compile(b'LINEOUTVOL_L:(\d{1,3})\\rLINEOUTVOL_R:(\d{1,3})\\r'), 
+                            self.__CallbackVolume, 
+                            None)
+        self.AddMatchString(re.compile(b'DVIOFF:(0|1)\\r'), 
+                            self.__CallbackHDMIOutput, 
+                            None)
+        self.AddMatchString(re.compile(b'MODE:(auto|1080p59\.94|1080p60|720p60|4K30|4K25)\\r'), 
+                            self.__CallbackScalerMode, 
+                            None)
+        self.AddMatchString(re.compile(b'SCALERBYPASS:(on|off)\\r'), 
+                            self.__CallbackScaler, 
+                            None)
+        self.AddMatchString(re.compile(b'wallEnable:(0|1)\\r'), 
+                            self.__CallbackVideoWall, 
+                            None)
+        self.AddMatchString(re.compile(b'wallHorMons:(\d{1,2})\\r'), 
+                            self.__CallbackVideoWall_HorMons, 
+                            None)
+        self.AddMatchString(re.compile(b'wallVerMons:(\d{1})\\r'), 
+                            self.__CallbackVideoWall_VerMons, 
+                            None)
+        self.AddMatchString(re.compile(b'wallMonPosH:(\d{1,2})\\r'), 
+                            self.__CallbackVideoWall_PosHor, 
+                            None)
+        self.AddMatchString(re.compile(b'wallMonPosV:(\d{1})\\r'), 
+                            self.__CallbackVideoWall_PosVer, 
+                            None)
+        self.AddMatchString(re.compile(b'wallStretch:(.+?)\\r'), 
+                            self.__CallbackVideoWall_Stretch, 
+                            None)
+        self.AddMatchString(re.compile(b'wallRotate:(.+?)\\r'),
+                            self.__CallbackVideoWall_Rotate,
+                            None)
         
         self.UpdateStream = self.UpdateDeviceStatus
         self.UpdateAudioStream = self.UpdateDeviceStatus
@@ -140,6 +191,7 @@ class DeviceClass:
         self.UpdateVideoWall_PosHor = self.UpdateDeviceStatus
         self.UpdateVideoWall_PosVer = self.UpdateDeviceStatus
         self.UpdateVideoWall_Strech = self.UpdateDeviceStatus
+        self.UpdateVideoWall_Rotate = self.UpdateDeviceStatus
 
 ## -----------------------------------------------------------------------------
 ## End Model Definitions
@@ -299,6 +351,87 @@ class DeviceClass:
         }
         self.WriteStatus('DeviceStatus', statusDict)
     
+    def __CallbackDeviceStatus_WPEnc(self, match, tag):
+        #1# SVSI_TXGEN2:([\w\-]+)
+        #2# NAME:(.+)
+        #3# MAC:([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})
+        #4# IP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+        #5# NM:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+        #6# GW:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+        #7# IPTRIAL:(0|1)
+        #8# IPMODE:(.+)
+        #9# ID:(.+)
+        #10# rel:(.+)
+        #11# SWVER:(.+)
+        #12# WEBVER:(.+)
+        #13# UPDATE:(.+)
+        #14# UPDTRY:(.+)
+        #15# UPDFAILED:(.+)
+        #16# MEDIAPORT0:(on|off)
+        #17# MEDIAPORT1:(on|off)
+        #18# DIVASEN:(.+)
+        #19# DIVASIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d)
+        #20# BAUD:(\d{1,6})
+        #21# SNUMB:(\d{1})
+        #22# SPAR:(.+)
+        #23# PORTSD1:(yes|no)
+        #24# DVICEVTDLY:(\d{1,5})
+        #25# DVIDEVTDLY:(\d{1,5})
+        #26# USERMCMODE:(on|off)
+        #27# USERMCIP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+        #28# PLAYLIST:(\d{1,2})
+        #29# MUTE:(0|1)
+        #30# STREAM:(\d{1,4})
+        #31# SAMPLE:(\d+)
+        #32# HDMIAUDIO:(auto|on|off)
+        #33# vidDetectMode:(auto|digital|analog)
+        #34# PLAYMODE:(on|off)
+        #35# DVIINPUT:(connected|disconnected)
+        #36# INPUTRES:(\d{1,4}x\d{1,4})
+        #37# LINEINVOL_L:(\d{1,3})
+        #38# LINEINVOL_R:(\d{1,3})
+        
+        statusDict = {
+            'Name': str(match.group(2), 'UTF-8'),
+            'SerialNumber': str(match.group(1), 'UTF-8'),
+            'DeviceNetwork': {
+                'MAC': str(match.group(3), 'UTF-8'),
+                'IP': str(match.group(4), 'UTF-8'),
+                'Netmask': str(match.group(5), 'UTF-8'),
+                'Gateway': str(match.group(6), 'UTF-8'),
+                'IPMode': str(match.group(8), 'UTF-8'),
+                'IPTrailMode': bool(int(match.group(7)))
+            },
+            'ID': str(match.group(9), 'UTF-8'),
+            'Firmware': {
+                'Version': str(match.group(10), 'UTF-8'),
+                'Date': str(match.group(11), 'UTF-8'),
+                'WebVersion': str(match.group(12), 'UTF-8'),
+                'Update': {
+                    'Updating': bool(int(match.group(13))),
+                    'Tries': int(match.group(14)),
+                    'Fails': int(match.group(15))
+                }
+            },
+            'MulticastTraffic': (
+                (True if str(match.group(16), 'UTF-8') == 'on' else False),
+                (True if str(match.group(17), 'UTF-8') == 'on' else False)
+            ),
+            "P1Disabled": (False if str(match.group(23), 'UTF-8') == 'yes' else True),
+            'NActEventDelay': {
+                'connect': int(match.group(24)),
+                'disconnect': int(match.group(25))
+            },
+            'UserMulticast': (True if str(match.group(26), 'UTF-8') == 'on' else False),
+            'UserMulticastAddr': str(match.group(27), 'UTF-8'),
+            'Stream': int(match.group(30)),
+            'AudioSampleRate': int(match.group(31)),
+            'HDMIAudioMode': str(match.group(32), 'UTF-8'),
+            'VideoDetectionMode': str(match.group(33), 'UTF-8'),
+            'LineInVol': (int(match.group(37)), int(match.group(38)))
+        }
+        self.WriteStatus('DeviceStatus', statusDict)
+    
     def UpdateNetStatus(self, value, qualifier):
         self.__UpdateHelper('NetStatus', 'getNetStatus{}'.format(self.__lineEnding), value, qualifier)
     
@@ -318,9 +451,9 @@ class DeviceClass:
         self.WriteStatus('NetStatus', netStatusDict)
     
     def SetMute(self, value, qualifier):
-        if value == True or value == 1 or value == 'on':
+        if value is True or value == 1 or value == 'on':
             self.__SetHelper('Mute', 'mute{}'.format(self.__lineEnding), value, qualifier)
-        elif value == False or value == 0 or value == 'off':
+        elif value is False or value == 0 or value == 'off':
             self.__SetHelper('Mute', 'unmute{}'.format(self.__lineEnding), value, qualifier)
     
     def __CallbackMute(self, match, tag):
@@ -570,6 +703,17 @@ class DeviceClass:
                          value, 
                          qualifier)
         
+    def __CallbackVideoWall_Rotate(self, match, tag):
+        # wallRotate:(.+)
+        dataVal = int(match.group(1))
+        self.WriteStatus('VideoWall_Rotate', dataVal)
+        
+    def SetVideoWall_Rotate(self, value, qualifier):
+        self.__SetHelper('VideoWall_Rotate',
+                         'setSettings:wallRotate:{}{}'.format(value, self.__lineEnding),
+                         value,
+                         qualifier)
+        
 
 ## -----------------------------------------------------------------------------
 ## End Command & Callback Functions
@@ -735,7 +879,9 @@ class DeviceClass:
         # Handle incoming data
         self.__receiveBuffer += data
         index = 0    # Start of possible good data
-        # ProgramLog('SVSI Received:\n{}'.format(self.__receiveBuffer))
+        
+        # ProgramLog('SVSI N2300 Buffer Length: {}'.format(len(self.__receiveBuffer)), 'info')
+        
         #check incoming data if it matched any expected data from device module
         for regexString, CurrentMatch in self.__matchStringDict.items():
             result = re.search(regexString, self.__receiveBuffer)
@@ -746,7 +892,7 @@ class DeviceClass:
                     index = result.end() # increase index to track the end of the further match
                 CurrentMatch['callback'](result, CurrentMatch['para'])
             else:
-                #ProgramLog('Regex String Mismatch:\n  {}\n  {}'.format(regexString, self.__receiveBuffer))
+                # ProgramLog('Regex String Mismatch:\n  {}\n  {}'.format(regexString, self.__receiveBuffer))
                 pass
                     
         if index: 

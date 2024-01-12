@@ -1,0 +1,14 @@
+{
+    "CAM001": 
+        {
+            "1": "North Mon, Tight", 
+            "2": "North Mon, Wide", 
+            "3": "West Mon"
+        }, 
+    "CAM002": 
+        {
+            "1": "Audience", 
+            "2": "East Mon, Wide", 
+            "3": "East Mon, Tight"
+        }
+}
