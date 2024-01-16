@@ -198,7 +198,7 @@ class GUIController:
                 pass
             
         for tp in self.TPs:
-            tp.SrcCtl.ShowSelectedSource()
+            tp.SrcCtl.UpdateSourceMenu()
 
     def ShutdownActions(self) -> None:
         self.PollCtl.SetPollingMode('inactive')

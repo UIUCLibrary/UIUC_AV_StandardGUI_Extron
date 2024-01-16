@@ -37,7 +37,7 @@ from uofi_gui.sourceControls.matrix import MatrixController
 
 from hardware.mersive_solstice_pod import PodFeedbackHelper
 
-from utilityFunctions import RunAsync, DictValueSearchByKey
+from utilityFunctions import RunAsync, DictValueSearchByKey, Log
 
 #### Extron Global Scripter Modules
 
@@ -547,6 +547,8 @@ class SourceController:
         
         self.__DisplaySrcList = srcList
         
+        self.__UpdateOffset()
+        
     def UpdateSourceMenu(self) -> None:
         """Updates the formatting of the source menu. Use when the number of sources
         or the pagination of the source bar changes
@@ -556,7 +558,7 @@ class SourceController:
         self.UpdateDisplaySourceList()
         
         offsetIter = self.__Offset
-        # Log('Source Control Offset - {}'.format(self._offset))
+        # Log('Source Control Offset - {}'.format(self.__Offset))
         for btn in self.__SourceBtns.Objects:
             if offsetIter >= len(self.__DisplaySrcList):
                 break # we have reached the end of the Display-able source list and need to break out of the loop
@@ -605,17 +607,26 @@ class SourceController:
             self.__SourceBtns.SetCurrent(self.__SourceBtns.Objects[btnIndex])
             self.__SourceInds.SetCurrent(self.__SourceInds.Objects[btnIndex])
         
-    def ShowSelectedSource(self) -> None:
-        # Log('Show Selected Source', stack=True)
-        if len(self.__DisplaySrcList) > 5 and self.SelectedSource is not None:
+    # def ShowSelectedSource(self) -> None:
+    #     # Log('Show Selected Source (Offset: {})'.format(self.__Offset))
+    #     # Log('Show Selected Source', stack=True)
+    #     # self.__UpdateOffset()
+            
+    #     self.UpdateSourceMenu()
+
+    def __UpdateOffset(self):
+        if len(self.__DisplaySrcList) > 5 and self.SelectedSource in self.__DisplaySrcList:
             curSourceIndex = self.__DisplaySrcList.index(self.SelectedSource)
             
             if curSourceIndex < self.__Offset:
                 self.__Offset -= (self.__Offset - curSourceIndex)
             elif curSourceIndex >= (self.__Offset + 5):
                 self.__Offset = curSourceIndex - 4
+                
+        else:
+            self.__Offset = 0
             
-        self.UpdateSourceMenu()
+        Log('Updated Offset: {}'.format(self.__Offset))
     
     @RunAsync # pragma: no cover
     def SwitchSources(self, src: Union[Source, str], dest: Union[str, List[Union[Destination, str]]]='All') -> None:
