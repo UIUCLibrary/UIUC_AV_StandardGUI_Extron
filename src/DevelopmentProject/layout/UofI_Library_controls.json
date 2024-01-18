@@ -307,5 +307,26 @@
         "PressShift": true,
         "Latching": false,
         "FuncModule": "ui.interface.TouchPanel.Scheduler"
+    },
+    {
+        "ControlObject": "SourceMenu-Prev",
+        "PrimaryFunc": "SourceMenuNav",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "SourceMenu-Next",
+        "PrimaryFunc": "SourceMenuNav",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlCollection": "Source-Select-Objects",
+        "PrimaryFunc": "SourceSelect",
+        "PressShift": true,
+        "Latching": true,
+        "FuncModule": "ui.interface.TouchPanel"
     }
 ]

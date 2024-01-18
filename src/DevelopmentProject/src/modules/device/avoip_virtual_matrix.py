@@ -105,10 +105,10 @@ class DeviceClass:
             StreamTuple = (OutputHw.interface.ReadStatus('Stream'),
                            OutputHw.interface.ReadStatus('AudioStream'))
             # utilityFunctions.Log('Output {} ({}) StreamTuple = {}'.format(OutputHw.MatrixOutput, OutputHw.Name, StreamTuple), 'info')
-            # If elements 0 & 1 of StreamTuple match, tie type must be Audio/Video
-            # if StreamTuple[1] == 0 audio follows video and tie type must be Audio/Video
+            # If elements 0 & 1 of StreamTuple match, tie type must be AudioVideo
+            # if StreamTuple[1] == 0 audio follows video and tie type must be AudioVideo
             if StreamTuple != (None, None):
-                if StreamTuple[0] == StreamTuple[1] or StreamTuple[1] == 0: # Audio/Video
+                if StreamTuple[0] == StreamTuple[1] or StreamTuple[1] == 0: # AudioVideo
                     mInput = 0
                     for InputHw in self.VirtualInputDevices.values():
                         devStatus = InputHw.interface.ReadStatus('DeviceStatus')
@@ -116,12 +116,12 @@ class DeviceClass:
                             # utilityFunctions.Log('{} Enc Stream {} ({})'.format(InputHw.Name, devStatus['Stream'], (devStatus['Stream'] == StreamTuple[0])))
                             if devStatus['Stream'] == StreamTuple[0]:
                                 mInput = InputHw.MatrixInput
-                                self.WriteStatus('InputTieStatus', 'Audio/Video', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
+                                self.WriteStatus('InputTieStatus', 'AudioVideo', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                             else:
                                 self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                         else:
                             Logger.Log('Device Status for {} is undefined'.format(InputHw.Name))
-                    self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
+                    self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'AudioVideo'})
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInput, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
                 else: # individual audio and video
@@ -141,7 +141,7 @@ class DeviceClass:
                                 self.WriteStatus('InputTieStatus', 'Untied', {'Input': InputHw.MatrixInput, 'Output': OutputHw.MatrixOutput})
                         else:
                             Logger.Log('Device Status for {} is undefined'.format(InputHw.Name))
-                    self.WriteStatus('OutputTieStatus', 0, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio/Video'})
+                    self.WriteStatus('OutputTieStatus', 0, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'AudioVideo'})
                     self.WriteStatus('OutputTieStatus', mInputV, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Video'})
                     self.WriteStatus('OutputTieStatus', mInputA, {'Output': OutputHw.MatrixOutput, 'Tie Type': 'Audio'})
             else:
@@ -163,11 +163,27 @@ class DeviceClass:
                 
             self.__ConnectHelper()
 
+    def __MatrixSetOutput(self, Output, TieType, Stream):
+        # Use tie type to send commands to output device to switch
+        if TieType == 'AudioVideo':
+            Output.interface.Set('Stream', Stream)
+            Output.interface.Set('AudioStream', Stream)
+        elif TieType == 'Video':
+            if Output.interface.ReadStatus('AudioStream') == 0:
+                # If audio is following video, grab the current video stream,
+                # then set audio stream to previous stream and video stream
+                # to the new stream
+                PrevStream = Output.interface.ReadStatus('Stream')
+                Output.interface.Set('AudioStream', PrevStream)
+            Output.interface.Set('Stream', Stream)
+        elif TieType == 'Audio':
+            Output.interface.Set('AudioStream', Stream)
+
     def SetMatrixTieCommand(self, value, qualifier):
         # Value: None
-        # Qualifier: 'Input', 'Output', 'Tie Type' = ('Audio' or 'Video' or 'Audio/Video')
+        # Qualifier: 'Input', 'Output', 'Tie Type' = ('Audio' or 'Video' or 'AudioVideo')
         
-        # utilityFunctions.Log('Set Matrix Tie - Input: {}, Output: {}, Tie Type: {}'.format(qualifier['Input'], qualifier['Output'], qualifier['Tie Type']))
+        Logger.Log('Set Matrix Tie - Input: {}, Output: {}, Tie Type: {}'.format(qualifier['Input'], qualifier['Output'], qualifier['Tie Type']))
         
         # SVSi hardware
         if self.Model == 'AMX SVSi N2300':
@@ -183,26 +199,15 @@ class DeviceClass:
                     Stream = 9999
             else:
                 #TODO: determine handling for non-existent encoders in the virtual matrix
-                Stream = 9999
+                Stream = 9998
             
             # Get Output device with MatrixOutput attribute matching provided Output value
             if qualifier['Output'] in self.VirtualOutputDevices:
                 Output = self.VirtualOutputDevices[qualifier['Output']]
-            
-                # Use tie type to send commands to output device to switch
-                if qualifier['Tie Type'] == 'Audio/Video':
-                    Output.interface.Set('Stream', Stream)
-                    Output.interface.Set('AudioStream', Stream)
-                elif qualifier['Tie Type'] == 'Video':
-                    if Output.interface.ReadStatus('AudioStream') == 0:
-                        # If audio is following video, grab the current video stream,
-                        # then set audio stream to previous stream and video stream
-                        # to the new stream
-                        PrevStream = Output.interface.ReadStatus('Stream')
-                        Output.interface.Set('AudioStream', PrevStream)
-                    Output.interface.Set('Stream', Stream)
-                elif qualifier['Tie Type'] == 'Audio':
-                    Output.interface.Set('AudioStream', Stream)
+                self.__MatrixSetOutput(Output, qualifier['Tie Type'], Stream)
+            elif qualifier['Output'].strip().lower() == 'all':
+                for Output in self.VirtualOutputDevices.values():
+                    self.__MatrixSetOutput(Output, qualifier['Tie Type'], Stream)
             else:
                 self.Discard('Invalid Output provided.')
                 return

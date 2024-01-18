@@ -34,10 +34,10 @@ from extronlib import event
 
 #### Project imports
 from modules.helper.PrimitiveObjects import DictObj
-from modules.helper.CommonUtilities import TimeIntToStr
+from modules.helper.CommonUtilities import TimeIntToStr, Logger
 from modules.helper.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
-from Constants import ActivityMode, SystemState
+from Constants import ActivityMode, SystemState, MATRIX_ACTION, TieType
 import System
 import Variables
 
@@ -121,6 +121,13 @@ class TouchPanelInterface():
     
     def __ActivityTipComplete(self, timer, count) -> None:
         pass
+    
+    def CloseTechMenu(self) -> None:
+        Logger.Log("Closing Tech Menu", System.CONTROLLER.SystemState, System.CONTROLLER.TransitionState)
+        if System.CONTROLLER.SystemState is SystemState.Standby:
+            self.Device.ShowPage('Start')
+        else:
+            self.Device.ShowPage('Main')
 
 ## End Class Definitions -------------------------------------------------------
 ##
@@ -226,10 +233,7 @@ def TechPinSuccess(uiDev: 'ExUIDevice') -> None:
 def CloseTechPages(button: 'ExButton', action: str) -> None:
     uiDev = button.UIHost
     
-    if System.CONTROLLER.SystemState is SystemState.Standby:
-        uiDev.ShowPage('Start')
-    else:
-        uiDev.ShowPage('Main')
+    uiDev.Interface.CloseTechMenu()
         
 def TechPageMenuNav(button: 'ExButton', action: str) -> None:
     # uiDev = button.UIHost
@@ -284,5 +288,34 @@ def PanelWakeOnMotionHandler(source: 'ExButton', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.SetWakeOnMotion(bool(source.State))
+
+def SourceMenuNav(button: 'ExButton', action: str) -> None:
+    # uiDev = button.UIHost
+    uiSet = button.Group
+    
+    newOff = uiSet.Offset + button.Offset
+    uiSet.SetOffset(newOff)
+
+def SourceSelect(button: 'ExButton', action: str) -> None:
+    # uiDev = button.UIHost
+    uiSet = button.Group.Group
+    
+    refBtn = uiSet.GetRefByObject(button)
+    uiSet.SetCurrentRef(refBtn)
+    
+    Logger.Log("Button", button, "RefButton", refBtn)
+    
+    if System.CONTROLLER.SystemActivity == ActivityMode.Share:
+        swMatrixAction = MATRIX_ACTION(output='all',
+                                       input=refBtn.input,
+                                       type=TieType.AudioVideo)
+        Logger.Log('Source Switch Matrix Action (Share)', swMatrixAction)
+        System.CONTROLLER.SrcCtl.MatrixAction(swMatrixAction)
+    elif System.CONTROLLER.SystemActivity == ActivityMode.GroupWork:
+        swMatrixAction = MATRIX_ACTION(output=System.CONTROLLER.Devices.GetDestination(System.CONTROLLER.PrimaryDestinationId).Output,
+                                       input=refBtn.input,
+                                       type=TieType.AudioVideo)
+        Logger.Log('Source Switch Matrix Action (GroupWork)', swMatrixAction)
+        System.CONTROLLER.SrcCtl.MatrixAction(swMatrixAction)
 
 ## End Function Definitions ----------------------------------------------------

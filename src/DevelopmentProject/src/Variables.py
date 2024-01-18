@@ -8,6 +8,7 @@ UNIT_TESTING = ('unittest' in sys.modules.keys())
 TESTING = True
 TRACING = False
 
+Loading = True
 
 ## PROJECT CONSTANTS -----------------------------------------------------------
 ##     Edit values below to configure the project

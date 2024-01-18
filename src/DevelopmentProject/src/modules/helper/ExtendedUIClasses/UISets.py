@@ -74,7 +74,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
-        for btn in self.Objects:
+        for btn in super().Objects:
             btn.Group = self
     
     def __repr__(self) -> str:
@@ -90,11 +90,11 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         raise AttributeError('Overriding the Objects property is not allowed')
     
     def GetCurrent(self) -> Union['ExButton', 'RefButton']:
-        return super().GetCurrent()
+        return MESet.GetCurrent(self)
     
     def Append(self, obj: 'ExButton') -> None:
         setattr(obj, 'Group', self)
-        return super().Append(obj)
+        return MESet.Append(self, obj)
     
     def Remove(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
         if isinstance(obj, list):
@@ -102,10 +102,10 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                 self.Remove(item)
         elif type(obj).__name__ in [type(int).__name__, 'ExButton', 'RefButton']:
             if isinstance(obj, int):
-                delattr(self.Objects[obj], 'Group')
+                self.Objects[obj].Group = None
             elif obj in self.Objects:
-                delattr(obj, 'Group')
-            super().Remove(obj)
+                obj.Group =  None
+            MESet.Remove(self, obj)
         elif isinstance(obj, str):
             i = None
             for o in self.Objects:
@@ -113,18 +113,18 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                     i = self.Objects.index(o)
                     break
             if i is not None:
-                delattr(self.Objects[i], 'Group')
-                super().Remove(i)
+                self.Objects[i].Group = None
+                MESet.Remove(self, i)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
             raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
     
-    def SetCurrent(self, obj: Union[int, str, 'ExButton', 'RefButton']) -> None:
+    def SetCurrent(self, obj: Union[int, str, 'ExButton', 'RefButton', None]) -> None:
         if isinstanceEx(obj, ('ExButton', 'RefButton')):
-            super().SetCurrent(obj)
+            MESet.SetCurrent(self, obj)
         elif obj is None:
-            super().SetCurrent(obj)
+            MESet.SetCurrent(self, obj)
         elif isinstance(obj, str):
             i = None
             for o in self.Objects:
@@ -132,11 +132,11 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                     i = self.Objects.index(o)
                     break
             if i is not None:
-                super().SetCurrent(i)
+                MESet.SetCurrent(self, i)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif isinstance(obj, int):
-            super().SetCurrent(obj)
+            MESet.SetCurrent(self, obj)
         else:
             raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
     
@@ -145,7 +145,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             for item in obj:
                 self.SetStates(item, offState, onState)
         elif isinstanceEx(obj, (int, 'ExButton', 'RefButton')):
-            super().SetStates(obj, offState, onState)
+            MESet.SetStates(self, obj, offState, onState)
         elif isinstance(obj, str):
             i = None
             for o in self.Objects:
@@ -153,7 +153,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                     i = self.Objects.index(o)
                     break
             if i is not None:
-                super().SetStates(i, offState, onState)
+                MESet.SetStates(self, i, offState, onState)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
@@ -204,11 +204,11 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             for item in obj:
                 self.Remove(item)
         elif isinstance(obj, int):
-            delattr(self.__Objects[obj], 'Group')
+            self.__Objects[obj].Group = None
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
         elif isinstanceEx(obj, ('ExButton', 'RefButton')):
-            delattr(obj, 'Group')
+            obj.Group = None
             i = self.__Objects.index(obj)
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
@@ -219,7 +219,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
                     i = self.__Objects.index(o)
                     break
             if i is not None:
-                delattr(self.__Objects[obj], 'Group')
+                self.Objects[i].Group = None
                 self.__Objects.pop(obj)
                 self.__StateList.pop(obj)
             else:
@@ -428,7 +428,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
 
     def __repr__(self) -> str:
         sep = ', '
-        return 'ScrollingRadioSet {} (Current: {}, Popup: {}) [{}]'.format(self.Name, self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
+        return '<ScrollingRadioSet {} (Current: {}, Popup: {}) [{}]>'.format(self.Name, self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
     
     @property
     def Objects(self) -> List['ExButton']:
@@ -483,8 +483,14 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     
     @property
     def CurrentPage(self) -> int:
-        index = self.Offset + 1
-        pg = math.ceil((index/len(self.Objects)))
+        objectLength = len(self.Objects)
+        endOffset = self.Offset + objectLength
+        fullPages = endOffset // objectLength
+        remainder = endOffset % objectLength
+        if remainder > 0:
+            pg = fullPages + 1
+        else:
+            pg = fullPages
         return pg
     
     def GetRefByObject(self, obj: Union[int, str, 'ExButton']) -> 'RefButton':
@@ -541,7 +547,10 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     def RemoveRef(self, btn: Union[List[Union[int, str, 'RefButton']], int, str, 'RefButton']) -> None:
         self.__RefSet.Remove(btn)
         
-    def SetCurrentButton(self, btn: Union[int, str, 'ExButton', None]) -> None:
+    def SetCurrentButton(self, btn: Union[int, str, 'ExButton']) -> None:
+        if btn is None:
+            raise ValueError('None cannot be set using SetCurrentButton')
+        
         self.__BtnSet.SetCurrent(btn)
         
         index = self.__BtnSet.Objects.index(self.__BtnSet.GetCurrent())
@@ -561,6 +570,33 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         elif btnIndex > len(self.__BtnSet.Objects):
             self.__BtnSet.SetCurrent(None)
             
+    def SetCurrentButtonByRef(self, ref: Union[int, str, 'RefButton', None]) -> None:
+        if ref is None:
+            self.__BtnSet.SetCurrent(None)
+            return
+        elif isinstance(ref, int):
+            index = ref
+        elif isinstance(ref, str):
+            index = None
+            for refObj in self.RefObjects:
+                if refObj.Name == ref or refObj.Id == ref:
+                    index = self.RefObjects.index(refObj)
+                    break
+            if index is None:
+                raise LookupError('No RefObject found for string Name of Id')
+        elif isinstanceEx(ref, 'RefButton'):
+            index = self.RefObjects.index(ref)
+            
+        btnIndex = index - self.__Offset
+        
+        if btnIndex < 0:
+            self.__BtnSet.SetCurrent(None)
+        elif btnIndex >= 0 and btnIndex < len(self.__BtnSet.Objects):
+            self.__BtnSet.SetCurrent(btnIndex)
+        elif btnIndex > len(self.__BtnSet.Objects):
+            self.__BtnSet.SetCurrent(None)
+            
+            
     def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
         self.__BtnSet.SetStates(obj, offState, onState)
         
@@ -575,6 +611,8 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
             self.__BtnSet.Objects[0].Host.ShowPopup(self.PopupName)
         
     def LoadButtonView(self) -> None:
+        Logger.Log('Current Page', self.CurrentPage, "Pages", self.Pages)
+        
         if self.CurrentPage == 1:
             # Disabled Prev button
             self.__Prev.SetEnable(False)
@@ -596,23 +634,36 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         self.__BtnSet.SetCurrent(None)
         
         curRefSet = self.RefObjects[self.Offset:endOffset]
+        Logger.Log(curRefSet)
         
         for btn in self.Objects:
             # Set Names and icons
             index = self.Objects.index(btn)
+            curRefBtn = curRefSet[index]
+            btn.SetText(curRefBtn.Text)
             
-            btn.SetText(curRefSet[index].Text)
-            # TODO: Set Icon state
+            Logger.Log('Index', index, 'Text', btn.Text, 'Icon', getattr(curRefBtn, 'icon', 'no icon'))
+            if hasattr(curRefBtn, 'icon'):
+                states = {'offState': int('{}0'.format(curRefBtn.icon)), 
+                          'onState':  int('{}1'.format(curRefBtn.icon))}
+                
+            else:
+                states = {'offState': 0, 'onState': 1}
+                
+            self.__BtnSet.SetStates(btn, **states)
+            btn.SetState(states['offState'])
         
-        curObj = self.GetObjectByRef(self.GetCurrentRef())
-        if curObj is not None:
-            self.SetCurrentButton(curObj)
+        # curObj = self.GetObjectByRef(self.GetCurrentRef())
+        # self.SetCurrentButton(curObj)
+        self.SetCurrentButtonByRef(self.GetCurrentRef())
     
     def SetOffset(self, Offset: int) -> None:
         if not isinstance(Offset, int):
             raise TypeError('Offset must be an integer')
         elif (Offset < 0 or Offset >= len(self.RefObjects)):
             raise ValueError('Offset must be greater than or equal to 0 and less than the number of Ref Objects ({})'.format(len(self.RefObjects)))
+        
+        Logger.Log('Current Offset', self.__Offset, "New Offset", Offset, "Ref Length", len(self.RefObjects))
         self.__Offset = Offset
         self.LoadButtonView()
         

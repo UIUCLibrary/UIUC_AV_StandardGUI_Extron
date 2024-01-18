@@ -27,7 +27,9 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 import System
+import Constants
 import modules.project.callbacks.PopupCallbacks
+from modules.helper.CommonUtilities import Logger, SortKeys
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -44,9 +46,21 @@ def SourceSelectRefCallback(UIHost: 'ExUIDevice') -> None:
             "Name": "Source-Select-Ref-{}".format(src.Id),
             "Text": src.Name,
             "icon": src.Source['icon'],
-            "input": src.Source['input']
+            "input": src.Source['input'],
+            "srcId": src.Id
         }
         RefBtnList.append(srcDict)
+        
+    RefBtnList.append({
+        "Name": "Source-Select-Ref-{}".format(Constants.BLANK_SOURCE.Id),
+        "Text": Constants.BLANK_SOURCE.Name,
+        "icon": Constants.BLANK_SOURCE.Icon,
+        "input": Constants.BLANK_SOURCE.Input,
+        "srcId": Constants.BLANK_SOURCE.Id
+    })
+    
+    RefBtnList.sort(key = SortKeys.SourceSort)
+    Logger.Log(RefBtnList)
     return RefBtnList
 
 def TechMenuRefCallback(UIHost: 'ExUIDevice') -> None:

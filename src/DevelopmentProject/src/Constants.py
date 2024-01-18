@@ -47,6 +47,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 # Python imports
 from enum import Enum
+from collections import namedtuple
 
 # Project imports
 from modules.device.classes.Sources import Source
@@ -61,8 +62,19 @@ class ActivityMode(Enum):
 class SystemState(Enum):
     Standby = 0
     Active = 1
+    
+class TieType(Enum):
+    Untie = 0
+    Audio = 1
+    Video = 2
+    AudioVideo = 3
 
 BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
+
+MATRIX_TIE    = namedtuple('MatrixTie',    ['video', 'audio'])
+MATRIX_ACTION = namedtuple('MatrixAction', ['output', 'input', 'type'])
+
+LAYOUT = namedtuple('Layout', ['row', 'col'])
 
 OFF =  ('off', 
         'Off', 

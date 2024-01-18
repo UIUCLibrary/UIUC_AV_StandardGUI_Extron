@@ -31,7 +31,7 @@ if TYPE_CHECKING: # pragma: no cover
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ExtendedSystemClasses import ExTimer
 from modules.helper.PrimitiveObjects import DictObj
-from Constants import STANDBY, ActivityMode, SystemState
+from Constants import STANDBY, ActivityMode, SystemState, TieType, MATRIX_ACTION
 import System
 from ui.interface.TouchPanel import StartShutdownConfirmation
 
@@ -80,16 +80,9 @@ class ActivityController:
     def SystemStateChange(self, state: SystemState) -> None:
         for uiDev in self.SystemHost.UIDevices:
             uiDev.Interface.TransitionSystemState(state)
-                
+        
         if state is SystemState.Active:
-            # for tp in self.GUIHost.TPs:
-            #     index = self.GUIHost.TPs.index(tp)
-            #     tp.TechCtl.CloseTechMenu()
-                
-            #     tp.SrcCtl.SelectSource(self.GUIHost.DefaultSourceId)
-            #     tp.SrcCtl.SwitchSources(tp.SrcCtl.SelectedSource, 'All')
-            
-            # Start System
+            # Start System feedback
             for uiDev in self.SystemHost.UIDevices:
                 uiDev.Interface.Transition.Label.SetText('System is switching on. Please Wait...')
                 uiDev.Interface.Transition.Level.SetRange(0, self.SystemHost.Timers.Startup, 1)
@@ -101,13 +94,6 @@ class ActivityController:
             self.SystemHost.SystemActiveInit()
                 
         elif state is SystemState.Standby:
-            # self.__StatusTimer.Stop()
-            
-            # for tp in self.GUIHost.TPs:
-            #     index = self.GUIHost.TPs.index(tp)
-            
-            # self.__ShutdownTimer.Restart()        
-            
             # Shutdown System
             for uiDev in self.SystemHost.UIDevices:
                 uiDev.Interface.Transition.Label.SetText('System is switching off. Please Wait...')
@@ -153,7 +139,66 @@ class ActivityController:
                 self.SystemActivityChange(Transition[1][1])
                     
     def ActivitySwitchInit(self) -> None:
-        pass
+        Logger.Log('ActivitySwitchInit Func', self.SystemHost.TransitionState)
+        if self.SystemHost.TransitionState[0][1] == SystemState.Active:
+            # Start Up Source Switches
+            if self.SystemHost.TransitionState[1][1] == ActivityMode.Share:
+                # Share Mode
+                swMatrixAction = MATRIX_ACTION(output= 'all', 
+                                               input= self.SystemHost.Devices.GetSource(id=self.SystemHost.DefaultSourceId).Input, 
+                                               type= TieType.AudioVideo)
+            elif self.SystemHost.TransitionState[1][1] == ActivityMode.AdvShare:
+                # Adv Share Mode
+                swMatrixAction = MATRIX_ACTION(output= 'all', 
+                                               input= self.SystemHost.Devices.GetSource(id=self.SystemHost.DefaultSourceId).Input, 
+                                               type= TieType.AudioVideo)
+            elif self.SystemHost.TransitionState[1][1] == ActivityMode.GroupWork:
+                # Group Work
+                swMatrixAction = []
+                for dest in self.SystemHost.Devices.Destinations:
+                    Logger.Log("Destination Info", type(dest.Destination), dest.Destination.GroupWorkSource), type(dest.Destination.GroupWorkSource)
+                    swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
+                                                        input= dest.Destination.GroupWorkSource.Input,
+                                                        type= TieType.AudioVideo))
+        else:
+            currentPriSource = self.SystemHost.SrcCtl.GetCurrentSourceForDestination(self.SystemHost.PrimaryDestinationId)
+            
+            # Activity Switch Source Switches
+            if self.SystemHost.TransitionState[1][1] == ActivityMode.Share:
+                # Share Mode
+                swMatrixAction = MATRIX_ACTION(output= 'all',
+                                               input= currentPriSource.video,
+                                               type= TieType.AudioVideo)
+                
+            elif self.SystemHost.TransitionState[1][1] == ActivityMode.AdvShare:
+                # Adv Share Mode
+                # can probably just leave these as they are for this transition
+                swMatrixAction = None
+            elif self.SystemHost.TransitionState[1][1] == ActivityMode.GroupWork:
+                # Group Work
+                swMatrixAction = []
+                for dest in self.SystemHost.Devices.Destinations:
+                    Logger.Log("Destination Info", type(dest.Destination), dest.Destination.GroupWorkSource), type(dest.Destination.GroupWorkSource)
+                    if dest.Id == self.SystemHost.PrimaryDestinationId:
+                        swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
+                                                            input= currentPriSource.video,
+                                                            type= TieType.AudioVideo))
+                    else:
+                        swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
+                                                            input= dest.Destination.GroupWorkSource.Input,
+                                                            type= TieType.AudioVideo))
+        
+        Logger.Log('Matrix Action(s)', swMatrixAction)
+        if swMatrixAction is not None:
+            result = self.SystemHost.SrcCtl.MatrixAction(swMatrixAction)
+            Logger.Log('Matrix Result', result)
+            
+        # START_HERE
+        # Not seeing the blank button added to the list or at least that the list isn't being updated correctly
+        if self.SystemHost.TransitionState[1][1] == ActivityMode.AdvShare:
+            self.SystemHost.SrcCtl.AddBlankBtns()
+        else:
+            self.SystemHost.SrcCtl.RemoveBlankBtns()
     
     def ActivitySwitchTransition(self, timer, count) -> None:
         timeRemaining = self.SystemHost.Timers.Switch - count

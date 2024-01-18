@@ -34,14 +34,19 @@ from inspect import getmro
 from modules.helper.ConnectionHandler import GetConnectionHandler
 from modules.device.mixins.Interface import InterfaceSystemHost
 from modules.helper.CommonUtilities import Logger
+from modules.device.classes.Sources import Source
+from modules.device.classes.Destinations import Destination
+from modules.helper.MixIns import InitializeMixin
 import Variables
 
 ## End Imports -------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class SystemHardwareController:
+class SystemHardwareController(InitializeMixin, object):
     def __init__(self, DeviceCollection: 'DeviceCollection', Id: str, Name: str, Manufacturer: str, Model: str, Interface: Dict, Subscriptions: Dict, Polling: Dict, Options: Dict=None) -> None:
+        InitializeMixin.__init__(self, self.__Initialize)
+        
         self.Collection = DeviceCollection
         self.Id = Id
         self.Name = Name
@@ -113,7 +118,7 @@ class SystemHardwareController:
     def __repr__(self) -> str:
         return 'Device: {} ({}|{})'.format(self.Name, self.Id, self.ConnectionStatus)
     
-    def InitializeDevice(self):
+    def __Initialize(self):        
         # subscription data structure example
         # subscriptions = [
         #     {
@@ -174,11 +179,21 @@ class SystemHardwareController:
                         self.AddSubscription(poll, qp)
                         
         if hasattr(self, 'Destination'):
-            # configure destination
-            pass
+            # Logger.Log('Initializing Destination')
+            destDict = dict(self.Destination)
+            destDict['device'] = self
+            
+            self.Destination = Destination(**destDict)
+            # Logger.Log("Dest Initialized:",  self.Destination, type(self.Destination))
+            
         elif hasattr(self, 'Source'):
-            # configure source
-            pass
+            # Logger.Log('Initializing Source')
+            srcDict = dict(self.Source)
+            srcDict['device'] = self
+            
+            self.Source = Source(**srcDict)
+            # Logger.Log('Src Initialized:', self.Source, type(self.Source))
+            
         elif hasattr(self, 'Switch'):
             # configure switch
             pass

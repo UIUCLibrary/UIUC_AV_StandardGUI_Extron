@@ -30,6 +30,7 @@ import json
 from modules.helper.Collections import DeviceCollection
 from modules.helper.PrimitiveObjects import DictObj
 from Variables import PROJECT_FILE
+from Constants import LAYOUT
 from ui.Feedback.Device import (DSP_GainHandler,
                                 DSP_MuteHandler, 
                                 DSP_LevelHandler,
@@ -319,12 +320,9 @@ SystemDevices.AddNewDevice(
         'Options': {
             'Destination': {
                 'output': 3,
-                'type': 'proj',
+                'destType': 'proj',
                 'groupWrkSrc': 'WPD001',
-                'advLayout': {
-                    'row': 0,
-                    'pos': 0
-                },
+                'advLayout': LAYOUT(row=0, col=0),
                 'screen': 'SCN001'
             }
         }
@@ -397,12 +395,9 @@ SystemDevices.AddNewDevice(
             'VolumeRange': (0, 100),
             'Destination': {
                 'output': 2,
-                'type': 'mon',
+                'destType': 'mon',
                 'groupWrkSrc': 'WPD002',
-                'advLayout': {
-                    'row': 1,
-                    'pos': 0
-                }
+                'advLayout': LAYOUT(row=1, col=0)
             }
         }
     }
@@ -474,12 +469,9 @@ SystemDevices.AddNewDevice(
             'VolumeRange': (0, 100),
             'Destination': {
                 'output': 4,
-                'type': 'mon',
+                'destType': 'mon',
                 'groupWrkSrc': 'WPD003',
-                'advLayout': {
-                    'row': 1,
-                    'pos': 1
-                }
+                'advLayout': LAYOUT(row=1, col=1)
             }
         }
     }
@@ -498,12 +490,9 @@ SystemDevices.AddNewDevice(
         'Options': {
             'Destination': {
                 'output': 1,
-                'type': 'conf',
+                'destType': 'conf',
                 'groupWrkSrc': 'WPD001',
-                'advLayout': {
-                    'row': 0,
-                    'pos': 1
-                },
+                'advLayout': LAYOUT(row=0, col=1),
                 'confFollow': 'PRJ001'
             }
         }

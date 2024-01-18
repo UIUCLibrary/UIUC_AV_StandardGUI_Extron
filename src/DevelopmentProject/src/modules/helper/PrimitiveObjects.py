@@ -186,6 +186,18 @@ class ControlObject():
         else:
             raise TypeError('IconId must be an int or None')
     
+    def __repr__(self) -> str:
+        if self.LinkedCollection is not None and self.LinkedObject is not None:
+            str_rep = '<Control Object {} | Collection: {} | Object: {}>'.format(hex(id(self)), self.LinkedCollection.Name, self.LinkedObject.Name)
+        elif self.LinkedCollection is not None and self.LinkedObject is None:
+            str_rep = '<Control Object {} | Collection: {}>'.format(hex(id(self)), self.LinkedCollection.Name)
+        elif self.LinkedCollection is None and self.LinkedObject is not None:
+            str_rep = '<Control Object {} | Object: {}>'.format(hex(id(self)), self.LinkedObject.Name)
+        else:
+            str_rep = '<Control Object {} | Unassigned>'.format(hex(id(self)))
+        
+        return str_rep
+    
     @property
     def LinkedObject(self) -> Constants.UI_OBJECTS:
         return self.__LinkedObject
@@ -215,8 +227,8 @@ class ControlObject():
             
             self.__LinkedCollection = ControlCollection
                     
-            if self.__LinkedCollection is not None:
-                self.__LinkedCollection.SetStates(self.__LinkedObject, self.States.Inactive, self.States.Active)
+            # if self.__LinkedCollection is not None:
+            #     self.__LinkedCollection.SetStates(self.__LinkedObject, self.States.Inactive, self.States.Active)
                 
             self.__LinkedCollection.SetControlObject(self)
 

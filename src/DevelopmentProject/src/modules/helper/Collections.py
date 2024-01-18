@@ -34,6 +34,8 @@ from collections import UserDict, UserList
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
 from modules.project.SystemHardware import SystemHardwareController
+from modules.helper.CommonUtilities import isinstanceEx
+from modules.helper.MixIns import InitializeMixin
 from control.PollController import PollObject
 import Constants
     
@@ -41,17 +43,18 @@ import Constants
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class DeviceCollection(UserDict):
+class DeviceCollection(InitializeMixin, UserDict):
     # override __init__ to add properties to the device collection
     def __init__(self, __dict: None = None) -> Dict[str, SystemHardwareController]:
-        super().__init__(__dict)
+        UserDict.__init__(self, __dict)
+        InitializeMixin.__init__(self, self.__Initialize)
         self.DevicesChanged = WatchVariable('Devices Changed Event')
         self.Polling = []
         self.PollingChanged = WatchVariable('Polling Changed Event')
     
     def __repr__(self) -> str:
         sep = ', '
-        return "[{}]".format(sep.join([str(val) for val in self.values()]))
+        return "<DeviceCollection [{}]>".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, and keys
     def values(self) -> ValuesView['SystemHardwareController']:
@@ -116,12 +119,50 @@ class DeviceCollection(UserDict):
     @property
     def Shades(self) -> List['SystemHardwareController']:
         return [item for item in self.values() if item.IsShade]
+    
+    @property
+    def Uninitialized(self) -> List['SystemHardwareController']:
+        return [item for item in self.values() if not item.Initialized]
+
+    def __Initialize(self) -> None:
+        for dev in self.Sources:
+            dev.Initialize()
+        
+        for dev in self.Screens:
+            dev.Initialize()
+        
+        for dev in self.Destinations:
+            dev.Initialize()
+            
+        for dev in self.Switches:
+            dev.Initialize()
+            
+        for dev in self.Cameras:
+            dev.Initialize()
+            
+        for dev in self.Microphones:
+            dev.Initialize()
+            
+        for dev in self.Lights:
+            dev.Initialize()
+            
+        for dev in self.Shades:
+            dev.Initialize()
+            
+        for dev in self.Uninitialized:
+            dev.Initialize()
+            
+        # Associate Virtual Device Hardware after Hardware Initialization
+        vDevList = [vDev for vDev in self.data.values() if isinstanceEx(getattr(vDev, 'interface', None) , 'VirtualDeviceInterface')]
+        for dev in vDevList:
+            dev.interface.FindAssociatedHardware()
 
     # Special Add Item Methods
     def AddNewDevice(self, **kwargs) -> None:
         device = SystemHardwareController(self, **kwargs)
         self.__setitem__(None, device)
-        device.InitializeDevice()
+        if self.Initialized:
+            device.Initialize()
         
     # Search Methods
     def GetDestination(self, id: str=None, name: str=None) -> 'Destination':
@@ -238,7 +279,7 @@ class UIObjectCollection(UserDict):
         
     def __repr__(self) -> str:
         sep = ', '
-        return "[{}]".format(sep.join([str(val) for val in self.values()]))
+        return "<UIObject Collection [{}]>".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, and keys
     def values(self) -> ValuesView[Constants.UI_OBJECTS]:
@@ -270,7 +311,7 @@ class ControlGroupCollection(UserDict):
     
     def __repr__(self) -> str:
         sep = ', '
-        return "[{}]".format(sep.join([str(val) for val in self.values()]))
+        return "<ControlGroupCollection [{}]>".format(sep.join([str(val) for val in self.values()]))
     
     # Type cast views for values, items, keys, and getitem
     def values(self) -> ValuesView[Constants.UI_SETS]:
@@ -296,7 +337,7 @@ class UIDeviceCollection(UserList):
         
     def __repr__(self) -> str:
         sep = ', '
-        return "[{}]".format(sep.join([str(val) for val in self]))
+        return "<UIDeviceCollection [{}]>".format(sep.join([str(val) for val in self]))
     
     # Type cast getitem & iter
     def __getitem__(self, index: int) -> Constants.UI_HOSTS:
@@ -311,7 +352,7 @@ class ProcessorCollection(UserList):
         
     def __repr__(self) -> str:
         sep = ', '
-        return "[{}]".format(sep.join([str(val) for val in self]))
+        return "<ProcessorCollection [{}]>".format(sep.join([str(val) for val in self]))
     
     # Type cast getitem & iter
     def __getitem__(self, index: int) -> 'ExProcessorDevice':

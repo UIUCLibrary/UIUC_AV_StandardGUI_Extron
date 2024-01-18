@@ -32,7 +32,9 @@ from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, 
 from modules.helper.Collections import UIDeviceCollection, ProcessorCollection
 from modules.helper.PrimitiveObjects import DictObj, SettingsObject
 from modules.helper.ModuleSupport import WatchVariable
+from modules.helper.MixIns import InitializeMixin
 from control.ActivityController import ActivityController
+from control.SourceController import SourceController
 from control.PollController import PollingController
 import Variables
 import Constants
@@ -41,14 +43,14 @@ import Constants
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class SystemController:
+class SystemController(InitializeMixin, object):
     def __init__(self, 
                  controlDevices: list,
                  systemDevices: 'DeviceCollection',
                  # expansionDevices: Union[str, List[str]]=None
                  ) -> None:
         
-        self.Initialized = False
+        InitializeMixin.__init__(self, self.__Initialize)
         
         # separate processor devices from UI devices for instantiating later
         processors = []
@@ -140,6 +142,7 @@ class SystemController:
         else:
             self.UI_Main = self.UIDevices[0]
         
+        Logger.CreateLoadingLabels(self.UI_Main)
         ## Expansion Device Definition -----------------------------------------
         
         # if type(expansionDevices) is str:
@@ -156,6 +159,7 @@ class SystemController:
             
         ## Create System controllers
         self.ActCtl = ActivityController(self)
+        self.SrcCtl = SourceController(self)
         self.PollCtl = PollingController(self)
         
         ## End of GUIController Init ___________________________________________
@@ -212,23 +216,17 @@ class SystemController:
         self.__ActivityTransition = False
         self.SystemActivityWatch.Change(self.__SystemActivity)
 
-    def Initialize(self) -> None:
+    def __Initialize(self) -> None:
         ## GUI Display Initialization ------------------------------------------
         for uiDev in self.UIDevices:
             uiDev.Initialize()
         
-        ## Associate Virtual Hardware ------------------------------------------
-        # Log('Looking for Virtual Device Interfaces')
-        # for Hw in self.Devices.values():
-        #     # Log('Hardware ({}) - Interface Class: {}'.format(id, type(Hw.interface)))
-        #     # if issubclass(type(Hw.interface), VirtualDeviceInterface):
-        #     #     Hw.interface.FindAssociatedHardware()
-        #     #     # Log('Hardware Found for {}. New IO Size: {}'.format(Hw.Name, Hw.interface.MatrixSize))
-        #     pass
-        
+        ## Device Initialization -----------------------------------------------
+        self.Devices.Initialize()        
         
         ## Initialize Controllers ----------------------------------------------
         self.PollCtl.Initialize()
+        self.SrcCtl.Initialize()
         self.ActCtl.Initialize()
         
         Logger.Log('System Initialized')
@@ -236,8 +234,7 @@ class SystemController:
             uiDev.ShowPage('Splash')
             uiDev.BlinkLights(Rate='Fast', StateList=['Green', 'Red'], Timeout=2.5)
             uiDev.Click(5, 0.2)
-            
-        self.Initialized = True
+            Variables.Loading = False
         
     def ShowStart(self) -> None:
         self.ActCtl.Timers.Splash.Restart()

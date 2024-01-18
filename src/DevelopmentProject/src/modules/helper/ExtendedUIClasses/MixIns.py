@@ -54,6 +54,8 @@ class GroupMixIn(object):
         else:
             raise TypeError('Group ({}) must be one of {}'.format(type(val), Constants.UI_SETS_MATCH))
     
+        self.__GroupList = None
+    
     @property
     def GroupList(self) -> List[Constants.UI_ALL]:
         if self.__GroupList is None:
@@ -77,7 +79,7 @@ class GroupMixIn(object):
                 continueUp = False
         self.__GroupList = groupList
         
-    def Initialize(self) -> None:
+    def _Initialize(self) -> None:
         self.__InitGroupList()
         
 class ControlMixIn(GroupMixIn, object):
@@ -101,7 +103,7 @@ class ControlMixIn(GroupMixIn, object):
         else:
             raise TypeError('Control must be a ControlObject')
         
-        Logger.Debug('{} ControlObject:'.format(type(self).__name__), Control)
+        Logger.Debug('Set {} ControlObject:'.format(type(self).__name__), Control)
     
     @property
     def ControlList(self) -> List['ControlObject']:
@@ -113,15 +115,15 @@ class ControlMixIn(GroupMixIn, object):
     def __InitControlList(self) -> None:
         self.__ControlList = [obj for obj in self.GroupList if obj.Control is not None]
     
-    def Initialize(self) -> None:
-        GroupMixIn.Initialize(self)
+    def _Initialize(self) -> None:
+        GroupMixIn._Initialize(self)
         self.__InitControlList()
     
 class EventMixIn():
     def __init__(self) -> None:
         pass
     
-    def Initialize(self) -> None:
+    def _Initialize(self) -> None:
         if isinstanceEx(self, 'ExButton'):
             @eventEx(self, Constants.EVENTS_BUTTON)
             def ExButtonHandler(source, event) -> None:
@@ -142,7 +144,7 @@ class EventMixIn():
             
             # Change state to Shift state
             if source.GetControlShift('Press'):
-                source.SetState(source.GetControlState('Shift'))
+                self.__SetButtonState(source, 'Shift')
             
         elif event == 'Released':
             # Released no Hold
@@ -151,30 +153,11 @@ class EventMixIn():
                     # Determine after release state
                     ## Control is latching (active after release)
                     if source.GetControlLatching('Latching'):
-                        if source.GetInitialPressState() == source.GetControlState('Inactive'):
-                            # Change state to Active state if initially Inactive
-                            if source.Group is not None:
-                                if hasattr(source.Group, 'SetCurrent'):
-                                    source.Group.SetCurrent(source)
-                                elif hasattr(source.Group, 'SetCurrentButton'):
-                                    source.Group.SetCurrentButton(source)
-                                elif hasattr(source.Group, 'SetActive'):
-                                    source.Group.SetActive(source)
-                            source.SetState(source.GetControlState('Active'))
-                        elif source.GetInitialPressState() == source.GetControlState('Active'):
-                            # Change state to Inactive state if initially Active
-                            if source.Group is not None:
-                                if hasattr(source.Group, 'SetCurrent'):
-                                    source.Group.SetCurrent(None)
-                                elif hasattr(source.Group, 'SetCurrentButton'):
-                                    source.Group.SetCurrentButton(None)
-                                elif hasattr(source.Group, 'SetInactive'):
-                                    source.Group.SetInactive(source)
-                            source.SetState(source.GetControlState('Inactive'))
+                        self.__SetButtonLatchingState(source)
                     ## Control is non-latching (inactive after release)
                     else:
                         # Change state to Inactive state
-                        source.SetState(source.GetControlState('Inactive'))
+                        self.__SetButtonState(source, 'Inactive')
                     
                 
                 # Do primary functionality
@@ -187,7 +170,7 @@ class EventMixIn():
                     ## Control is hold latching (HoldActive after release)
                     if source.GetControlLatching('HoldLatching'):
                         # Change to HoldActive state
-                        source.SetState(source.GetControlState('HoldActive'))
+                        self.__SetButtonState(source, 'HoldActive')
                     else:
                         # Return to initial press state
                         source.SetState(source.GetInitialPressState())
@@ -204,7 +187,7 @@ class EventMixIn():
             
             if source.Enabled:
                 # Determine if state change is needed
-                source.SetState(source.GetControlState('HoldShift'))
+                self.__SetButtonState(source, 'HoldShift')
                 
         elif event == 'Repeated':
             # Do Repeat functionality
@@ -216,30 +199,11 @@ class EventMixIn():
                 # Determine after release state
                 ## Control is latching (active after release)
                 if source.GetControlLatching('Latching'):
-                    if source.GetInitialPressState() == source.GetControlState('Inactive'):
-                        # Change state to Active state if initially Inactive
-                        if source.Group is not None:
-                            if hasattr(source.Group, 'SetCurrent'):
-                                source.Group.SetCurrent(source)
-                            elif hasattr(source.Group, 'SetCurrentButton'):
-                                source.Group.SetCurrentButton(source)
-                            elif hasattr(source.Group, 'SetActive'):
-                                source.Group.SetActive(source)
-                        source.SetState(source.GetControlState('Active'))
-                    elif source.GetInitialPressState() == source.GetControlState('Active'):
-                        # Change state to Inactive state if initially Active
-                        if source.Group is not None:
-                            if hasattr(source.Group, 'SetCurrent'):
-                                source.Group.SetCurrent(None)
-                            elif hasattr(source.Group, 'SetCurrentButton'):
-                                source.Group.SetCurrentButton(None)
-                            elif hasattr(source.Group, 'SetInactive'):
-                                source.Group.SetInactive(source)
-                        source.SetState(source.GetControlState('Inactive'))
+                    self.__SetButtonLatchingState(source)
                 ## Control is non-latching (inactive after release)
                 else:
                     # Change state to Inactive state
-                    source.SetState(source.GetControlState('Inactive'))
+                    self.__SetButtonState(source, 'Inactive')
             
             # Do primary functionality
             for fn in source.GetControlFunctionList('Primary'):
@@ -247,6 +211,46 @@ class EventMixIn():
             
             # Clear initial press state
             source.ClearInitialPressState()
+
+    def __SetButtonLatchingState(self, source: 'ExButton'):
+        if source.GetInitialPressState() == source.GetControlState('Inactive'):
+                            # Change state to Active state if initially Inactive
+            if source.Group is not None:
+                if hasattr(source.Group, 'SetCurrent'):
+                    source.Group.SetCurrent(source)
+                elif hasattr(source.Group, 'SetCurrentButton'):
+                    source.Group.SetCurrentButton(source)
+                elif hasattr(source.Group, 'SetActive'):
+                    source.Group.SetActive(source)
+            else:
+                source.SetState(source.GetControlState('Active'))
+        elif source.GetInitialPressState() == source.GetControlState('Active'):
+                            # Change state to Inactive state if initially Active
+            if source.Group is not None:
+                if hasattr(source.Group, 'SetCurrent'):
+                    source.Group.SetCurrent(None)
+                elif hasattr(source.Group, 'SetCurrentButton'):
+                    source.Group.SetCurrentButton(None)
+                elif hasattr(source.Group, 'SetInactive'):
+                    source.Group.SetInactive(source)
+            else:
+                source.SetState(source.GetControlState('Inactive'))
+
+    def __SetButtonState(self, source: 'ExButton', state: str):
+        if hasattr(source, 'Group') and \
+                   hasattr(source.Group, 'Group') and \
+                   isinstanceEx(source.Group.Group, 'ScrollingRadioSet'):
+            index = source.Group.Group.Objects.index(source)
+            endOffset = source.Group.Group.Offset + len(source.Group.Group.Objects)
+            curRefSet = source.Group.Group.RefObjects[source.Group.Group.Offset:endOffset]
+            curRefBtn = curRefSet[index]
+            if hasattr(curRefBtn, 'icon'):
+                source.SetState(int('{}{}'.format(curRefBtn.icon,
+                                                  source.GetControlState(state))))
+            else:
+                source.SetState(source.GetControlState(state))
+        else:
+            source.SetState(source.GetControlState(state))
 
     def __ExSliderHandler(self, source: 'ExSlider', event: str, value: Union[int, float]) -> None:
         Logger.Debug('ExSlider Event', source, event, value)

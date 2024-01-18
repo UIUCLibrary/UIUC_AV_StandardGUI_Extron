@@ -30,6 +30,7 @@ from extronlib.ui import Button, Label, Level, Slider, Knob
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
+from modules.helper.MixIns import InitializeMixin
 from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn, GroupMixIn
 import Constants
 
@@ -37,17 +38,17 @@ import Constants
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class RefButton(ControlMixIn, Button):
+class RefButton(InitializeMixin, ControlMixIn, Button):
     def __init__(self,
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Button.__init__(self, UIHost, ID_Name, None, None)
+        InitializeMixin.__init__(self, self.__Initialize)
         ControlMixIn.__init__(self)
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
-        self.Initialized = False
         self.__RefName = None
         
         for kw, val in kwargs.items():
@@ -82,11 +83,10 @@ class RefButton(ControlMixIn, Button):
         else:
             raise AttributeError('RefName is already set')
         
-    def Initialize(self) -> None:
-        ControlMixIn.Initialize(self)
-        self.Initialized = True
+    def __Initialize(self) -> None:
+        ControlMixIn._Initialize(self)
 
-class ExButton(EventMixIn, ControlMixIn, Button):
+class ExButton(InitializeMixin, EventMixIn, ControlMixIn, Button):
     def __init__(self, 
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str], 
@@ -94,13 +94,13 @@ class ExButton(EventMixIn, ControlMixIn, Button):
                  repeatTime: float = None,
                  **kwargs) -> None:
         Button.__init__(self, UIHost, ID_Name, holdTime, repeatTime)
+        InitializeMixin.__init__(self, self.__Initialize)
         ControlMixIn.__init__(self)
         EventMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
-        self.Initialized = False
         
         self.__InitialState = None
         self.__HoldTime = holdTime
@@ -159,7 +159,7 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         if text is None:
             text = ''
         self.Text = text
-        super().SetText(text)
+        Button.SetText(self, text)
         
     def SetState(self, state: int) -> None:
         if state is None:
@@ -169,7 +169,7 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         if self.Indicator is not None:
             self.Indicator.SetState(state % 10)
         # update state
-        super().SetState(state)
+        Button.SetState(self, state)
     
     def HasHold(self) -> bool:
         return (self.__HoldTime is not None)
@@ -186,9 +186,9 @@ class ExButton(EventMixIn, ControlMixIn, Button):
     def ClearInitialPressState(self) -> None:
         self.__InitialState = None
     
-    def Initialize(self) -> None:
-        ControlMixIn.Initialize(self)
-        EventMixIn.Initialize(self)
+    def __Initialize(self) -> None:
+        ControlMixIn._Initialize(self)
+        EventMixIn._Initialize(self)
         
         self.__InitControlState()
         self.__InitControlShift()
@@ -203,8 +203,6 @@ class ExButton(EventMixIn, ControlMixIn, Button):
                 setattr(ind, 'ind-ref', self)
             except LookupError:
                 Logger.Debug('No button found for indicator name: {}'.format(self.indicatorName))
-        
-        self.Initialized = True
     
     def __InitControlState(self) -> None:
         for state in self.__StateDict:
@@ -267,18 +265,18 @@ class ExButton(EventMixIn, ControlMixIn, Button):
         
         return self.__FunctDict[Mode]
     
-class ExLabel(GroupMixIn, Label):
+class ExLabel(InitializeMixin, GroupMixIn, Label):
     def __init__(self, 
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Label.__init__(self, UIHost, ID_Name)
+        InitializeMixin.__init__(self, self.__Initialize)
         GroupMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
         self.Text = None
-        self.Initialized = False
         
         for kw, val in kwargs.items():
             if kw == 'Text':
@@ -295,22 +293,20 @@ class ExLabel(GroupMixIn, Label):
         self.Text = text
         super().SetText(text)
         
-    def Initialize(self) -> None:
-        GroupMixIn.Initialize(self)
-        
-        self.Initialized = True
+    def __Initialize(self) -> None:
+        GroupMixIn._Initialize(self)
 
-class ExLevel(GroupMixIn, Level):
+class ExLevel(InitializeMixin, GroupMixIn, Level):
     def __init__(self, 
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Level.__init__(self, UIHost, ID_Name)
+        InitializeMixin.__init__(self, self.__Initialize)
         GroupMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
-        self.Initialized = False
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -329,23 +325,21 @@ class ExLevel(GroupMixIn, Level):
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Level, self.Min, self.Max)
 
-    def Initialize(self) -> None:
-        GroupMixIn.Initialize(self)
-        
-        self.Initialized = True
+    def __Initialize(self) -> None:
+        GroupMixIn._Initialize(self)
 
-class ExSlider(EventMixIn, ControlMixIn, Slider):
+class ExSlider(InitializeMixin, EventMixIn, ControlMixIn, Slider):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
                  **kwargs) -> None:
         Slider.__init__(self, UIHost, ID_Name)
+        InitializeMixin.__init__(self, self.__Initialize)
         ControlMixIn.__init__(self)
         EventMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
-        self.Initialized = False
         
         self.__InitialFill = None
         
@@ -370,13 +364,11 @@ class ExSlider(EventMixIn, ControlMixIn, Slider):
     def __repr__(self) -> str:
         return "{} ({}, {} [{}|{}])".format(self.Name, self.Id, self.Fill, self.Min, self.Max)
 
-    def Initialize(self) -> None:
-        ControlMixIn.Initialize(self)
-        EventMixIn.Initialize(self)
+    def __Initialize(self) -> None:
+        ControlMixIn._Initialize(self)
+        EventMixIn._Initialize(self)
         
         self.__InitControlFunctions()
-        
-        self.Initialized = True
         
     def SetInitialPressFill(self) -> None:
         self.__InitialFill = self.Fill
@@ -402,17 +394,17 @@ class ExSlider(EventMixIn, ControlMixIn, Slider):
         
         return self.__FunctDict[Mode]
 
-class ExKnob(EventMixIn, ControlMixIn, Knob):
+class ExKnob(InitializeMixin, EventMixIn, ControlMixIn, Knob):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice'],
                  **kwargs) -> None:
         Knob.__init__(self, UIHost, 61001) # All current extron knobs use the same ID, only ever one per device
+        InitializeMixin.__init__(self, self.__Initialize)
         ControlMixIn.__init__(self)
         EventMixIn.__init__(self)
         
         self.UIHost = UIHost
         self.Id = self.ID
-        self.Initialized = False
         
         for kw, val in kwargs.items():
             setattr(self, kw, val)
@@ -420,11 +412,9 @@ class ExKnob(EventMixIn, ControlMixIn, Knob):
     def __repr__(self) -> str:
         return "Knob ({})".format(self.Id)
     
-    def Initialize(self) -> None:
-        ControlMixIn.Initialize(self)
-        EventMixIn.Initialize(self)
-        
-        self.Initialized = True
+    def __Initialize(self) -> None:
+        ControlMixIn._Initialize(self)
+        EventMixIn._Initialize(self)
 
 ## End Class Definitions -------------------------------------------------------
 ##

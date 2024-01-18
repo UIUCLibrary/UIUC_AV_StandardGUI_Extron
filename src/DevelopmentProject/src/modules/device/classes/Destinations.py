@@ -16,30 +16,28 @@
 
 from typing import TYPE_CHECKING, Dict, Union, cast
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui.sourceControls import MatrixRow, LayoutTuple, RelayTuple
     from extronlib.ui import Button, Label
+    from modules.project.SystemHardware import SystemHardwareController
+    from Constants import LAYOUT
 
-from collections import namedtuple
 from extronlib import event
 from modules.device.classes.Sources import Source
-from modules.project.SystemHardware import SystemHardwareController
 from modules.device.mersive_solstice_pod import PodFeedbackHelper
-from Devices import SystemDevices as Devices
-from Variables import BLANK_SOURCE
-
-MatrixTuple = namedtuple('MatrixTuple', ['Vid', 'Aud'])
+from modules.helper.CommonUtilities import isinstanceEx
+from Constants import BLANK_SOURCE, MATRIX_TIE
+import System
 
 class Destination:
     def __init__(self,
                  device: 'SystemHardwareController',
                  output: int,
                  destType: str,
-                 rly: 'RelayTuple',
                  groupWrkSrc: str,
-                 advLayout: 'LayoutTuple',
+                 advLayout: 'LAYOUT',
+                 screen: str = None,
                  confFollow: str=None) -> None:
         
-        if isinstance(device, SystemHardwareController):
+        if isinstanceEx(device, 'SystemHardwareController'):
             self.Device = device
             self.Id = device.Id
             self.Name = device.Name
@@ -52,12 +50,12 @@ class Destination:
             raise ValueError('Output must be an integer greater than or equal to 0')
         
         self.AdvLayoutPosition = advLayout
-        self.GroupWorkSource = Devices.GetSource(id = groupWrkSrc)
+        self.GroupWorkSource = System.CONTROLLER.Devices.GetSource(id = groupWrkSrc)
         self.Type = destType
         self.ConfFollow = confFollow
+        self.ScreenId = screen
         
         self.__Mute = False
-        self.__Relay = rly
         self.__AssignedVidSource = BLANK_SOURCE
         self.__AssignedAudSource = BLANK_SOURCE
         self.__AdvSelectBtn = None
@@ -69,12 +67,12 @@ class Destination:
         self.__MatrixRow = None
     
     @property
-    def AssignedSource(self) -> MatrixTuple:
-        return MatrixTuple(Vid=self.__AssignedVidSource, Aud=self.__AssignedAudSource)
+    def AssignedSource(self) -> MATRIX_TIE:
+        return MATRIX_TIE(video=self.__AssignedVidSource, audio=self.__AssignedAudSource)
     
     @property
-    def AssignedInput(self) -> MatrixTuple:
-        return MatrixTuple(Vid=self.__AssignedVidInput, Aud=self.__AssignedAudInput)
+    def AssignedInput(self) -> MATRIX_TIE:
+        return MATRIX_TIE(video=self.__AssignedVidInput, audio=self.__AssignedAudInput)
     
     @property
     def __AssignedVidInput(self) -> int:
@@ -215,7 +213,7 @@ class Destination:
     def ToggleMute(self) -> None:
         self.__Mute = not self.__Mute
     
-    def AssignMatrixRow(self, row: 'MatrixRow') -> None:
+    def AssignMatrixRow(self, row) -> None:
         self.__MatrixRow = row
     
     def AssignInput(self, input: 'int') -> None:

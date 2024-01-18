@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
     pass
 
+import System
 
 class VirtualDeviceInterface:
     def __init__(self, VirtualDeviceID, AssignmentAttribute: str, AssignmentDict: Dict) -> None:
@@ -26,9 +27,9 @@ class VirtualDeviceInterface:
         self.__AssignmentDict = AssignmentDict
     
     def FindAssociatedHardware(self):
-        # iterate through self.GUIHost.Hardware and find devices with matching 'MatrixAssignment'
-        for Hw in self.GUIHost.Hardware.values(): # GUIHost attribute must exist in parent class
-            if hasattr(Hw, self.__AssignmentAttribute) and getattr(Hw, self.__AssignmentAttribute) == self.VirtualDeviceID:
+        # iterate through System.CONTROLLER.Devices and find devices with matching __AssignmentAttribute
+        for Hw in System.CONTROLLER.Devices.values(): # GUIHost attribute must exist in parent class
+            if getattr(Hw, self.__AssignmentAttribute, None) == self.VirtualDeviceID:
                 for key, value in self.__AssignmentDict.items():
                     if hasattr(Hw, key):
                         value[getattr(Hw, key)] = Hw

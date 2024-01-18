@@ -16,11 +16,13 @@
 
 from typing import TYPE_CHECKING, Dict, List, Union, Callable, Any, Tuple
 if TYPE_CHECKING: # pragma: no cover
-    from extronlib.ui import Button, Label
+    from extronlib.ui import Button
     from modules.project.SystemHardware import SystemHardwareController
+    import Constants
 
 ## Begin ControlScript Import --------------------------------------------------
 from extronlib.system import Wait
+from extronlib.ui import Label
 
 ## End ControlScript Import ----------------------------------------------------
 ##
@@ -29,6 +31,7 @@ import inspect
 import re
 import functools
 import traceback
+import html
 
 ## End Python Imports ----------------------------------------------------------
 ##
@@ -80,7 +83,29 @@ class SortKeys:
             return 6
         else:
             raise ValueError("sortItem must be a valid day of the week")
+        
+    @classmethod
+    def MatrixLabelSort(cls, sortItem: Tuple[int, str]) -> int:
+        return sortItem[0]
 
+    @classmethod
+    def SourceSort(cls, sortItem: Dict):
+        dictMap = {
+            "PC": 1,
+            "UI": 2,
+            "WPD": 3,
+            "CAM": 4,
+            "DC": 5,
+            "DVD": 6
+        }
+        
+        rtnVal = 9999
+        for key, value in dictMap.items():
+            if sortItem['srcId'].startswith(key):
+                rtnVal = int('{}{}'.format(value, sortItem['srcId'][-3:]))
+        
+        return rtnVal
+        
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
@@ -100,13 +125,48 @@ def MergeLists(*Lists) -> List:
         rtnList.extend(mergeList)
     return rtnList
 
+
+class LoadingLabel(Label):
+    def __init__(self, Host: 'Constants.UI_HOSTS', ID: Union[int, str], Text: str="") -> None:
+        super().__init__(Host, ID)
+        self.__Text = Text
+        
+    def SetText(self, text: str) -> None:
+        self.__Text = text
+        super().SetText(text)
+        
+    @property
+    def Text(self) -> str:
+        return self.__Text
+    
+    @Text.setter
+    def Text(self, text: str) -> None:
+        self.__Text = text
+        super().SetText(text)
+    
 class Logger():
     __Prog = ProgramLogLogger()
     __Trace = TraceLogger()
+    
+    __LoadingData = None
+    
+    @classmethod
+    def CreateLoadingLabels(cls, Host):
+        cls.__LoadingData = [LoadingLabel(Host=Host, ID=idNum) for idNum in range(100, 112)]
 
     @classmethod
-    def Log(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
-        if Variables.TRACING:
+    def AppendLoadingMsg(cls, msg):
+        if cls.__LoadingData is not None:
+            for i in range(11, -1, -1):
+                if i > 0:
+                    txt = cls.__LoadingData[i-1].Text
+                else:
+                    txt = html.escape(msg)
+                cls.__LoadingData[i].SetText(txt)
+
+    @classmethod
+    def Log(cls, *recordobjs, separator=' ', logSeverity='info', callTrace=False) -> None:
+        if Variables.TRACING or callTrace:
             current_frame = inspect.currentframe()
             current_frame_info = inspect.getframeinfo(current_frame)
             frame_stack = inspect.getouterframes(current_frame, 2)
@@ -134,15 +194,19 @@ class Logger():
             cls.__Prog.Log(*recordobjs, trace_msg, sep=separator, severity=logSeverity)
         else:
             cls.__Prog.Log(*recordobjs, sep=separator, severity=logSeverity)
+            
+        if Variables.Loading:
+            msg = separator.join(str(obj) for obj in recordobjs)
+            cls.AppendLoadingMsg(msg)
     
     @classmethod
     def Trace(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
         cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
         
     @classmethod
-    def Debug(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
+    def Debug(cls, *recordobjs, separator=' ', logSeverity='info', callTrace=False) -> None:
         if Variables.TESTING:
-            cls.Log(*recordobjs, separator=separator, logSeverity=logSeverity)
+            cls.Log(*recordobjs, separator=separator, logSeverity=logSeverity, callTrace=callTrace)
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string

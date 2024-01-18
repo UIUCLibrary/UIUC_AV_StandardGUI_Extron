@@ -333,13 +333,15 @@
       "Name": "SourceMenu-Prev",
       "ID": 7998,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": -1
     },
     {
       "Name": "SourceMenu-Next",
       "ID": 7999,
       "holdTime": null,
-      "repeatTime": null
+      "repeatTime": null,
+      "Offset": 1
     },
     {
       "Name": "DeviceStatusIcon-1",

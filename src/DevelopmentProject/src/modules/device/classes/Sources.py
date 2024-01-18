@@ -19,6 +19,7 @@ if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHardware import SystemHardwareController
 
 from extronlib.system import Timer, Wait
+from modules.helper.CommonUtilities import isinstanceEx
 
 class Source:
     def __init__(self,
@@ -31,7 +32,7 @@ class Source:
                  srcCtl: str=None,
                  advSrcCtl: str=None) -> None:
         
-        if device is not None:
+        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
             self.Device = device
             self.Id = device.Id
             self.Name = device.Name
