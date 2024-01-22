@@ -433,6 +433,9 @@ class TouchPanelObjects():
                 RefCB = getattr(RefCBModule, group['RefCallback'])
                 refs = self.LoadRefs(UIHost, RefCB(UIHost))
                 kwargs['RefObjects'] = refs
+                
+            if 'OffsetShift' in group.keys():
+                kwargs['OffsetShift'] = group['OffsetShift']
 
             self.ControlGroups[group['Name']] = Constructor(**kwargs)
             

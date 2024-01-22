@@ -181,7 +181,7 @@ class ActivityController:
                     Logger.Log("Destination Info", type(dest.Destination), dest.Destination.GroupWorkSource), type(dest.Destination.GroupWorkSource)
                     if dest.Id == self.SystemHost.PrimaryDestinationId:
                         swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
-                                                            input= currentPriSource.video,
+                                                            input= currentPriSource.video.Input,
                                                             type= TieType.AudioVideo))
                     else:
                         swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
@@ -193,12 +193,11 @@ class ActivityController:
             result = self.SystemHost.SrcCtl.MatrixAction(swMatrixAction)
             Logger.Log('Matrix Result', result)
             
-        # START_HERE
-        # Not seeing the blank button added to the list or at least that the list isn't being updated correctly
         if self.SystemHost.TransitionState[1][1] == ActivityMode.AdvShare:
-            self.SystemHost.SrcCtl.AddBlankBtns()
+            self.SystemHost.SrcCtl.AddBlankBtn()
         else:
-            self.SystemHost.SrcCtl.RemoveBlankBtns()
+            self.SystemHost.SrcCtl.RemoveBlankBtn()
+
     
     def ActivitySwitchTransition(self, timer, count) -> None:
         timeRemaining = self.SystemHost.Timers.Switch - count

@@ -89,23 +89,25 @@ class SourceController(InitializeMixin, object):
     def MatrixSize(self, val) -> None:
         raise AttributeError('Setting MatrixSize is disallowed.')
     
-    def RemoveBlankBtns(self) -> None:
+    def RemoveBlankBtn(self) -> None:
         for uiDev in self.SystemHost.UIDevices:
             if self.__MenuBlankBtns[uiDev.Id] in uiDev.Interface.Objects.ControlGroups['Source-Select'].RefObjects:
                 uiDev.Interface.Objects.ControlGroups['Source-Select'].RemoveRef(self.__MenuBlankBtns[uiDev.Id])
             uiDev.Interface.Objects.ControlGroups['Source-Select'].ShowPopup()
+            uiDev.Interface.Objects.ControlGroups['Source-Select'].LoadButtonView()
     
-    def AddBlankBtns(self) -> None:
+    def AddBlankBtn(self) -> None:
         for uiDev in self.SystemHost.UIDevices:
             if self.__MenuBlankBtns[uiDev.Id] not in uiDev.Interface.Objects.ControlGroups['Source-Select'].RefObjects:
-                uiDev.Interface.Objects.ControlGroups['Source-Select'].AppendRef(self.__MenuBlankBtns[uiDev.Id])
+                uiDev.Interface.Objects.ControlGroups['Source-Select'].PrependRef(self.__MenuBlankBtns[uiDev.Id])
             uiDev.Interface.Objects.ControlGroups['Source-Select'].ShowPopup()
+            uiDev.Interface.Objects.ControlGroups['Source-Select'].LoadButtonView()
             
     def __Initialize(self) -> None:
         for uiDev in self.SystemHost.UIDevices:
             self.__MenuBlankBtns[uiDev.Id] = [refBtn for refBtn in uiDev.Interface.Objects.ControlGroups['Source-Select'].RefObjects if refBtn.srcId == 'blank'][0]
         
-        self.RemoveBlankBtns()
+        self.RemoveBlankBtn()
     
     def __GetOutputNumberList(self) -> List[int]:
         rtnList = []

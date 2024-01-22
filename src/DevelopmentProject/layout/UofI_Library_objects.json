@@ -2730,7 +2730,8 @@
         }
       ],
       "PopupCallback": "TechMenuPagePopupCallback",
-      "RefCallback": "TechMenuRefCallback"
+      "RefCallback": "TechMenuRefCallback",
+      "OffsetShift": 5
     },
     {
       "Name":"Activity-Select",

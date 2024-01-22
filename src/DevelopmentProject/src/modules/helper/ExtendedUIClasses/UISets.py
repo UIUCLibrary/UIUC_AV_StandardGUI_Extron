@@ -94,7 +94,12 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
     
     def Append(self, obj: 'ExButton') -> None:
         setattr(obj, 'Group', self)
-        return MESet.Append(self, obj)
+        MESet.Append(self, obj)
+    
+    def Prepend(self, obj: 'ExButton') -> None:
+        setattr(obj, 'Group', self)
+        MESet.Append(self, obj)
+        self._MESet__objects.move_to_end(obj, last=False)
     
     def Remove(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
         if isinstance(obj, list):
@@ -404,11 +409,14 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
                  PrevBtn: 'ExButton', 
                  NextBtn: 'ExButton', 
                  PopupCallback: Callable,
+                 OffsetShift: int=1,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
         self.__Offset = 0
+        self.__OffsetShift = OffsetShift
+        
         self.__BtnSet = RadioSet('{}-Objects'.format(self.Name), Objects)
         self.__BtnSet.Group = self
         self.__RefSet = RadioSet('{}-RefObjects'.format(self.Name), RefObjects)
@@ -475,7 +483,14 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     
     @property
     def Pages(self) -> int:
-        return math.ceil((len(self.RefObjects)/len(self.Objects)))
+        refObjs = len(self.RefObjects)
+        btnObjs = len(self.Objects)
+        if refObjs > btnObjs:
+            overrun = refObjs - btnObjs
+            pages = math.ceil(overrun / self.__OffsetShift) + 1
+            return int(pages)
+        else: 
+            return 1
     
     @Pages.setter
     def Pages(self, val) -> None:
@@ -483,15 +498,10 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     
     @property
     def CurrentPage(self) -> int:
-        objectLength = len(self.Objects)
-        endOffset = self.Offset + objectLength
-        fullPages = endOffset // objectLength
-        remainder = endOffset % objectLength
-        if remainder > 0:
-            pg = fullPages + 1
-        else:
-            pg = fullPages
-        return pg
+        factor = int(self.__Offset / self.__OffsetShift)
+        page = factor + 1
+        
+        return int(page)
     
     def GetRefByObject(self, obj: Union[int, str, 'ExButton']) -> 'RefButton':
         if isinstance(obj, int):
@@ -537,8 +547,16 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         self.__BtnSet.Append(btn)
         btn.Group = self
     
+    def PrependButton(self, btn: 'ExButton') -> None:
+        self.__BtnSet.Prepend(btn)
+        btn.Group = self
+    
     def AppendRef(self, ref: 'RefButton') -> None:
         self.__RefSet.Append(ref)
+        ref.Group = self
+        
+    def PrependRef(self, ref: 'RefButton') -> None:
+        self.__RefSet.Prepend(ref)
         ref.Group = self
         
     def RemoveButton(self, btn: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton']) -> None:
@@ -634,7 +652,6 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         self.__BtnSet.SetCurrent(None)
         
         curRefSet = self.RefObjects[self.Offset:endOffset]
-        Logger.Log(curRefSet)
         
         for btn in self.Objects:
             # Set Names and icons
@@ -663,8 +680,14 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         elif (Offset < 0 or Offset >= len(self.RefObjects)):
             raise ValueError('Offset must be greater than or equal to 0 and less than the number of Ref Objects ({})'.format(len(self.RefObjects)))
         
-        Logger.Log('Current Offset', self.__Offset, "New Offset", Offset, "Ref Length", len(self.RefObjects))
-        self.__Offset = Offset
+        
+        if Offset % self.__OffsetShift == 0:    # Offset matches OffsetShift
+            self.__Offset = Offset
+        else:                                   # Offset does not match OffsetShift
+            factor = math.ceil(Offset / self.__OffsetShift)     # get offset shift factor
+            shiftedOffset = factor * self.__OffsetShift         # calculate shifted offset
+            self.__Offset = shiftedOffset                       # set shifted offset
+        
         self.LoadButtonView()
         
 class VolumeControlGroup(ControlMixIn, UISetMixin, object):
