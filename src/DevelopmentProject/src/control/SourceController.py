@@ -108,6 +108,12 @@ class SourceController(InitializeMixin, object):
             self.__MenuBlankBtns[uiDev.Id] = [refBtn for refBtn in uiDev.Interface.Objects.ControlGroups['Source-Select'].RefObjects if refBtn.srcId == 'blank'][0]
         
         self.RemoveBlankBtn()
+        
+        if TESTING:
+            Logger.Debug('Setting TESTING MATRIX:', self.MatrixSize)
+            for i in range(self.MatrixSize[1]):
+                self.__TEST_video[i] = 0
+                self.__TEST_audio[i] = 0
     
     def __GetOutputNumberList(self) -> List[int]:
         rtnList = []
@@ -168,6 +174,8 @@ class SourceController(InitializeMixin, object):
         VidQual = {'Output': outputNum, 'Tie Type': TieType.Video.name}
         
         if TESTING:
+            Logger.Debug('Test Data - Video', self.__TEST_video, VidQual['Output'])
+            Logger.Debug('Test Data - Audio', self.__TEST_audio, AudQual['Output'])
             videoNum = self.__TEST_video.get(VidQual['Output'], 0)
             audioNum = self.__TEST_audio.get(AudQual['Output'], 0)
         else:
@@ -185,13 +193,13 @@ class SourceController(InitializeMixin, object):
             qual = {'Input': action.input, 'Output': action.output, 'Tie Type': action.type.name}
             
             if TESTING:
-                Logger.Log("(Test) Sending Matrix Tie Commoand", "Value=None", 'Qualifier={}'.format(qual), separator=' | ')
+                Logger.Debug("(Test) Sending Matrix Tie Command", "Value=None", 'Qualifier={}'.format(qual), separator=' | ')
                 self.__TEST_Set_MatrixTieCommand(qual)
             else:
                 self.Switcher.interface.Set('MatrixTieCommand', None, qual)
             
-            outputList = [outputHw.Destination.Output for outputHw in self.Switcher.interface.VirtualOutputDevices.values()]
-            Logger.Log("Validating output", "action.output", action.output, "outputList", outputList, 'result', action.output in outputList)
+            outputList = [outputHw.MatrixOutput for outputHw in list(self.Switcher.interface.VirtualOutputDevices.values())]
+            Logger.Log("Validating output", "action.output", action.output, "outputList", outputList, 'result', (action.output == 'all' or action.output in outputList))
             # update source menu
             if action.output == 'all' or\
                 action.output in outputList:
@@ -206,16 +214,28 @@ class SourceController(InitializeMixin, object):
         return self.GetCurrentSources()
 
     def __TEST_Set_MatrixTieCommand(self, qual) -> None:
-        if qual['Tie Type'] == TieType.AudioVideo.name:
-            self.__TEST_video[qual['Output']] = qual['Input']
-            self.__TEST_audio[qual['Output']] = qual['Input']
-        elif qual['Tie Type'] == TieType.Audio.name:
-            self.__TEST_audio[qual['Output']] = qual['Input']
-        elif qual['Tie Type'] == TieType.Video.name:
-            self.__TEST_video[qual['Output']] = qual['Input']
-        elif qual['Tie Type'] ==  TieType.Untie.name:
-            self.__TEST_video[qual['Output']] = 0
-            self.__TEST_audio[qual['Output']] = 0
+        if qual['Output'] == 'all':
+            for vidOutput in self.__TEST_video.keys():
+                if qual['Tie Type'] == TieType.AudioVideo.name or qual['Tie Type'] == TieType.Video.name:
+                    self.__TEST_video[vidOutput] = qual['Input']
+                elif qual['Tie Type'] == TieType.Untie.name:
+                    self.__TEST_video[vidOutput] = 0
+            for audOutput in self.__TEST_audio.keys():
+                if qual['Tie Type'] == TieType.AudioVideo.name or qual['Tie Type'] == TieType.Audio.name:
+                    self.__TEST_audio[audOutput] = qual['Input']
+                elif qual['Tie Type'] == TieType.Untie.name:
+                    self.__TEST_audio[audOutput] = 0
+        else:
+            if qual['Tie Type'] == TieType.AudioVideo.name:
+                self.__TEST_video[qual['Output']] = qual['Input']
+                self.__TEST_audio[qual['Output']] = qual['Input']
+            elif qual['Tie Type'] == TieType.Audio.name:
+                self.__TEST_audio[qual['Output']] = qual['Input']
+            elif qual['Tie Type'] == TieType.Video.name:
+                self.__TEST_video[qual['Output']] = qual['Input']
+            elif qual['Tie Type'] ==  TieType.Untie.name:
+                self.__TEST_video[qual['Output']] = 0
+                self.__TEST_audio[qual['Output']] = 0
 
 ## End Class Definitions -------------------------------------------------------
 ##

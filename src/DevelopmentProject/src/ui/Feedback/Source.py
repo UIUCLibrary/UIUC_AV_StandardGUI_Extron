@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 if TYPE_CHECKING: # pragma: no cover
     pass
 
@@ -26,6 +26,8 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
+import Constants
+import System
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -34,6 +36,28 @@ if TYPE_CHECKING: # pragma: no cover
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------
+
+def ShowSourceSelectionFeedback(devices: List[Constants.UI_HOSTS], selection: Constants.UI_BUTTONS) -> None:
+    selectionUIDev = selection.UIHost
+    
+    for uiDev in devices:
+        if uiDev is not selectionUIDev:
+            uiDev.Interface.Objects.ControlGroups['Source-Select'].SetCurrentRef(selection.Name)
+
+def ShowSourceControlFeedback(devices: List[Constants.UI_HOSTS]) -> None:
+    refBtn = devices[0].Interface.Objects.ControlGroups['Source-Select'].GetCurrentRef()
+    srcCtl = System.CONTROLLER.Devices.GetSourceByInput(refBtn.input).SourceControlPage
+    camCount = len(System.CONTROLLER.Devices.Cameras)
+    
+    ## get popup page string
+    if srcCtl in ['PC']:
+        srcCtlPage = 'Source-Control-{}_{}'.format(srcCtl, camCount)
+    else:
+        srcCtlPage = 'Source-Control-{}'.format(srcCtl)
+        
+    ## show popup page on all touch panels
+    for uiDev in devices:
+        uiDev.ShowPopup(srcCtlPage)
 
 ## End Function Definitions ----------------------------------------------------
 

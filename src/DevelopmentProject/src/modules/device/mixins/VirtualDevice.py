@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
     pass
 
+from modules.helper.CommonUtilities import Logger
 import System
 
 class VirtualDeviceInterface:
@@ -32,4 +33,5 @@ class VirtualDeviceInterface:
             if getattr(Hw, self.__AssignmentAttribute, None) == self.VirtualDeviceID:
                 for key, value in self.__AssignmentDict.items():
                     if hasattr(Hw, key):
+                        Logger.Debug("Setting Association", value, getattr(Hw, key), Hw)
                         value[getattr(Hw, key)] = Hw

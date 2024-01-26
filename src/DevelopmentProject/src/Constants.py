@@ -171,6 +171,11 @@ UI_OBJECTS_MATCH = ('RefButton',
                     'ExSlider', 
                     'ExKnob')
 
+UI_BUTTONS =  Union['RefButton', 
+                    'ExButton']
+UI_BUTTONS_MATCH = ('RefButton', 
+                    'ExButton')
+
 UI_ALL =  Union['RadioSet', 
                 'SelectSet', 
                 'VariableRadioSet', 

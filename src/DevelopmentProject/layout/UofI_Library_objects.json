@@ -662,6 +662,12 @@
       "repeatTime": null
     },
     {
+      "Name": "Show-Tips",
+      "ID": 11996,
+      "holdTime": null,
+      "repeatTime": null
+    },
+    {
       "Name": "Activity-Splash-Close",
       "ID": 11997,
       "holdTime": null,
@@ -3051,7 +3057,7 @@
       "Source-Control-PC_0",
       "Source-Control-PC_1",
       "Source-Control-PC_2",
-      "Source-Control-Splash-GrpWrk",
+      "Source-Control-Splash-GroupWork",
       "Source-Control-Splash-Share",
       "Source-Control-WPD"
     ],

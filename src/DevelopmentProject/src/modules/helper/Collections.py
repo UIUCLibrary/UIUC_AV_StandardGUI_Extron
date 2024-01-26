@@ -34,8 +34,9 @@ from collections import UserDict, UserList
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
 from modules.project.SystemHardware import SystemHardwareController
-from modules.helper.CommonUtilities import isinstanceEx
+from modules.helper.CommonUtilities import Logger
 from modules.helper.MixIns import InitializeMixin
+from modules.device.mixins.VirtualDevice import VirtualDeviceInterface
 from control.PollController import PollObject
 import Constants
     
@@ -153,7 +154,8 @@ class DeviceCollection(InitializeMixin, UserDict):
             dev.Initialize()
             
         # Associate Virtual Device Hardware after Hardware Initialization
-        vDevList = [vDev for vDev in self.data.values() if isinstanceEx(getattr(vDev, 'interface', None) , 'VirtualDeviceInterface')]
+        vDevList = [vDev for vDev in list(self.data.values()) if issubclass(type(getattr(vDev, 'interface', None)), VirtualDeviceInterface)]
+        Logger.Debug('VDEV List', vDevList)
         for dev in vDevList:
             dev.interface.FindAssociatedHardware()
 

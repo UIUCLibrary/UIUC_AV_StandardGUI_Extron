@@ -328,5 +328,19 @@
         "PressShift": true,
         "Latching": true,
         "FuncModule": "ui.interface.TouchPanel"
+    },
+    {
+        "ControlObject": "Activity-Splash-Close",
+        "PrimaryFunc": "CloseTips",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.Feedback.Activity"
+    },
+    {
+        "ControlObject": "Show-Tips",
+        "PrimaryFunc": "OpenTips",
+        "PressShift": true,
+        "Latching": false,
+        "FuncModule": "ui.Feedback.Activity"
     }
 ]

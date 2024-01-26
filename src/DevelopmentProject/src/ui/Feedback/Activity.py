@@ -17,7 +17,7 @@
 ## Begin Imports ---------------------------------------------------------------
 
 #### Type Checking
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 if TYPE_CHECKING: # pragma: no cover
     pass
 
@@ -26,6 +26,11 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
+from modules.helper.ExtendedSystemClasses import ExTimer
+from modules.helper.CommonUtilities import isinstanceEx
+from ui.Feedback.Source import ShowSourceControlFeedback
+import Constants
+import Variables
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -35,7 +40,49 @@ if TYPE_CHECKING: # pragma: no cover
 ##
 ## Begin Function Definitions --------------------------------------------------
 
+def NewActivityFeedback(devices: List[Constants.UI_HOSTS], activity: Constants.ActivityMode) -> None:
+    TipTimer.devices = devices
+    TipTimer.activity = activity
+    
+    OpenTips()
+    
+    for uiDev in devices:
+        uiDev.HidePopup('Power-Transition')
+
+def TipRunnerCallback(timer: 'ExTimer', count: int) -> None:
+    closeTipBtns = [uiDev.Interface.Objects.Buttons['Activity-Splash-Close'] for uiDev in timer.devices]
+    
+    for closeBtn in closeTipBtns:
+        closeBtn.SetText('Close Tip ({})'.format(timer.Remaining))
+
+def OpenTips(button: Constants.UI_BUTTONS=None, action: str=None) -> None:
+    if button is not None:
+        uiDev = button.UIHost
+    
+    closeTipBtns = [uiDev.Interface.Objects.Buttons['Activity-Splash-Close'] for uiDev in TipTimer.devices]
+    for closeBtn in closeTipBtns:
+        closeBtn.SetText('Close Tip ({})'.format(TipTimer.Remaining))
+    
+    if TipTimer.activity in Constants.SHARE or TipTimer.activity in Constants.GROUPWORK:
+        TipTimer.Restart()
+        for uiDev in TipTimer.devices:
+            uiDev.ShowPopup('Source-Control-Splash-{}'.format(TipTimer.activity.name))
+
+def CloseTips(*args) -> None:
+    if isinstanceEx(args[0], 'ExTimer'):
+        timer = args[0]
+    else:
+        timer = TipTimer
+        
+    timer.Stop()
+    for uiDev in timer.devices:
+        uiDev.HidePopup('Source-Control-Splash-{}'.format(timer.activity.name))
+    
+    ShowSourceControlFeedback(timer.devices)
+
 ## End Function Definitions ----------------------------------------------------
 
-
-
+TipTimer = ExTimer(1, TipRunnerCallback, Variables.TIP_TIMER_DUR, CloseTips)
+TipTimer.Stop()
+TipTimer.devices = []
+TipTimer.activity = None

@@ -37,6 +37,7 @@ from modules.helper.PrimitiveObjects import DictObj
 from modules.helper.CommonUtilities import TimeIntToStr, Logger
 from modules.helper.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
+from ui.Feedback.Source import ShowSourceSelectionFeedback, ShowSourceControlFeedback
 from Constants import ActivityMode, SystemState, MATRIX_ACTION, TieType
 import System
 import Variables
@@ -188,6 +189,7 @@ def StartShutdownConfirmation(prevActivity: ActivityMode, click: bool=False) -> 
         for uiDev in System.CONTROLLER.UIDevices:
             uiDev.LightsOff()
         System.CONTROLLER.SystemActivity = ActivityMode.Standby
+        Logger.Log('ShutdownHandler',  ActivityMode.Standby, System.CONTROLLER.SystemActivity)
     
     for uiDev in System.CONTROLLER.UIDevices:
         Label = uiDev.Interface.Objects.Labels['ShutdownConf-Count']
@@ -297,25 +299,44 @@ def SourceMenuNav(button: 'ExButton', action: str) -> None:
     uiSet.SetOffset(newOff)
 
 def SourceSelect(button: 'ExButton', action: str) -> None:
-    # uiDev = button.UIHost
     uiSet = button.Group.Group
     
     refBtn = uiSet.GetRefByObject(button)
     uiSet.SetCurrentRef(refBtn)
     
-    Logger.Log("Button", button, "RefButton", refBtn)
+    Logger.Debug("Button", button, "RefButton", refBtn)
     
     if System.CONTROLLER.SystemActivity == ActivityMode.Share:
+        # Source Switch
         swMatrixAction = MATRIX_ACTION(output='all',
                                        input=refBtn.input,
                                        type=TieType.AudioVideo)
-        Logger.Log('Source Switch Matrix Action (Share)', swMatrixAction)
+        Logger.Debug('Source Switch Matrix Action (Share)', swMatrixAction)
         System.CONTROLLER.SrcCtl.MatrixAction(swMatrixAction)
+        
+        # Update other panels' source selection
+        ShowSourceSelectionFeedback(System.CONTROLLER.UIDevices, refBtn)
+        
+        # Update source control area
+        
+        ShowSourceControlFeedback(System.CONTROLLER.UIDevices, refBtn)
+        
     elif System.CONTROLLER.SystemActivity == ActivityMode.GroupWork:
+        # Source Switch
         swMatrixAction = MATRIX_ACTION(output=System.CONTROLLER.Devices.GetDestination(System.CONTROLLER.PrimaryDestinationId).Output,
                                        input=refBtn.input,
                                        type=TieType.AudioVideo)
-        Logger.Log('Source Switch Matrix Action (GroupWork)', swMatrixAction)
+        Logger.Debug('Source Switch Matrix Action (GroupWork)', swMatrixAction)
         System.CONTROLLER.SrcCtl.MatrixAction(swMatrixAction)
+        
+        # Update other panels' source selection
+        ShowSourceSelectionFeedback(System.CONTROLLER.UIDevices, refBtn)
+        
+        # Update source control area
+        ShowSourceControlFeedback(System.CONTROLLER.UIDevices, refBtn)
+        
+    elif System.CONTROLLER.SystemActivity == ActivityMode.AdvShare:
+        Logger.Debug('Source Selected (AdvShare)', refBtn.Name, refBtn.input)
+        
 
 ## End Function Definitions ----------------------------------------------------

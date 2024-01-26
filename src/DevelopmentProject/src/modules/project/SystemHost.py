@@ -180,6 +180,7 @@ class SystemController(InitializeMixin, object):
         else:
             raise TypeError('val must be a str, int, or ActivityMode Enum')
         
+        Logger.Log(enumVal, self.__SystemActivity, enumVal != self.__SystemActivity)
         if enumVal != self.__SystemActivity:
             self.__NewSystemActivity = enumVal
             self.__ActivityTransition = True
@@ -293,6 +294,10 @@ class SystemController(InitializeMixin, object):
     def SystemStandbyInit(self) -> None:
         self.PollCtl.SetPollingMode('inactive')
         
+        for uiDev in self.UIDevices:
+            # reset source selection menu offset
+            uiDev.Interface.Objects.ControlGroups['Source-Select'].SetOffset(0)
+        
         # if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
         #     # Put SVSI ENC endpoints in to standby mode
         #     self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'On', None)
@@ -350,12 +355,16 @@ class SystemController(InitializeMixin, object):
         for uiDev in self.UIDevices:
             uiDev.HidePopup('Power-Transition')
         
-        Logger.Log('System Mode Change: Standby Complete')
+        Logger.Log('System Mode Change: Standby Complete', self.__SystemActivity)
+        self.__SystemActivity = self.__NewSystemActivity
+        self.__NewSystemActivity = None
+        self.__ActivityTransition = False
         self.__SystemState = Constants.SystemState.Standby
         self.__NewSystemState = None
         self.__SystemStateTransition = False
         self.SystemStateWatch.Change(self.__SystemState)
         self.ActCtl.Timers.Splash.Restart()
+        
         
     def SplashChecker(self, timer: 'ExTimer', count: int) -> None:
         elapsedTime = timer.Interval * count

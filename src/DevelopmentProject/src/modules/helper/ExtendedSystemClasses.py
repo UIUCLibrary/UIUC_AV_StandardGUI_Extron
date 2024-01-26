@@ -61,6 +61,25 @@ class ExTimer(Timer):
     def Function(self, val) -> None:
         raise AttributeError('Setting Function is disallowed.')
     
+    @property
+    def Elapsed(self) -> float:
+        if self.State not in ['Running', 'Paused']:
+            return 0
+        else:
+            return self.Interval * self.Count
+    
+    @Elapsed.setter
+    def Elapsed(self, val) -> None:
+        raise AttributeError('Setting Elapsed is disallowed.')
+    
+    @property
+    def Remaining(self) -> float:
+        return self.Duration - self.Elapsed
+    
+    @Remaining.setter
+    def Remaining(self, val) -> None:
+        raise AttributeError('Setting Remaining is disallowed.')
+    
     def __ExFunction(self, Timer: Timer, Count: int) -> None:
         if callable(self.__IntervalFunction):
             self.__IntervalFunction(Timer, Count)
@@ -84,7 +103,11 @@ class ExTimer(Timer):
     def Wrapup(self) -> None:
         if callable(self.DurationFunction):
             self.DurationFunction(self, self.Count)
-        return super().Stop()
+        super().Stop()
+    
+    def Stop(self) -> None:
+        if self.State in ['Running', 'Paused']:
+            super().Stop()
         
 
 ## End Class Definitions -------------------------------------------------------

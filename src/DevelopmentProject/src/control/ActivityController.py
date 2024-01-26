@@ -34,6 +34,7 @@ from modules.helper.PrimitiveObjects import DictObj
 from Constants import STANDBY, ActivityMode, SystemState, TieType, MATRIX_ACTION
 import System
 from ui.interface.TouchPanel import StartShutdownConfirmation
+from ui.Feedback.Activity import NewActivityFeedback
 
 
 ## End Imports -----------------------------------------------------------------
@@ -167,7 +168,7 @@ class ActivityController:
             if self.SystemHost.TransitionState[1][1] == ActivityMode.Share:
                 # Share Mode
                 swMatrixAction = MATRIX_ACTION(output= 'all',
-                                               input= currentPriSource.video,
+                                               input= currentPriSource.video.Input,
                                                type= TieType.AudioVideo)
                 
             elif self.SystemHost.TransitionState[1][1] == ActivityMode.AdvShare:
@@ -197,7 +198,9 @@ class ActivityController:
             self.SystemHost.SrcCtl.AddBlankBtn()
         else:
             self.SystemHost.SrcCtl.RemoveBlankBtn()
-
+            
+        for uiDev in self.SystemHost.UIDevices:
+            uiDev.HidePopupGroup('Source-Controls')
     
     def ActivitySwitchTransition(self, timer, count) -> None:
         timeRemaining = self.SystemHost.Timers.Switch - count
@@ -206,8 +209,9 @@ class ActivityController:
             uiDev.Interface.Transition.Level.SetLevel(count)
     
     def ActivitySwitchComplete(self, timer, count) -> None:
-        for uiDev in self.SystemHost.UIDevices:
-            uiDev.HidePopup('Power-Transition')
+        NewActivityFeedback(self.SystemHost.UIDevices, 
+                            self.SystemHost.TransitionState[1][1])
+        
         self.SystemHost.ActivityTransitionComplete()
 
 ## End Class Definitions -------------------------------------------------------

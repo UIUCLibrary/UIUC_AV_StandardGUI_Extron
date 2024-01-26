@@ -323,7 +323,7 @@ class ExUIDevice(UIDevice):
         
     def HidePopupGroup(self, group: int) -> None:
         Logger.Debug('Hide Popup Group:', group)
-        popupList = [popup['name'] for popup in [self._popups.values()] if popup['group'] == group]
+        popupList = [popup['name'] for popup in list(self._popups.values()) if popup['group'] == group]
         for popup in popupList:
             self.PopupHidden.Change(popup)
             if self.__PopupWaits.get(popup) is not None:

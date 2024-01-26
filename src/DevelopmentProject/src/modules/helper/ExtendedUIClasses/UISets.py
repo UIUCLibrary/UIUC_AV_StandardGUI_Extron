@@ -144,6 +144,7 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             MESet.SetCurrent(self, obj)
         else:
             raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
+        # Logger.Debug('Radio Set {} Current Selection Updated:'.format(self.Name), obj, '|', MESet.GetCurrent(self))
     
     def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
         if isinstance(obj, list):
