@@ -25,7 +25,7 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib.system import Timer
 
 #### Project Imports
-from modules.helper.CommonUtilities import Logger, FullName
+from modules.helper.CommonUtilities import Logger
 from modules.project.SystemHardware import SystemHardwareController
 import Variables
 
@@ -107,9 +107,11 @@ class PollingController:
     def __PollInterface(self, interface, command: str, qualifier: Dict=None): # pragma: no cover
         if Variables.TESTING:
             if qualifier is not None:
-                Logger.Debug('Test Poll: {} {} on {}'.format(command, qualifier, FullName(interface)))
+                # Logger.Debug('Test Poll: {} {} on {}'.format(command, qualifier, FullName(interface)))
+                pass
             else:
-                Logger.Debug('Test Poll: {} on {}'.format(command, FullName(interface)))
+                # Logger.Debug('Test Poll: {} on {}'.format(command, FullName(interface)))
+                pass
             
             return
         

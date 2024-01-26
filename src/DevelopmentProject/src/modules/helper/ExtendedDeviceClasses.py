@@ -288,7 +288,7 @@ class ExUIDevice(UIDevice):
                 self.ShowPage('Main')
     
     def ShowPage(self, page: Union[int, str]) -> None:
-        Logger.Debug('Popup Shown:', page)
+        Logger.Debug('Page Shown:', page)
         if isinstance(page, int):
             page = self._pages[str(page)]
         
