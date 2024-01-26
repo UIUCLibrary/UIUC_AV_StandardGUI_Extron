@@ -55,6 +55,11 @@ def ShowSourceControlFeedback(devices: List[Constants.UI_HOSTS]) -> None:
     else:
         srcCtlPage = 'Source-Control-{}'.format(srcCtl)
         
+    # TODO: configure initial feedback information for Source Control Pages
+    ## All pages - Alert area
+    ## WPD - Pod Name, Pod IP, Pod Key
+    ## PC with 2+ cameras - Currently selected camera
+        
     ## show popup page on all touch panels
     for uiDev in devices:
         uiDev.ShowPopup(srcCtlPage)
