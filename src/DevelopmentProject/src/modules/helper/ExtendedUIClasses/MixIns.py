@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.ExtendedUIClasses import ExButton, ExSlider
-    from modules.helper.PrimitiveObjects import ControlObject
+    from modules.helper.ExtendedUIClasses.ControlObject import ControlObject
 
 #### Python imports
 

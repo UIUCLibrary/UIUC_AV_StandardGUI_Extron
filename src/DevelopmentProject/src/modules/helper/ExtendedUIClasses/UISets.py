@@ -31,12 +31,13 @@ import datetime
 from extronlib.system import MESet
 
 #### Project imports
-import System
 from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
 from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys, SchedulePatternToString
 from modules.helper.ModuleSupport import eventEx
-from Constants import SystemState
-from Variables import UNIT_TESTING
+from modules.helper.PrimitiveObjects import SystemState
+
+import System
+import Variables
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -1126,7 +1127,7 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
         self.__Disk.SetText('{}/{} MB'.format(used, total))
         
         # Get CPU Info
-        if UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
+        if Variables.UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
             cpuUsage = 42.17
         else:
             sub = Popen(('grep', 'cpu', '/proc/stat'), stdout=PIPE, stderr=PIPE)
@@ -1137,7 +1138,7 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
         self.__CPU.SetText('{}%'.format(cpuUsage))
         
         # Get Memory Info
-        if UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
+        if Variables.UNIT_TESTING: # can't test this properly on a windows machine so return fixed values during test runs
             memTuple = (20, 25, 45)
         else:
             filepath = '/proc/meminfo'

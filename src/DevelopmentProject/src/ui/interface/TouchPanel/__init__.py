@@ -33,12 +33,12 @@ import functools
 from extronlib import event
 
 #### Project imports
-from modules.helper.PrimitiveObjects import DictObj
+from modules.helper.PrimitiveObjects import DictObj, TieType, MatrixAction, ActivityMode, SystemState
 from modules.helper.CommonUtilities import TimeIntToStr, Logger
 from modules.helper.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
 from ui.Feedback.Source import ShowSourceSelectionFeedback, ShowSourceControlFeedback
-from Constants import ActivityMode, SystemState, MATRIX_ACTION, TieType
+
 import System
 import Variables
 
@@ -308,7 +308,7 @@ def SourceSelect(button: 'ExButton', action: str) -> None:
     
     if System.CONTROLLER.SystemActivity == ActivityMode.Share:
         # Source Switch
-        swMatrixAction = MATRIX_ACTION(output='all',
+        swMatrixAction = MatrixAction(output='all',
                                        input=refBtn.input,
                                        type=TieType.AudioVideo)
         Logger.Debug('Source Switch Matrix Action (Share)', swMatrixAction)
@@ -322,7 +322,7 @@ def SourceSelect(button: 'ExButton', action: str) -> None:
         
     elif System.CONTROLLER.SystemActivity == ActivityMode.GroupWork:
         # Source Switch
-        swMatrixAction = MATRIX_ACTION(output=System.CONTROLLER.Devices.GetDestination(System.CONTROLLER.PrimaryDestinationId).Output,
+        swMatrixAction = MatrixAction(output=System.CONTROLLER.Devices.GetDestination(System.CONTROLLER.PrimaryDestinationId).Output,
                                        input=refBtn.input,
                                        type=TieType.AudioVideo)
         Logger.Debug('Source Switch Matrix Action (GroupWork)', swMatrixAction)

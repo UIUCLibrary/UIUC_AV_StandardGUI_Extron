@@ -21,8 +21,7 @@ from typing import TYPE_CHECKING, List, Dict, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHost import SystemController
     from modules.project.SystemHardware import SystemHardwareController
-    from modules.device.classes.Destinations import Destination
-    from modules.device.classes.Sources import Source
+    from modules.device.Classes import Destination, Source
 
 #### Python imports
 
@@ -31,8 +30,9 @@ if TYPE_CHECKING: # pragma: no cover
 #### Project imports
 from modules.helper.CommonUtilities import isinstanceEx, SortKeys, Logger
 from modules.helper.MixIns import InitializeMixin
-from Constants import MATRIX_TIE, MATRIX_ACTION, TieType, ActivityMode, BLANK_SOURCE
-from Variables import TESTING
+from modules.helper.PrimitiveObjects import MatrixTie, MatrixAction, TieType, ActivityMode
+import Constants
+import Variables
 import System
 
 ## End Imports -----------------------------------------------------------------
@@ -51,7 +51,7 @@ class SourceController(InitializeMixin, object):
         
         self.__MenuBlankBtns = {}
         
-        if TESTING:
+        if Variables.TESTING:
             self.__TEST_video = {}
             self.__TEST_audio = {}
         
@@ -67,7 +67,7 @@ class SourceController(InitializeMixin, object):
     def MenuSources(self) -> List['Source']:
         srcs = self.Sources
         if System.CONTROLLER.ActCtl.CurrentActivity == ActivityMode.AdvShare:
-            srcs.insert(0, BLANK_SOURCE)
+            srcs.insert(0, Constants.BLANK_SOURCE)
             
     @MenuSources.setter
     def MenuSources(self) -> None:
@@ -109,7 +109,7 @@ class SourceController(InitializeMixin, object):
         
         self.RemoveBlankBtn()
         
-        if TESTING:
+        if Variables.TESTING:
             Logger.Debug('Setting TESTING MATRIX:', self.MatrixSize)
             for i in range(self.MatrixSize[1]):
                 self.__TEST_video[i] = 0
@@ -137,7 +137,7 @@ class SourceController(InitializeMixin, object):
         
         return rtnDict
     
-    def GetCurrentSources(self, update=True) -> Dict['Destination', MATRIX_TIE]:
+    def GetCurrentSources(self, update=True) -> Dict['Destination', MatrixTie]:
         if update:
             self.Switcher.interface.Update("OutputTieStatus")
     
@@ -149,7 +149,7 @@ class SourceController(InitializeMixin, object):
     
     def GetCurrentSourceForDestination(self, 
                                        dest: Union[int, str, 'Destination', 'SystemHardwareController'], 
-                                       update=True) -> MATRIX_TIE:
+                                       update=True) -> MatrixTie:
         if update:
             self.Switcher.interface.Update("OutputTieStatus")
         
@@ -173,7 +173,7 @@ class SourceController(InitializeMixin, object):
         AudQual = {'Output': outputNum, 'Tie Type': TieType.Audio.name}
         VidQual = {'Output': outputNum, 'Tie Type': TieType.Video.name}
         
-        if TESTING:
+        if Variables.TESTING:
             Logger.Debug('Test Data - Video', self.__TEST_video, VidQual['Output'])
             Logger.Debug('Test Data - Audio', self.__TEST_audio, AudQual['Output'])
             videoNum = self.__TEST_video.get(VidQual['Output'], 0)
@@ -182,17 +182,17 @@ class SourceController(InitializeMixin, object):
             videoNum = self.Switcher.interface.ReadStatus("OutputTieStatus", VidQual)
             audioNum = self.Switcher.interface.ReadStatus("OutputTieStatus", AudQual)
         
-        return MATRIX_TIE(video=self.SystemHost.Devices.GetSourceByInput(videoNum), 
+        return MatrixTie(video=self.SystemHost.Devices.GetSourceByInput(videoNum), 
                           audio=self.SystemHost.Devices.GetSourceByInput(audioNum))
 
-    def MatrixAction(self, action: Union[MATRIX_ACTION, List[MATRIX_ACTION]]) -> Dict['Destination', MATRIX_TIE]:
+    def MatrixAction(self, action: Union[MatrixAction, List[MatrixAction]]) -> Dict['Destination', MatrixTie]:
         if isinstance(action, list):
             for act in action:
                 self.MatrixAction(act)
-        elif isinstance(action, MATRIX_ACTION):
+        elif isinstance(action, MatrixAction):
             qual = {'Input': action.input, 'Output': action.output, 'Tie Type': action.type.name}
             
-            if TESTING:
+            if Variables.TESTING:
                 Logger.Debug("(Test) Sending Matrix Tie Command", "Value=None", 'Qualifier={}'.format(qual), separator=' | ')
                 self.__TEST_Set_MatrixTieCommand(qual)
             else:

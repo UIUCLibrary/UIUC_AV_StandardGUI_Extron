@@ -30,10 +30,11 @@ from extronlib.system import File
 
 #### Project imports
 from modules.helper.ExtendedUIClasses import ExButton, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
-import modules.helper.ExtendedUIClasses.UISets
-from modules.helper.PrimitiveObjects import ControlObject
+from modules.helper.ExtendedUIClasses.ControlObject import ControlObject
 from modules.helper.Collections import UIObjectCollection, ControlGroupCollection
 from modules.helper.CommonUtilities import Logger
+
+import modules.helper.ExtendedUIClasses.UISets
 import modules.project.callbacks.RefCallbacks
 import modules.project.callbacks.PopupCallbacks
 

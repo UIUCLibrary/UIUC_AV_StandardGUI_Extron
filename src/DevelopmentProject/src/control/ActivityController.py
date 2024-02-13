@@ -30,11 +30,16 @@ if TYPE_CHECKING: # pragma: no cover
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
 from modules.helper.ExtendedSystemClasses import ExTimer
-from modules.helper.PrimitiveObjects import DictObj
-from Constants import STANDBY, ActivityMode, SystemState, TieType, MATRIX_ACTION
-import System
+from modules.helper.PrimitiveObjects import (DictObj, 
+                                             ActivityMode, 
+                                             SystemState, 
+                                             TieType, 
+                                             MatrixAction)
 from ui.interface.TouchPanel import StartShutdownConfirmation
 from ui.Feedback.Activity import NewActivityFeedback
+
+import System
+import Constants
 
 
 ## End Imports -----------------------------------------------------------------
@@ -145,12 +150,12 @@ class ActivityController:
             # Start Up Source Switches
             if self.SystemHost.TransitionState[1][1] == ActivityMode.Share:
                 # Share Mode
-                swMatrixAction = MATRIX_ACTION(output= 'all', 
+                swMatrixAction = MatrixAction(output= 'all', 
                                                input= self.SystemHost.Devices.GetSource(id=self.SystemHost.DefaultSourceId).Input, 
                                                type= TieType.AudioVideo)
             elif self.SystemHost.TransitionState[1][1] == ActivityMode.AdvShare:
                 # Adv Share Mode
-                swMatrixAction = MATRIX_ACTION(output= 'all', 
+                swMatrixAction = MatrixAction(output= 'all', 
                                                input= self.SystemHost.Devices.GetSource(id=self.SystemHost.DefaultSourceId).Input, 
                                                type= TieType.AudioVideo)
             elif self.SystemHost.TransitionState[1][1] == ActivityMode.GroupWork:
@@ -158,7 +163,7 @@ class ActivityController:
                 swMatrixAction = []
                 for dest in self.SystemHost.Devices.Destinations:
                     Logger.Log("Destination Info", type(dest.Destination), dest.Destination.GroupWorkSource), type(dest.Destination.GroupWorkSource)
-                    swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
+                    swMatrixAction.append(MatrixAction(output= dest.Destination.Output,
                                                         input= dest.Destination.GroupWorkSource.Input,
                                                         type= TieType.AudioVideo))
         else:
@@ -167,7 +172,7 @@ class ActivityController:
             # Activity Switch Source Switches
             if self.SystemHost.TransitionState[1][1] == ActivityMode.Share:
                 # Share Mode
-                swMatrixAction = MATRIX_ACTION(output= 'all',
+                swMatrixAction = MatrixAction(output= 'all',
                                                input= currentPriSource.video.Input,
                                                type= TieType.AudioVideo)
                 
@@ -181,11 +186,11 @@ class ActivityController:
                 for dest in self.SystemHost.Devices.Destinations:
                     Logger.Log("Destination Info", type(dest.Destination), dest.Destination.GroupWorkSource), type(dest.Destination.GroupWorkSource)
                     if dest.Id == self.SystemHost.PrimaryDestinationId:
-                        swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
+                        swMatrixAction.append(MatrixAction(output= dest.Destination.Output,
                                                             input= currentPriSource.video.Input,
                                                             type= TieType.AudioVideo))
                     else:
-                        swMatrixAction.append(MATRIX_ACTION(output= dest.Destination.Output,
+                        swMatrixAction.append(MatrixAction(output= dest.Destination.Output,
                                                             input= dest.Destination.GroupWorkSource.Input,
                                                             type= TieType.AudioVideo))
         
@@ -219,7 +224,7 @@ class ActivityController:
 ## Begin Function Definitions --------------------------------------------------
 
 def ActivitySelect(button: Union['Button', 'ExButton'], action: str) -> None:
-    if button.activity not in STANDBY:
+    if button.activity not in Constants.STANDBY:
         System.CONTROLLER.SystemActivity = ActivityMode[button.activity]
     else:
         StartShutdownConfirmation(System.CONTROLLER.SystemActivity, click=True)

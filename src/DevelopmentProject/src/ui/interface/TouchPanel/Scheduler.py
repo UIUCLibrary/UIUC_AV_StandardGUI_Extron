@@ -32,7 +32,7 @@ from extronlib.system import Timer, Clock
 #### Project imports
 from modules.helper.ModuleSupport import eventEx
 from modules.helper.CommonUtilities import Logger
-from Constants import ActivityMode, SystemState
+from modules.helper.PrimitiveObjects import ActivityMode, SystemState
 from ui.interface.TouchPanel import StartShutdownConfirmation
 import System
 

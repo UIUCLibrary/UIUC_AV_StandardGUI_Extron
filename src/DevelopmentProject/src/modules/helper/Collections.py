@@ -20,8 +20,7 @@
 from typing import (TYPE_CHECKING, Dict, Iterator, List, Union, TypeVar,
                     ValuesView, ItemsView, KeysView)
 if TYPE_CHECKING: # pragma: no cover
-    from modules.device.classes.Destinations import Destination
-    from modules.device.classes.Sources import Source
+    from modules.device.Classes import Source, Destination
     from modules.helper.ExtendedDeviceClasses import ExProcessorDevice
     
     _KT = TypeVar('_KT')

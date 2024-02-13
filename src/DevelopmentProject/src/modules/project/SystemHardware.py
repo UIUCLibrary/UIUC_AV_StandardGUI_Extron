@@ -34,8 +34,7 @@ from inspect import getmro
 from modules.helper.ConnectionHandler import GetConnectionHandler
 from modules.device.mixins.Interface import InterfaceSystemHost
 from modules.helper.CommonUtilities import Logger
-from modules.device.classes.Sources import Source
-from modules.device.classes.Destinations import Destination
+from modules.device.Classes import Source, Destination, Camera
 from modules.helper.MixIns import InitializeMixin
 import Variables
 import System
@@ -81,23 +80,32 @@ class SystemHardwareController(InitializeMixin, object):
             self.__Constructor = getattr(self.__Module,
                                         Interface['interface_class'])
             
-            if Interface['interface_class'] == 'SerialClass':
-                host_id = Interface['interface_configuration']['Host']
+            self.__Interface = Interface
+        else:
+            self.__Interface = None
+    
+    def __repr__(self) -> str:
+        return 'Device: {} ({}|{})'.format(self.Name, self.Id, self.ConnectionStatus)
+    
+    def __Initialize(self):
+        if self.__Interface is not None:
+            if self.__Interface['interface_class'] == 'SerialClass':
+                host_id = self.__Interface['interface_configuration']['Host']
                 # TODO: this may need to check other collections for host matches if using expansion devices
-                Interface['interface_configuration']['Host'] = System.CONTROLLER.Processors.GetProcessorById(host_id)
+                self.__Interface['interface_configuration']['Host'] = System.CONTROLLER.Processors.GetProcessorById(host_id)
             
-            if 'ConnectionHandler' in Interface and isinstance(Interface['ConnectionHandler'], dict):
-                self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),
-                                                    **Interface['ConnectionHandler'])
+            if 'ConnectionHandler' in self.__Interface and isinstance(self.__Interface['ConnectionHandler'], dict):
+                self.interface = GetConnectionHandler(self.__Constructor(**self.__Interface['interface_configuration']),
+                                                    **self.__Interface['ConnectionHandler'])
                 if not Variables.TESTING:
                     self.interface.Connect()
             else:
-                self.interface = self.__Constructor(**Interface['interface_configuration'])
+                self.interface = self.__Constructor(**self.__Interface['interface_configuration'])
             
             # add mixin(s) to the interface class
             # this prepends 'ex' to the front of the existing class name and adds a tuple of mixin classes to the existing class bases.
             originalClass = type(self.interface)
-            exClassName = 'ex{}_{}'.format(str(Interface['module']).capitalize(), Interface['interface_class'])
+            exClassName = 'ex{}_{}'.format(str(self.__Interface['module']).capitalize(), self.__Interface['interface_class'])
             
             # check for feedback modules
             # feedbackModule = importlib.util.find_spec('ui.feedback.device.{}'.format(Interface['module']))
@@ -120,11 +128,7 @@ class SystemHardwareController(InitializeMixin, object):
             self.interface.Collection = self.Collection
             
             self.interface.SubscribeStatus('ConnectionStatus', None, self.__ConnectionStatus)
-    
-    def __repr__(self) -> str:
-        return 'Device: {} ({}|{})'.format(self.Name, self.Id, self.ConnectionStatus)
-    
-    def __Initialize(self):        
+        
         # subscription data structure example
         # subscriptions = [
         #     {
@@ -204,8 +208,11 @@ class SystemHardwareController(InitializeMixin, object):
             # configure switch
             pass
         elif hasattr(self, 'Camera'):
-            # configure camera
-            pass
+            # Logger.Log('Initializeing Camera')
+            camDict = dict(self.Camera)
+            camDict['device'] = self
+            
+            self.Camera = Camera(**camDict)
         elif hasattr(self, 'Microphone'):
             # configure microphone
             pass

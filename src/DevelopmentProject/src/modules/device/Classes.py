@@ -14,18 +14,170 @@
 # limitations under the License.
 ################################################################################
 
+## Begin Imports ---------------------------------------------------------------
+
+#### Type Checking
 from typing import TYPE_CHECKING, Dict, Union, cast
 if TYPE_CHECKING: # pragma: no cover
-    from extronlib.ui import Button, Label
     from modules.project.SystemHardware import SystemHardwareController
-    from Constants import LAYOUT
+    from extronlib.ui import Button, Label
+    from modules.helper.PrimitiveObjects import Layout
 
+#### Python imports
+
+#### Extron Library Imports
 from extronlib import event
-from modules.device.classes.Sources import Source
-from modules.device.mersive_solstice_pod import PodFeedbackHelper
+
+#### Project imports
 from modules.helper.CommonUtilities import isinstanceEx
-from Constants import BLANK_SOURCE, MATRIX_TIE
+from modules.device.mersive_solstice_pod import PodFeedbackHelper
+from modules.helper.PrimitiveObjects import MatrixTie
+
 import System
+
+## End Imports -----------------------------------------------------------------
+##
+## Begin Class Definitions -----------------------------------------------------
+
+class Source:
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 icon: int,
+                 input: int,
+                 id: str=None,
+                 name: str=None,
+                #  alert: str='',
+                 srcCtl: str=None,
+                 advSrcCtl: str=None) -> None:
+        
+        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
+            self.Device = device
+            self.Id = device.Id
+            self.Name = device.Name
+        elif id is not None and name is not None:
+            self.Device = None
+            self.Id = id
+            self.Name = name
+        else:
+            raise ValueError('Device or id and name must be provided')
+        
+        if isinstance(icon, int) and icon >= 0:
+            self.Icon = icon
+        else:
+            raise ValueError('Icon must be an integer greater than or equal to 0')
+        
+        if isinstance(input, int) and input >= 0:
+            self.Input = input
+        else:
+            raise ValueError('Input must be an integer greater than or equal to 0')
+        
+        self.SourceControlPage = srcCtl
+        self.AdvSourceControlPage = advSrcCtl
+        
+        # self.__AlertText = {}
+        # self.__AlertIndex = 0
+        # self.__OverrideAlert = None
+        # self.__OverrideState = False
+        # self.__DefaultAlert = alert
+        
+        # self.__AlertTimer = Timer(1, self.__AlertTimerHandler)
+        # self.__AlertTimer.Stop()
+
+    # @property
+    # def AlertText(self):
+    #     if not self.__OverrideState:
+    #         if len(self.__AlertText) > 0:
+    #             txt =  list(self.__AlertText.keys())[self.__AlertIndex]
+    #             self.CycleAlert()
+    #         else:
+    #             txt = ''
+    #     else:
+    #         txt = self.__OverrideAlert
+    #     return txt
+    
+    # @property
+    # def AlertBlock(self):
+    #     block = '\n'.join(self.__AlertText)
+    #     block = block.strip()
+    #     if self.__OverrideState:
+    #         block = '{}\n{}'.format(self.__OverrideAlert, block)
+    #     return block
+    
+    # @property
+    # def Alerts(self):
+    #     count = len(self.__AlertText)
+    #     if self.__OverrideState:
+    #         count += 1
+    #     return count
+    
+    # @property
+    # def AlertFlag(self):
+    #     if len(self.__AlertText) > 0:
+    #         return True
+    #     elif self.__OverrideState:
+    #         return True
+    #     else:
+    #         return False
+    
+    # Event Handlers +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    # Private Methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    # def __AlertTimerHandler(self, timer: 'Timer', count: int):
+    #     iterList = list(self.__AlertText.keys())
+    #     for msg in iterList:
+    #         if self.__AlertText[msg] > 0:
+    #             self.__AlertText[msg] -= 1
+    #         elif self.__AlertText[msg] == 0:
+    #             self.__AlertText.pop(msg)
+    #     if len(self.__AlertText) == 0:
+    #         timer.Stop()
+    
+    # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    # def CycleAlert(self):
+    #     self.__AlertIndex += 1
+    #     if self.__AlertIndex >= len(self.__AlertText):
+    #         self.__AlertIndex = 0
+    
+    # def AppendAlert(self, msg: str=None, timeout: int=0) -> None:
+    #     if msg is None:
+    #         msg = self.__DefaultAlert
+            
+    #     if timeout > 0:
+    #         self.__AlertText[msg] = timeout
+    #     else: 
+    #         self.__AlertText[msg] = -1
+        
+    #     if self.__AlertTimer.State in ['Paused', 'Stopped']:
+    #         self.__AlertTimer.Restart()
+        
+    # def OverrideAlert(self, msg: str, timeout: int=60) -> None:
+    #     self.__OverrideAlert = msg
+    #     self.__OverrideState = True
+    #     if timeout > 0:
+    #         @Wait(timeout) # pragma: no cover
+    #         def OverrideTimeoutHandler():
+    #             self.__OverrideState = False
+    
+    # def ClearOverride(self):
+    #     self.__OverrideAlert = None
+    #     self.__OverrideState = False
+    
+    # def ClearAlert(self, msg: str=None):
+    #     if msg is None:
+    #         msg = self.__DefaultAlert
+            
+    #     self.__AlertText.pop(msg)
+        
+    #     if len(self.__AlertText) == 0:
+    #         self.__AlertTimer.Stop()
+    
+    # def ResetAlert(self) -> None:
+    #     self.__AlertText = {}
+    #     self.__AlertTimer.Stop()
+        
+BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 
 class Destination:
     def __init__(self,
@@ -33,7 +185,7 @@ class Destination:
                  output: int,
                  destType: str,
                  groupWrkSrc: str,
-                 advLayout: 'LAYOUT',
+                 advLayout: 'Layout',
                  screen: str = None,
                  confFollow: str=None) -> None:
         
@@ -67,12 +219,12 @@ class Destination:
         self.__MatrixRow = None
     
     @property
-    def AssignedSource(self) -> MATRIX_TIE:
-        return MATRIX_TIE(video=self.__AssignedVidSource, audio=self.__AssignedAudSource)
+    def AssignedSource(self) -> MatrixTie:
+        return MatrixTie(video=self.__AssignedVidSource, audio=self.__AssignedAudSource)
     
     @property
-    def AssignedInput(self) -> MATRIX_TIE:
-        return MATRIX_TIE(video=self.__AssignedVidInput, audio=self.__AssignedAudInput)
+    def AssignedInput(self) -> MatrixTie:
+        return MatrixTie(video=self.__AssignedVidInput, audio=self.__AssignedAudInput)
     
     @property
     def __AssignedVidInput(self) -> int:
@@ -328,3 +480,29 @@ class Destination:
             self.__AdvAlertBtn.SetEnable(False)
             self.__AdvAlertBtn.SetState(1)
             
+class Camera:
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 id: str=None,
+                 name: str=None) -> None:
+        
+        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
+            self.Device = device
+            self.Id = device.Id
+            self.Name = device.Name
+        elif id is not None and name is not None:
+            self.Device = None
+            self.Id = id
+            self.Name = name
+        else:
+            raise ValueError('Device or id and name must be provided')
+        
+        
+## End Class Definitions -------------------------------------------------------
+##
+## Begin Function Definitions --------------------------------------------------
+
+## End Function Definitions ----------------------------------------------------
+
+
+

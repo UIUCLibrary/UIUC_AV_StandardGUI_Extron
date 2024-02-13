@@ -28,9 +28,7 @@ import json
 
 #### Project imports
 from modules.helper.Collections import DeviceCollection
-from modules.helper.PrimitiveObjects import DictObj
-from Variables import PROJECT_FILE
-from Constants import LAYOUT
+from modules.helper.PrimitiveObjects import DictObj, Layout
 from ui.Feedback.Device import (DSP_GainHandler,
                                 DSP_MuteHandler, 
                                 DSP_LevelHandler,
@@ -44,11 +42,12 @@ from ui.Feedback.Device import (DSP_GainHandler,
                                 VMX_OutputHandler)
 # TODO: load this in a more secure way
 import secrets_devices
+import Variables
 
 ## End Imports -----------------------------------------------------------------
 
 # Pull Control System Devices Data from Project File
-__ProjectFile = open('/var/nortxe/.gcp/{}'.format(PROJECT_FILE))
+__ProjectFile = open('/var/nortxe/.gcp/{}'.format(Variables.PROJECT_FILE))
 __ProjectData = json.load(__ProjectFile)
 __ProjectObj= DictObj(__ProjectData)
 ControlDevices = __ProjectObj.devices
@@ -126,7 +125,7 @@ SystemDevices.AddNewDevice(
             'Source': {
                 'icon': 2,
                 'input': 1,
-                'alert': 'Ensure the PC is awake',
+                # 'alert': 'Ensure the PC is awake',
                 'srcCtl': 'PC',
                 'advSrcCtl': None
             }
@@ -163,7 +162,7 @@ SystemDevices.AddNewDevice(
                 'Source': {
                     'icon': 3,
                     'input': 2,
-                    'alert': 'Contact Library IT for Assistance with this Wireless Device.',
+                    # 'alert': 'Contact Library IT for Assistance with this Wireless Device.',
                     'srcCtl': 'WPD',
                     'advSrcCtl': 'WPD'
                 }
@@ -186,7 +185,7 @@ SystemDevices.AddNewDevice(
                 'output': 1,
                 'destType': 'conf',
                 'groupWrkSrc': 'WPD001',
-                'advLayout': LAYOUT(row=0, col=1),
+                'advLayout': Layout(row=0, col=1),
                 'confFollow': 'MON002'
             }
         }
@@ -262,7 +261,7 @@ SystemDevices.AddNewDevice(
                 'output': 2,
                 'destType': 'mon',
                 'groupWrkSrc': 'WPD001',
-                'advLayout': LAYOUT(row=1, col=0)
+                'advLayout': Layout(row=1, col=0)
             }
         }
     }
@@ -471,7 +470,10 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'PresetRecall'
             },
-            'Presets': {}
+            'Presets': {},
+            'Camera': {
+                
+            }
         }
     }
 )

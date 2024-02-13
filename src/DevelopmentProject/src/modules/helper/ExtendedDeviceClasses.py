@@ -36,7 +36,7 @@ import System
 
 from modules.helper.CommonUtilities import Logger
 from modules.helper.ModuleSupport import WatchVariable, eventEx
-from modules.helper.PrimitiveObjects import Alias, classproperty
+from modules.helper.PrimitiveObjects import Alias, classproperty, SystemState
 from ui.interface.ButtonPanel import ButtonPanelInterface
 from ui.interface.TouchPanel import TouchPanelInterface
 from ui.interface.TouchPanel.SystemStatus import SystemStatusController
@@ -44,7 +44,6 @@ from ui.interface.TouchPanel.PanelAbout import PanelAboutController
 from ui.interface.TouchPanel.Scheduler import ScheduleController
 from ui.utilities.Keyboard import KeyboardController
 from ui.utilities.PinPad import PINController
-from Constants import SystemState
 
 ## End Imports -----------------------------------------------------------------
 ##

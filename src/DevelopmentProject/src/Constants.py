@@ -46,35 +46,11 @@ if TYPE_CHECKING: # pragma: no cover
                 ScheduleEditGroup)
 
 # Python imports
-from enum import Enum
-from collections import namedtuple
 
 # Project imports
-from modules.device.classes.Sources import Source
+from modules.device.Classes import BLANK_SOURCE  # noqa: F401
 from modules.helper.CommonUtilities import MergeLists
-
-class ActivityMode(Enum):
-    Standby = 0
-    Share = 1
-    AdvShare = 2
-    GroupWork = 3
-
-class SystemState(Enum):
-    Standby = 0
-    Active = 1
-    
-class TieType(Enum):
-    Untie = 0
-    Audio = 1
-    Video = 2
-    AudioVideo = 3
-
-BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
-
-MATRIX_TIE    = namedtuple('MatrixTie',    ['video', 'audio'])
-MATRIX_ACTION = namedtuple('MatrixAction', ['output', 'input', 'type'])
-
-LAYOUT = namedtuple('Layout', ['row', 'col'])
+from modules.helper.PrimitiveObjects import ActivityMode, SystemState
 
 OFF =  ('off', 
         'Off', 
