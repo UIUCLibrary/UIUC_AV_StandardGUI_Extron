@@ -81,15 +81,18 @@ class Alias:
         setattr(obj, self.source_name, value)
 
 class DictObj:
-    def __init__(self, src_dict: dict):
+    def __init__(self, src_dict: dict, recurse: bool=True):
         if not isinstance(src_dict, dict):
             raise TypeError('DictObj src_dict must be of type dict')
         
         for key, val in src_dict.items():
-            if isinstance(val, (list, tuple)):
-               setattr(self, key, [DictObj(x) if isinstance(x, dict) else x for x in val])
+            if recurse:
+                if isinstance(val, (list, tuple)):
+                    setattr(self, key, [DictObj(x) if isinstance(x, dict) else x for x in val])
+                else:
+                    setattr(self, key, DictObj(val) if isinstance(val, dict) else val)
             else:
-               setattr(self, key, DictObj(val) if isinstance(val, dict) else val)
+                setattr(self, key, val)
                
     def __repr__(self) -> str:
         return str(self.__dict__)
@@ -351,7 +354,7 @@ class Alert(InitializeMixin, object):
             'Qualifier': TestQualifier,
             'Operator': TestOperator,
             'Operand': TestOperand,
-        })
+        }, recurse=False)
         self.__LastResult = None
         
         self.DeviceId = AlertDeviceId
