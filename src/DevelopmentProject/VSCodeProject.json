@@ -17,7 +17,7 @@
     },
     "devices": [
         {
-            "name": "CTL001 : LIBAVSTEST05",
+            "name": "mainlib019c-ctl001",
             "part_number": "60-1911-01",
             "alias": "CTL001",
             "network": {
@@ -31,7 +31,7 @@
             }
         },
         {
-            "name": "TP001 : LIBAVSTEST04",
+            "name": "mainlib019c-tp001",
             "part_number": "60-1566-02",
             "alias": "TP001",
             "network": {

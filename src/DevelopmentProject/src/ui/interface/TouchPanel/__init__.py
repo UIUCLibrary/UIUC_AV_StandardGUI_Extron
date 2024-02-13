@@ -318,7 +318,6 @@ def SourceSelect(button: 'ExButton', action: str) -> None:
         ShowSourceSelectionFeedback(System.CONTROLLER.UIDevices, refBtn)
         
         # Update source control area
-        
         ShowSourceControlFeedback(System.CONTROLLER.UIDevices, refBtn)
         
     elif System.CONTROLLER.SystemActivity == ActivityMode.GroupWork:
@@ -336,6 +335,7 @@ def SourceSelect(button: 'ExButton', action: str) -> None:
         ShowSourceControlFeedback(System.CONTROLLER.UIDevices, refBtn)
         
     elif System.CONTROLLER.SystemActivity == ActivityMode.AdvShare:
+        # Source Select Only
         Logger.Debug('Source Selected (AdvShare)', refBtn.Name, refBtn.input)
         
 

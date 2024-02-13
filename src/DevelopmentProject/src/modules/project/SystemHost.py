@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import DeviceCollection
+    from modules.helper.Collections import DeviceCollection, AlertCollection
     from modules.helper.ExtendedSystemClasses import ExTimer
 
 #### Python imports
@@ -47,7 +47,8 @@ class SystemController(InitializeMixin, object):
     def __init__(self, 
                  controlDevices: list,
                  systemDevices: 'DeviceCollection',
-                 # expansionDevices: Union[str, List[str]]=None
+                 # expansionDevices: Union[str, List[str]]=None,
+                 alerts: 'AlertCollection'
                  ) -> None:
         
         InitializeMixin.__init__(self, self.__Initialize)
@@ -81,6 +82,9 @@ class SystemController(InitializeMixin, object):
         self.TechPIN = Variables.PIN_TECH
         
         self.Devices = systemDevices
+        self.Devices.SystemHost = self
+        self.Alerts = alerts
+        self.Alerts.SystemHost = self
         
         self.DefaultSourceId = Variables.DEFAULT_SOURCE
         self.DefaultCameraId = Variables.DEFAULT_CAMERA
@@ -229,6 +233,9 @@ class SystemController(InitializeMixin, object):
         self.PollCtl.Initialize()
         self.SrcCtl.Initialize()
         self.ActCtl.Initialize()
+        
+        ## Intialize Other Objects ---------------------------------------------
+        self.Alerts.Initialize()
         
         Logger.Log('System Initialized')
         for uiDev in self.UIDevices:

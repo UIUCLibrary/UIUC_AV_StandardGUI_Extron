@@ -657,10 +657,12 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         for btn in self.Objects:
             # Set Names and icons
             index = self.Objects.index(btn)
+            if index >= len(curRefSet):
+                break
             curRefBtn = curRefSet[index]
             btn.SetText(curRefBtn.Text)
             
-            Logger.Log('Index', index, 'Text', btn.Text, 'Icon', getattr(curRefBtn, 'icon', 'no icon'))
+            # Logger.Log('Index', index, 'Text', btn.Text, 'Icon', getattr(curRefBtn, 'icon', 'no icon'))
             if hasattr(curRefBtn, 'icon'):
                 states = {'offState': int('{}0'.format(curRefBtn.icon)), 
                           'onState':  int('{}1'.format(curRefBtn.icon))}

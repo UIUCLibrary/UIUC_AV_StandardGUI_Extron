@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Union, Callable, Any, List, Dict
 from types import ModuleType
 # from typing_extensions import SupportsIndex
 if TYPE_CHECKING: # pragma: no cover
-    pass
+    from modules.helper.Collections import AlertCollection
 
 #### Python imports
 import importlib
@@ -37,7 +37,8 @@ from extronlib.system import RFile
 #### Project imports
 import control.AV
 from modules.helper.ModuleSupport import WatchVariable, eventEx
-from modules.helper.CommonUtilities import Logger, isinstanceEx
+from modules.helper.MixIns import InitializeMixin
+from modules.helper.CommonUtilities import Logger, isinstanceEx, MergeLists
 import Constants
 
 ## End Imports -----------------------------------------------------------------
@@ -451,7 +452,137 @@ class SettingsObject():
         self.__JSON = json.dumps(self.Settings.serialize(), indent=4)
         file.write(self.__JSON)
         file.close()
+       
+class Alert(InitializeMixin, object):
+    __eqList  = ['eq', 'equal', 'equals', 'equal to', '=', '==']
+    __neqList = ['neq', '!eq', 'not equal', 'not equals', 'unequal to', '!=', '!==']
+    __gtList  = ['gt', 'greater', 'greater than', '>']
+    __gteList = ['gte', 'greater or equal', 'greater than or equal to', '>=']
+    __ltList  = ['lt', 'less', 'less than', '<']
+    __lteList = ['lte', 'less or equal', 'less than or equal to', '<=']
+    __inList  = ['in', 'in list', 'in object']
+    __ninList = ['not in', '!in', 'not in list', 'not in object']
+    __isList  = ['is']
+    __isnList = ['is not', '!is']
+    __operatorList = MergeLists(__eqList, __neqList, __gteList, __gteList, 
+                                __ltList, __lteList, __inList, __ninList, 
+                                __isList, __isnList)
+    
+    def __init__(self, 
+                 AlertCollection: 'AlertCollection',
+                 Name: str, 
+                 AlertDeviceId: str,
+                 AlertLevel: Union[str, Callable],
+                 AlertText: Union[str, Callable],
+                 TestDeviceId: str, 
+                 TestCommand: str, 
+                 TestOperator: Union[str, Callable],
+                 TestOperand: Any,
+                 TestQualifier: dict = None) -> None:
+        InitializeMixin.__init__(self, self.__Initialize)
         
+        self.Name = Name
+        self.AlertCollection = AlertCollection
+        
+        if not (callable(TestOperator) or TestOperator in self.__operatorList):
+            raise ValueError('TestOperator must be a valid comparison string or callable'
+                             )
+        self.__Test = DictObj({
+            'DeviceId': TestDeviceId,
+            'DeviceInterface': None,
+            'Command': TestCommand,
+            'Qualifier': TestQualifier,
+            'Operator': TestOperator,
+            'Operand': TestOperand,
+        })
+        self.__LastResult = None
+        
+        self.DeviceId = AlertDeviceId
+        
+        if callable(AlertLevel) or isinstance(AlertLevel, str):
+            self.__Level = AlertLevel
+        else:
+            raise ValueError('AlertLevel must either be a str or callable')
+        
+        if callable(AlertText) or isinstance(AlertText, str):
+            self.__Text = AlertText
+        else:
+            raise ValueError('AlertText must either be a str or callable')
+        
+        self.Changed = WatchVariable('Alert Value ({}) Changed'.format(self.Name))
+        
+    @property
+    def Active(self) -> bool:
+        # callable
+        if callable(self.__Test.Operator):
+            return bool(self.__Test.Operator(self.__LastResult, self.__Test.Operand))
+        # ==
+        elif self.__Test.Operator in self.__eqList:
+            return (self.__LastResult == self.__Test.Operand)
+        # !=
+        elif self.__Test.Operator in self.__neqList:
+            return (self.__LastResult != self.__Test.Operand)
+        # >
+        elif self.__Test.Operator in self.__gtList:
+            return (self.__LastResult > self.__Test.Operand)
+        # >=
+        elif self.__Test.Operator in self.__gteList:
+            return (self.__LastResult >= self.__Test.Operand)
+        # <
+        elif self.__Test.Operator in self.__ltList:
+            return (self.__LastResult < self.__Test.Operand)
+        # <=
+        elif self.__Test.Operator in self.__lteList:
+            return (self.__LastResult <= self.__Test.Operand)
+        # in
+        elif self.__Test.Operator in self.__inList:
+            return (self.__LastResult in self.__Test.Operand)
+        # not in
+        elif self.__Test.Operator in self.__ninList:
+            return (self.__LastResult not in self.__Test.Operand)
+        # is
+        elif self.__Test.Operator in self.__isList:
+            return (self.__LastResult is self.__Test.Operand)
+        # is not
+        elif self.__Test.Operator in self.__isnList:
+            return (self.__LastResult is not self.__Test.Operand)
+    
+    @Active.setter
+    def Active(self, val) -> None:
+        raise AttributeError('Setting Alert.Active is disallowed.')
+    
+    @property
+    def Level(self) -> str:
+        if callable(self.__Level):
+            return self.__Level(self, self.__LastResult)
+        else:
+            return self.__Level
+        
+    @Level.setter
+    def Level(self, val) -> None:
+        raise AttributeError('Setting Alert.Level is disallowed.')
+    
+    @property
+    def Text(self) -> str:
+        if callable(self.__Text):
+            return self.__Text(self, self.__LastResult)
+        else:
+            return self.__Text
+    
+    def __repr__(self) -> str:
+        act = 'X' if self.Active else '_'
+        return '<Alert {} [{}]>'.format(self.Name, act)
+     
+    def __Initialize(self) -> None:
+        # get interface for test device
+        self.__Test.DeviceInterface = self.AlertCollection.SystemHost.Devices[self.__Test.DeviceId].interface
+    
+    def Check(self) -> bool:
+        prev = self.__LastResult
+        self.__LastResult = self.__Test.DeviceInterface.ReadStatus(self.__Test.Command, self.__Test.Qualifier)
+
+        if prev != self.__LastResult:
+            self.Changed.Change(self.Active, self.Level, self.Text)
 
 ## End Class Definitions -------------------------------------------------------
 ##

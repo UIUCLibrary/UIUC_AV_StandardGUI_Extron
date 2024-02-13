@@ -25,9 +25,10 @@ from extronlib import Platform, Version
 from modules.helper.CommonUtilities import Logger
 from modules.project.SystemHost import SystemController
 import Devices
+import Alerts
 
 ## End Imports -----------------------------------------------------------------
 
 Logger.Log('ControlScript', Platform(), Version(), separator=' - ')
 
-CONTROLLER = SystemController(Devices.ControlDevices, Devices.SystemDevices)
+CONTROLLER = SystemController(Devices.ControlDevices, Devices.SystemDevices, Alerts.SystemAlerts)

@@ -38,7 +38,7 @@ from ui.Feedback.Device import (DSP_GainHandler,
                                 Display_AudioMuteStatusHandler,
                                 Display_PowerStatusHandler,
                                 Display_VolumeStatusHandler,
-                                # Mic_MuteHandler,
+                                Mic_MuteHandler,
                                 WPD_StatusHandler,
                                 VMX_InputHandler,
                                 VMX_OutputHandler)
@@ -125,9 +125,53 @@ SystemDevices.AddNewDevice(
         'Options': {
             'Source': {
                 'icon': 2,
-                'input': 1,
+                'input': 3,
                 'alert': 'Ensure the PC is awake',
                 'srcCtl': 'PC',
+                'advSrcCtl': None
+            }
+        }
+    }
+)
+
+# UI001 - HDMI1
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'UI001',
+        'Name': 'HDMI 1',
+        'Manufacturer': None,
+        'Model': None,
+        'Interface': None,
+        'Subscriptions': None,
+        'Polling': None,
+        'Options': {
+            'Source': {
+                'icon': 1,
+                'input': 1,
+                'alert': 'Ensure all cables and adapters to your HDMI device are fully seated',
+                'srcCtl': 'HDMI',
+                'advSrcCtl': None
+            }
+        }
+    }
+)
+
+# UI002 - HDMI2
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'UI002',
+        'Name': 'HDMI 2',
+        'Manufacturer': None,
+        'Model': None,
+        'Interface': None,
+        'Subscriptions': None,
+        'Polling': None,
+        'Options': {
+            'Source': {
+                'icon': 1,
+                'input': 2,
+                'alert': 'Ensure all cables and adapters to your HDMI device are fully seated',
+                'srcCtl': 'HDMI',
                 'advSrcCtl': None
             }
         }
@@ -138,14 +182,14 @@ SystemDevices.AddNewDevice(
 SystemDevices.AddNewDevice(
     **{
         'Id': 'WPD001',
-        'Name': 'Wireless',
+        'Name': 'Inst. Wireless',
         'Manufacturer': 'Mersive',
         'Model': 'Solstice Pod Gen 3',
         'Interface': {
             'module': 'mersive_solstice_pod',
             'interface_class': 'RESTClass',
             'interface_configuration': {
-                'host': 'mainlib019c-wpd001.library.illinois.edu',
+                'host': 'wpd001',
                 'devicePassword': secrets_devices.mersive_password,
             },
         },
@@ -162,7 +206,7 @@ SystemDevices.AddNewDevice(
             {
                 'Source': {
                     'icon': 3,
-                    'input': 2,
+                    'input': 4,
                     'alert': 'Contact Library IT for Assistance with this Wireless Device.',
                     'srcCtl': 'WPD',
                     'advSrcCtl': 'WPD'
@@ -171,49 +215,140 @@ SystemDevices.AddNewDevice(
     }
 )
 
-# MON001 - Confidence Monitor
+# WPD002 - Mersive Solstice
 SystemDevices.AddNewDevice(
     **{
-        'Id': 'MON001',
-        'Name': 'Confidence Monitor',
-        'Manufacturer': 'TBD',
-        'Model': 'TBD',
-        'Interface': None,
-        'Subscriptions': None,
-        'Polling': None,
+        'Id': 'WPD002',
+        'Name': 'North Wireless',
+        'Manufacturer': 'Mersive',
+        'Model': 'Solstice Pod Gen 3',
+        'Interface':
+            {
+                'module': 'mersive_solstice_pod',
+                'interface_class': 'RESTClass',
+                'interface_configuration': {
+                    'host': 'wpd002',
+                    'devicePassword': secrets_devices.mersive_password
+                }
+            },
+        'Subscriptions': [],
+        'Polling':
+            [
+                {
+                    'command': 'PodStatus',
+                    'callback': WPD_StatusHandler,
+                    'active_int': 10,
+                    'inactive_int': 600
+                }
+                ],
+        'Options':
+            {
+                'Source': {
+                    'icon': 3,
+                    'input': 5,
+                    'alert': 'Contact Library IT for Assistance with this Wireless Device.',
+                    'srcCtl': 'WPD',
+                    'advSrcCtl': 'WPD'
+                }
+                }
+    }
+)
+
+# WPD003 - Mersive Solstice
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'WPD003',
+        'Name': 'South Wireless',
+        'Manufacturer': 'Mersive',
+        'Model': 'Solstice Pod Gen 3',
+        'Interface':
+            {
+                'module': 'mersive_solstice_pod',
+                'interface_class': 'RESTClass',
+                'interface_configuration': {
+                    'host': 'wpd003',
+                    'devicePassword': secrets_devices.mersive_password
+                }
+            },
+        'Subscriptions': [],
+        'Polling':
+            [
+                {
+                    'command': 'PodStatus',
+                    'callback': WPD_StatusHandler,
+                    'active_int': 10,
+                    'inactive_int': 600
+                }
+                ],
+        'Options':
+            {
+                'Source':
+                    {
+                        'icon': 3,
+                        'input': 6,
+                        'alert': 'Contact Library IT for Assistance with this Wireless Device',
+                        'srcCtl': 'WPD',
+                        'advSrcCtl': 'WPD'
+                    }
+                }
+    }
+)
+
+# PRJ001 - Projector
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'PRJ001',
+        'Name': 'Projector',
+        'Manufacturer': 'SharpNEC',
+        'Model': 'NP-PA703UL',
+        'Interface':
+        {
+            'module': 'nec_vp_NP_PA_Series2_v1_0_5_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 5,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'prj001',
+                'IPPort': 7142
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
         'Options': {
             'Destination': {
-                'output': 1,
-                'destType': 'conf',
+                'output': 3,
+                'destType': 'proj',
                 'groupWrkSrc': 'WPD001',
-                'advLayout': LAYOUT(row=0, col=1),
-                'confFollow': 'MON002'
+                'advLayout': LAYOUT(row=0, col=0),
+                'screen': 'SCN001'
             }
         }
     }
 )
 
-
-# MON002 - Room Monitor
+# MON001 - North Monitor
 SystemDevices.AddNewDevice(
     **{
-        'Id': 'MON002',
-        'Name': 'Room Monitor',
+        'Id': 'MON001',
+        'Name': 'North Monitor',
         'Manufacturer': 'SharpNEC',
-        'Model': 'LC-52LE64OU',
+        'Model': 'V625',
         'Interface':
         {
-            'module': 'shrp_display_LC_xxC6400U_xxLE640U_xxLE633U_v1_0_1_1',
-            'interface_class': 'SerialOverEthernetClass',
+            'module': 'nec_display_P_V_X_Series_v1_4_1_0',
+            'interface_class': 'EthernetClass',
             'ConnectionHandler': {
-                'keepAliveQuery': 'AspectRatio',
+                'keepAliveQuery': 'AmbientCurrentIlluminance',
                 'DisconnectLimit': 5,
                 'pollFrequency': 60
             },
             'interface_configuration': {
-                'Hostname': 'mainlib019c-dec002.library.illinois.edu',
-                'IPPort': 50004,
-                'Model': 'LC-52LE64OU'
+                'Hostname': 'mon001',
+                'IPPort': 7142,
+                'Model': 'V625'
             }
         },
         'Subscriptions': [],
@@ -247,7 +382,7 @@ SystemDevices.AddNewDevice(
             'SourceCommand':
             {
                 'command': 'Input',
-                'value': 'HDMI 1'
+                'value': 'HDMI'
             },
             'MuteCommand':
             {
@@ -261,8 +396,104 @@ SystemDevices.AddNewDevice(
             'Destination': {
                 'output': 2,
                 'destType': 'mon',
-                'groupWrkSrc': 'WPD001',
+                'groupWrkSrc': 'WPD002',
                 'advLayout': LAYOUT(row=1, col=0)
+            }
+        }
+    }
+)
+
+# MON002 - South Monitor
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'MON002',
+        'Name': 'South Monitor',
+        'Manufacturer': 'SharpNEC',
+        'Model': 'V625',
+        'Interface':
+        {
+            'module': 'nec_display_P_V_X_Series_v1_4_1_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'AmbientCurrentIlluminance',
+                'DisconnectLimit': 5,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'mon002',
+                'IPPort': 7142,
+                'Model': 'V625'
+            }
+        },
+        'Subscriptions': [],
+        'Polling':
+        [
+            {
+                'command': 'Power',
+                'callback': Display_PowerStatusHandler,
+                'active_int': 10,
+                'inactive_int': 30
+            },
+            {
+                'command': 'AudioMute',
+                'callback': Display_AudioMuteStatusHandler,
+                'active_int': 10,
+                'inactive_int': 600
+            },
+            {
+                'command': 'Volume',
+                'callback': Display_VolumeStatusHandler,
+                'active_int': 10,
+                'inactive_int': 600
+            }
+        ],
+        'Options':
+        {
+            'PowerCommand':
+            {
+                'command': 'Power',
+            },
+            'SourceCommand':
+            {
+                'command': 'Input',
+                'value': 'HDMI'
+            },
+            'MuteCommand':
+            {
+                'command': 'AudioMute',
+            },
+            'VolumeCommand':
+            {
+                'command': 'Volume'
+            },
+            'VolumeRange': (0, 100),
+            'Destination': {
+                'output': 4,
+                'destType': 'mon',
+                'groupWrkSrc': 'WPD003',
+                'advLayout': LAYOUT(row=1, col=1)
+            }
+        }
+    }
+)
+
+# MON003 - Confidence Monitor
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'MON003',
+        'Name': 'Confidence Monitor',
+        'Manufacturer': 'TBD',
+        'Model': 'TBD',
+        'Interface': None,
+        'Subscriptions': None,
+        'Polling': None,
+        'Options': {
+            'Destination': {
+                'output': 1,
+                'destType': 'conf',
+                'groupWrkSrc': 'WPD001',
+                'advLayout': LAYOUT(row=0, col=1),
+                'confFollow': 'PRJ001'
             }
         }
     }
@@ -285,7 +516,7 @@ SystemDevices.AddNewDevice(
                 'pollFrequency': 20
             },
             'interface_configuration': {
-                'Hostname': 'mainlib019c-dsp001.library.illinois.edu',
+                'Hostname': 'libavstest10.library.illinois.edu',
                 'IPPort': 22,
                 'Credentials': ('admin', secrets_devices.biamp_password)
             }
@@ -426,20 +657,166 @@ SystemDevices.AddNewDevice(
     }
 )
 
+# RF001 - Shure QLXD4
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'RF002',
+        'Name': 'Wireless Lav',
+        'Manufacturer': 'Shure',
+        'Model': 'ULXD4',
+        'Interface':
+            {
+                'module': 'shur_other_QLX_D_ULX_D_Series_v1_1_5_0',
+                'interface_class': 'EthernetClass',
+                'ConnectionHandler':
+                    {
+                        'keepAliveQuery': 'AntennaStatus',
+                        'DisconnectLimit': 5,
+                        'pollFrequency': 60
+                    },
+                'interface_configuration': {
+                    'Hostname': 'rf001',
+                    'IPPort': 2022
+                }
+            },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'Microphone': {
+                'Number': 1,
+                'Control': {
+                    'level':
+                    {
+                        'DeviceId': 'DSP001',
+                        'Cmd': 'Mic1LevelCommand',
+                        'Range': (-36, 12),
+                        'Step': 1,
+                        'StartUp': 0
+                    },
+                    'mute':
+                    {
+                        'DeviceId': 'DSP001',
+                        'Cmd': 'Mic1MuteCommand'
+                    }
+                }
+            }
+        }
+    }
+)
+
+# MIC002 - Shure MXA920
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'MIC001',
+        'Name': 'Overhead Mic',
+        'Manufacturer': 'Shure',
+        'Model': 'MXA920',
+        'Interface':
+        {
+            'module': 'shur_dsp_MXA_Series_v1_3_0_0',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'ActiveMicChannels',
+                'DisconnectLimit': 5,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'mic001',
+                'IPPort': 2202,
+                'Model': 'MXA920'
+            }
+        },
+        'Subscriptions': [],
+        'Polling':
+        [
+            {
+                'command': 'DeviceAudioMute',
+                'callback': Mic_MuteHandler,
+                'tag': ('mics', '2'),
+                'active_int': 10,
+                'inactive_int': 30
+            }
+        ],
+        'Options':
+        {
+            'MuteCommand':
+            {
+                'command': 'DeviceAudioMute'
+            },
+            'Microphone': {
+                'Number': 2,
+                'Control': {
+                    'level':
+                    {
+                        'DeviceId': 'DSP001',
+                        'Cmd': 'Mic2LevelCommand',
+                        'Range': (-36, 12),
+                        'Step': 1,
+                        'StartUp': 0
+                    },
+                    'mute':
+                    {
+                        'DeviceId': 'MIC001',
+                        'Cmd': 'MuteCommand'
+                    }
+                }
+            }
+        }
+    }
+)
+
+# DEC001 - Magewell Pro Covert for NDI to HDMI
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'DEC001',
+        'Name': 'Camera Decoder',
+        'Manufacturer': 'Magewell',
+        'Model': 'Pro Convert for NDI to HDMI',
+        'Interface':
+        {
+            'module': 'mgwl_sm_Pro_Convert_Series_v1_0_1_0',
+            'interface_class': 'HTTPClass',
+            'interface_configuration': {
+                'ipAddress': 'dec001',
+                'port': '80',
+                'deviceUsername': 'admin',
+                'devicePassword': secrets_devices.magewell_password
+            }
+        },
+        'Subscriptions': [],
+        'Polling':
+        [
+            {
+                'command': 'CurrentSelectedSourceStatus',
+                'active_int': 30,
+                'inactive_int': 600
+            }
+        ],
+        'Options':
+        {
+            'SwitchCommand':
+            {
+                'command': 'SourcePresetsListSelect',
+                'qualifier': {'NDI Source': 'True'}
+            }
+        }
+    }
+)
+
 # CAM001 - PTZOptics 12X-NDI
 SystemDevices.AddNewDevice(
     **{
         'Id': 'CAM001',
-        'Name': 'Conference Camera',
-        'Manufacturer': 'Huddle Cam',
-        'Model': 'HCX10X-SV',
+        'Name': 'North Camera',
+        'Manufacturer': 'PTZOptics',
+        'Model': 'PT12X-NDI-GY',
         'Interface':
         {
-            'module': 'vsca_camera_Visca_v1_0_1_2',
-            'interface_class': 'SerialClass',
+            'module': 'ptz_camera_PT30XNDI_GY_WH_v1_0_0_0',
+            'interface_class': 'EthernetClass',
             'interface_configuration': {
-                'Host': 'CTL001',
-                'Port': 'COM1',
+                'Hostname': 'cam001',
+                'IPPort': 5678
             }
         },
         'Subscriptions': [],
@@ -471,38 +848,59 @@ SystemDevices.AddNewDevice(
             {
                 'command': 'PresetRecall'
             },
-            'Presets': {}
+            'Presets': {},
+            'Camera': {'input': 1}
         }
     }
 )
 
-# DEC001 - AMX N2300 Decoder
+# CAM002 - PTZOptics 12X-NDI
 SystemDevices.AddNewDevice(
     **{
-        'Id': 'DEC001',
-        'Name': 'Conf. Mon. Decoder',
-        'Manufacturer': 'AMX',
-        'Model': 'NMX-DEC-N2322',
+        'Id': 'CAM002',
+        'Name': 'South Camera',
+        'Manufacturer': 'PTZOptics',
+        'Model': 'PT12X-NDI-GY',
         'Interface':
         {
-            'module': 'amx_avoip_n2300_series',
+            'module': 'ptz_camera_PT30XNDI_GY_WH_v1_0_0_0',
             'interface_class': 'EthernetClass',
-            'ConnectionHandler': {
-                'keepAliveQuery': 'DeviceStatus',
-                'DisconnectLimit': 5,
-                'pollFrequency': 60
-            },
             'interface_configuration': {
-                'Hostname': 'mainlib019c-dec001.library.illinois.edu',
-                'IPPort': 50002,
-                'Model': 'NMX-DEC-N2322'
+                'Hostname': 'cam002',
+                'IPPort': 5678
             }
         },
         'Subscriptions': [],
-        'Polling': [],
-        'Options': {
-            'MatrixAssignment': 'VMX001',
-            'MatrixOutput': 1
+        'Polling':
+        [
+            {
+                'command': 'Power',
+                'active_int': 30,
+                'inactive_int': 600
+            }
+        ],
+        'Options':
+        {
+            'PTCommand':
+            {
+                'command': 'PanTilt',
+                'qualifier': {'Pan Speed': 5, 'Tilt Speed': 5},
+            },
+            'ZCommand':
+            {
+                'command': 'Zoom',
+                'qualifier': {'Zoom Speed': 2},
+            },
+            'PresetSaveCommand':
+            {
+                'command': 'PresetSave'
+            },
+            'PresetRecallCommand':
+            {
+                'command': 'PresetRecall'
+            },
+            'Presets': {},
+            'Camera': {'input': 2}
         }
     }
 )
@@ -511,7 +909,7 @@ SystemDevices.AddNewDevice(
 SystemDevices.AddNewDevice(
     **{
         'Id': 'DEC002',
-        'Name': 'Room Mon. Decoder',
+        'Name': 'Projector Decoder',
         'Manufacturer': 'AMX',
         'Model': 'NMX-DEC-N2322',
         'Interface':
@@ -524,7 +922,7 @@ SystemDevices.AddNewDevice(
                 'pollFrequency': 60
             },
             'interface_configuration': {
-                'Hostname': 'mainlib019c-dec002.library.illinois.edu',
+                'Hostname': 'dec002',
                 'IPPort': 50002,
                 'Model': 'NMX-DEC-N2322'  # TODO: skip this duplication
             }
@@ -538,11 +936,104 @@ SystemDevices.AddNewDevice(
     }
 )
 
+# DEC003 - AMX N2300 Decoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'DEC003',
+        'Name': 'North Monitor Decoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-DEC-N2322',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 5,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'dec003',
+                'IPPort': 50002,
+                'Model': 'NMX-DEC-N2322'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixOutput': 3
+        }
+    }
+)
+
+# DEC004 - AMX N2300 Decoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'DEC004',
+        'Name': 'South Monitor Decoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-DEC-N2322',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 5,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'dec004',
+                'IPPort': 50002,
+                'Model': 'NMX-DEC-N2322'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixOutput': 4
+        }
+    }
+)
+
+# DEC005 - AMX N2300 Decoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'DEC005',
+        'Name': 'Confidence Monitor Decoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-DEC-N2322',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 5,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'dec005',
+                'IPPort': 50002,
+                'Model': 'NMX-DEC-N2322'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixOutput': 1
+        }
+    }
+)
+
 # ENC001 - AMX N2300 Encoder
 SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC001',
-        'Name': 'PC Encoder',
+        'Name': 'HDMI 1 Encoder',
         'Manufacturer': 'AMX',
         'Model': 'NMX-ENC-N2312',
         'Interface':
@@ -555,7 +1046,7 @@ SystemDevices.AddNewDevice(
                 'pollFrequency': 60
             },
             'interface_configuration': {
-                'Hostname': 'mainlib019c-enc001.library.illinois.edu',
+                'Hostname': 'enc001',
                 'IPPort': 50002,
                 'Model': 'NMX-ENC-N2312'
             }
@@ -573,7 +1064,7 @@ SystemDevices.AddNewDevice(
 SystemDevices.AddNewDevice(
     **{
         'Id': 'ENC002',
-        'Name': 'WPD Encoder',
+        'Name': 'HDMI 2 Encoder',
         'Manufacturer': 'AMX',
         'Model': 'NMX-ENC-N2312',
         'Interface':
@@ -586,7 +1077,7 @@ SystemDevices.AddNewDevice(
                 'pollFrequency': 60
             },
             'interface_configuration': {
-                'Hostname': 'mainlib019c-enc002.library.illinois.edu',
+                'Hostname': 'enc002',
                 'IPPort': 50002,
                 'Model': 'NMX-ENC-N2312'
             }
@@ -596,6 +1087,130 @@ SystemDevices.AddNewDevice(
         'Options': {
             'MatrixAssignment': 'VMX001',
             'MatrixInput': 2
+        }
+    }
+)
+
+# ENC003 - AMX N2300 Encoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'ENC003',
+        'Name': 'Room PC Encoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-ENC-N2312',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 15,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'enc003',
+                'IPPort': 50002,
+                'Model': 'NMX-ENC-N2312'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixInput': 3
+        }
+    }
+)
+
+# ENC004 - AMX N2300 Encoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'ENC004',
+        'Name': 'Inst. Pod Encoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-ENC-N2312',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 15,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'enc004',
+                'IPPort': 50002,
+                'Model': 'NMX-ENC-N2312'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixInput': 4
+        }
+    }
+)
+
+# ENC005 - AMX N2300 Encoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'ENC005',
+        'Name': 'North Pod Encoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-ENC-N2312',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 15,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'enc005',
+                'IPPort': 50002,
+                'Model': 'NMX-ENC-N2312'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixInput': 5
+        }
+    }
+)
+
+# ENC006 - AMX N2300 Encoder
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'ENC006',
+        'Name': 'South Pod Encoder',
+        'Manufacturer': 'AMX',
+        'Model': 'NMX-ENC-N2312',
+        'Interface':
+        {
+            'module': 'amx_avoip_n2300_series',
+            'interface_class': 'EthernetClass',
+            'ConnectionHandler': {
+                'keepAliveQuery': 'DeviceStatus',
+                'DisconnectLimit': 15,
+                'pollFrequency': 60
+            },
+            'interface_configuration': {
+                'Hostname': 'enc006',
+                'IPPort': 50002,
+                'Model': 'NMX-ENC-N2312'
+            }
+        },
+        'Subscriptions': [],
+        'Polling': [],
+        'Options': {
+            'MatrixAssignment': 'VMX001',
+            'MatrixInput': 6
         }
     }
 )
@@ -626,6 +1241,10 @@ SystemDevices.AddNewDevice(
                     {'Output': 1, 'Tie Type': 'Audio'},
                     {'Output': 2, 'Tie Type': 'Video'},
                     {'Output': 2, 'Tie Type': 'Audio'},
+                    {'Output': 3, 'Tie Type': 'Video'},
+                    {'Output': 3, 'Tie Type': 'Audio'},
+                    {'Output': 4, 'Tie Type': 'Video'},
+                    {'Output': 4, 'Tie Type': 'Audio'},
                 ],
                 'callback': VMX_OutputHandler,
             },
@@ -634,6 +1253,10 @@ SystemDevices.AddNewDevice(
                 'qualifier': [
                     {'Input': 1},
                     {'Input': 2},
+                    {'Input': 3},
+                    {'Input': 4},
+                    {'Input': 5},
+                    {'Input': 6},
                 ],
                 'callback': VMX_InputHandler
             }
@@ -658,6 +1281,33 @@ SystemDevices.AddNewDevice(
                 'command': 'InputSignalStatus'
             },
             'SystemAudioOuput': 1
+        }
+    }
+)
+
+# SCN001 - Relay Controlled Screen
+SystemDevices.AddNewDevice(
+    **{
+        'Id': 'SCN001',
+        'Name': 'Projector Screen',
+        'Manufacturer': 'Da-Lite',
+        'Model': '88401L',
+        'Interface': 
+            {
+                'module': 'generic_prj_screen',
+                'interface_class': 'LVCScreen',
+                'interface_configuration': {
+                    'RelayHost': 'CTL001'
+                }
+            },
+        'Subscriptions': None,
+        'Polling': None,
+        'Options': {
+            'Screen': {
+                'up': 'RLY1',
+                'down': 'RLY2',
+                'stop': 'RLY1|RLY2'
+            }
         }
     }
 )

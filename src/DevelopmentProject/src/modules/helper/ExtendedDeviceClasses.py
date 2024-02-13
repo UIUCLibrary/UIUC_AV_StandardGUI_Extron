@@ -235,7 +235,9 @@ class ExUIDevice(UIDevice):
                 self.__InactivityConfig[time]() 
         
         ## capture current panel state for feedback later
+        Logger.Log(self.__PanelFeedbackTimer.LastData.keys())
         for key in self.__PanelFeedbackTimer.LastData.keys():
+            Logger.Log(key)
             curVal = getattr(self, key)
             self.__PanelFeedbackTimer.LastData[key] = curVal
         

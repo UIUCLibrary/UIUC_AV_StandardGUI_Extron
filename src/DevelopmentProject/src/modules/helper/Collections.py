@@ -30,6 +30,7 @@ if TYPE_CHECKING: # pragma: no cover
 from collections import UserDict, UserList
 
 #### Extron Library Imports
+from extronlib.system import Timer
 
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
@@ -37,8 +38,10 @@ from modules.project.SystemHardware import SystemHardwareController
 from modules.helper.CommonUtilities import Logger
 from modules.helper.MixIns import InitializeMixin
 from modules.device.mixins.VirtualDevice import VirtualDeviceInterface
+from modules.helper.PrimitiveObjects import Alert
 from control.PollController import PollObject
 import Constants
+import Variables
     
 ## End Imports -----------------------------------------------------------------
 ##
@@ -52,6 +55,8 @@ class DeviceCollection(InitializeMixin, UserDict):
         self.DevicesChanged = WatchVariable('Devices Changed Event')
         self.Polling = []
         self.PollingChanged = WatchVariable('Polling Changed Event')
+        
+        self.SystemHost = None
     
     def __repr__(self) -> str:
         sep = ', '
@@ -362,7 +367,78 @@ class ProcessorCollection(UserList):
         
     def __iter__(self) -> Iterator['ExProcessorDevice']:
         return super().__iter__()
+    
+    def GetProcessorById(self, Id=str) -> 'ExProcessorDevice':
+        for proc in self:
+            if proc.Id == Id:
+                return proc
 
+class AlertCollection(InitializeMixin, UserList):
+    def __init__(self, __list: Union[List[Dict[str, any]], Dict[str, any]] = None) -> List['Alert']:
+        InitializeMixin.__init__(self, self.__Initialize)
+        self.SystemHost = None
+        self.__Timer = Timer(5, self.__Handler)
+        self.__Timer.Stop()
+        if isinstance(__list, list):
+            alert_list = []
+            for list_item in __list:
+                if not isinstance(list_item, dict):
+                    raise AttributeError("Alert Collection can only be initialized for None, Alert KwArgs Dictionary, or List of Alert KwArgs Dict")
+                alert_list.append(Alert(self, **list_item))
+            UserList.__init__(self, alert_list)
+        elif isinstance(__list, dict):
+            UserList.__init__(self, [Alert(self, **__list)])
+        elif __list is None:
+            UserList.__init__(self, None)
+        else:
+            raise AttributeError("Alert Collection can only be initialized for None, Alert KwArgs Dictionary, or List of Alert KwArgs Dict")
+    
+    def __repr__(self) -> str:
+        sep = ', '
+        return "<AlertCollection [{}]>".format(sep.join([str(val) for val in self]))
+    
+    # Type cast getitem & iter
+    def __getitem__(self, index: int) -> 'Alert':
+        return UserList.__getitem__(self, index)
+    
+    def __iter__(self) -> Iterator['Alert']:
+        return UserList.__iter__(self)
+    
+    def __Initialize(self) -> None:
+        for alert in self:
+            alert.Initialize()
+            
+        self.__Timer.Restart()
+    
+    def __Handler(self, timer: 'Timer', count: int) -> None:
+        for alert in self:
+            if Variables.TESTING:
+                Logger.Debug('TESTING: Checking alert ({}) state'.format(alert.Name))
+            else:
+                alert.Check()
+
+    def AddNewAlert(self, **kwargs) -> None:
+        newAlert = Alert(self, **kwargs)
+        self.data.append(newAlert)
+        
+        if self.Initialized:
+            newAlert.Initialize()
+
+    def GetAlertsByDevice(self, Device: Union[str, 'SystemHardwareController']) -> List['Alert']:
+        rtnList = []
+        
+        if isinstance(Device, str):
+            dev = Device
+        elif isinstance(Device, SystemHardwareController):
+            dev = Device.Id
+        else:
+            raise ValueError('Device must be a string Id or SystemHardwareController object')
+        
+        for alert in self:
+            if alert.DeviceId == dev:
+                rtnList.append(alert)
+                
+        return rtnList
 
 ## End Class Definitions -------------------------------------------------------
 ##

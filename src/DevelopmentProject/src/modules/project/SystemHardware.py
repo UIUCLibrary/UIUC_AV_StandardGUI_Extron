@@ -38,6 +38,7 @@ from modules.device.classes.Sources import Source
 from modules.device.classes.Destinations import Destination
 from modules.helper.MixIns import InitializeMixin
 import Variables
+import System
 
 ## End Imports -------------------------------------------------------------
 ##
@@ -79,6 +80,11 @@ class SystemHardwareController(InitializeMixin, object):
             self.__Module = importlib.import_module('modules.device.{}'.format(Interface['module']))
             self.__Constructor = getattr(self.__Module,
                                         Interface['interface_class'])
+            
+            if Interface['interface_class'] == 'SerialClass':
+                host_id = Interface['interface_configuration']['Host']
+                # TODO: this may need to check other collections for host matches if using expansion devices
+                Interface['interface_configuration']['Host'] = System.CONTROLLER.Processors.GetProcessorById(host_id)
             
             if 'ConnectionHandler' in Interface and isinstance(Interface['ConnectionHandler'], dict):
                 self.interface = GetConnectionHandler(self.__Constructor(**Interface['interface_configuration']),

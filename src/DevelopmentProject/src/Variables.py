@@ -5,7 +5,7 @@ throughout the system.
 """
 import sys
 UNIT_TESTING = ('unittest' in sys.modules.keys())
-TESTING = True
+TESTING = False
 TRACING = False
 
 Loading = True
@@ -23,7 +23,7 @@ PIN_TECH     = '1867'               # PIN Code to access tech pages, must be a s
                                         # Set to None to allow tech page access without pin
 
 #### Activity Mode Setting
-SYSTEM_ACTIVITIES = (0, 1, 2, 3)    # Include valid ActivityModes to SYSTEM_ACTIVITIES
+SYSTEM_ACTIVITIES = (0, 1, 2)    # Include valid ActivityModes to SYSTEM_ACTIVITIES
                                         # this must include 0 and at least one other mode
 
 #### Timer Settings
@@ -39,12 +39,12 @@ SPLASH_INACTIVITY_TIMER_DUR = 120  # Inactivity timeout before showing "Splash" 
 #### Defaults & Primary Device Settings
 DEFAULT_SOURCE  = 'PC001'   # Default source id on activity switch
 DEFAULT_CAMERA  = 'CAM001'  # Default camera to show on camera control pages
-PRIMARY_DEST    = 'PRJ001'  # Primary destination
+PRIMARY_DEST    = 'MON001'  # Primary destination
 PRIMARY_SW      = 'VMX001'  # Primary Matrix Switcher
 PRIMARY_UI      = 'TP001'   # Primary User Interface Device
 PRIMARY_PROC    = 'CTL001'  # Primary Control Processor
 PRIMARY_DSP     = 'DSP001'  # Primary DSP for audio control
-CAMERA_SW       = 'DEC001'  # ID of hardware device to switch between cameras
+CAMERA_SW       =  None     # ID of hardware device to switch between cameras
 
 #### Non-Volatile Settings Files
 SETTINGS_ROOM_SCHEDULE = 'room_schedule.json'
