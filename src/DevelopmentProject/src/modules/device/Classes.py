@@ -29,7 +29,7 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib import event
 
 #### Project imports
-from modules.helper.CommonUtilities import isinstanceEx
+from modules.device.mixins.Interface import DeviceMixIn
 from modules.device.mersive_solstice_pod import PodFeedbackHelper
 from modules.helper.PrimitiveObjects import MatrixTie
 
@@ -39,7 +39,7 @@ import System
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class Source:
+class Source(DeviceMixIn, object):
     def __init__(self,
                  device: 'SystemHardwareController',
                  icon: int,
@@ -50,16 +50,7 @@ class Source:
                  srcCtl: str=None,
                  advSrcCtl: str=None) -> None:
         
-        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
-            self.Device = device
-            self.Id = device.Id
-            self.Name = device.Name
-        elif id is not None and name is not None:
-            self.Device = None
-            self.Id = id
-            self.Name = name
-        else:
-            raise ValueError('Device or id and name must be provided')
+        DeviceMixIn.__init__(self, device, id, name)
         
         if isinstance(icon, int) and icon >= 0:
             self.Icon = icon
@@ -179,7 +170,7 @@ class Source:
         
 BLANK_SOURCE = Source(None, 0, 0, 'blank', 'None')
 
-class Destination:
+class Destination(DeviceMixIn, object):
     def __init__(self,
                  device: 'SystemHardwareController',
                  output: int,
@@ -187,14 +178,11 @@ class Destination:
                  groupWrkSrc: str,
                  advLayout: 'Layout',
                  screen: str = None,
-                 confFollow: str=None) -> None:
+                 confFollow: str=None,
+                 id: str=None,
+                 name: str=None) -> None:
         
-        if isinstanceEx(device, 'SystemHardwareController'):
-            self.Device = device
-            self.Id = device.Id
-            self.Name = device.Name
-        else:
-            raise ValueError('Device must be a SystemHardwareController object')
+        DeviceMixIn.__init__(self, device, id, name)
         
         if isinstance(output, int) and output >= 0:
             self.Output = output
@@ -480,24 +468,55 @@ class Destination:
             self.__AdvAlertBtn.SetEnable(False)
             self.__AdvAlertBtn.SetState(1)
             
-class Camera:
+class Camera(DeviceMixIn, object):
     def __init__(self,
                  device: 'SystemHardwareController',
                  id: str=None,
                  name: str=None) -> None:
         
-        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
-            self.Device = device
-            self.Id = device.Id
-            self.Name = device.Name
-        elif id is not None and name is not None:
-            self.Device = None
-            self.Id = id
-            self.Name = name
-        else:
-            raise ValueError('Device or id and name must be provided')
+        DeviceMixIn.__init__(self, device, id, name)
         
+
+class Switch(DeviceMixIn, object):
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 id: str=None,
+                 name: str=None) -> None:
         
+        DeviceMixIn.__init__(self, device, id, name)
+        
+class Microphone(DeviceMixIn, object):
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 id: str=None,
+                 name: str=None) -> None:
+        
+        DeviceMixIn.__init__(self, device, id, name)
+
+class Screen(DeviceMixIn, object):
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 id: str=None,
+                 name: str=None) -> None:
+        
+        DeviceMixIn.__init__(self, device, id, name)
+
+class Light(DeviceMixIn, object):
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 id: str=None,
+                 name: str=None) -> None:
+        
+        DeviceMixIn.__init__(self, device, id, name)
+
+class Shade(DeviceMixIn, object):
+    def __init__(self,
+                 device: 'SystemHardwareController',
+                 id: str=None,
+                 name: str=None) -> None:
+        
+        DeviceMixIn.__init__(self, device, id, name)
+
 ## End Class Definitions -------------------------------------------------------
 ##
 ## Begin Function Definitions --------------------------------------------------

@@ -20,13 +20,14 @@
 from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     from modules.helper.Collections import DeviceCollection
+    from modules.project.SystemHardware import SystemHardwareController
 
 #### Python imports
 
 #### Extron Library Imports
 
 #### Project imports
-
+from modules.helper.CommonUtilities import isinstanceEx
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -49,6 +50,21 @@ class InterfaceSystemHost(object):
             raise TypeError("Collection must be of type DeviceCollection")
         self.__Collection = Collection
 
+class DeviceMixIn(object):
+    def __init__(self,
+                 device: 'SystemHardwareController'=None,
+                 id: str=None,
+                 name: str=None) -> None:
+        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
+            self.Device = device
+            self.Id = device.Id
+            self.Name = device.Name
+        elif id is not None and name is not None:
+            self.Device = None
+            self.Id = id
+            self.Name = name
+        else:
+            raise ValueError('Device or id and name must be provided')
 
 ## End Class Definitions -------------------------------------------------------
 ##

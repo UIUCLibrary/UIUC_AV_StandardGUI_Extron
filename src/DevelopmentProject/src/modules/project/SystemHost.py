@@ -259,19 +259,24 @@ class SystemController(InitializeMixin, object):
         #     tp.HdrCtl.ConfigSystemOn()
         #     tp.CamCtl.SelectDefaultCamera()
             
-        # if self.Hardware[self.PrimarySwitcherId].Manufacturer == 'AMX' and self.Hardware[self.PrimarySwitcherId].Model in ['N2300 Virtual Matrix']:
-        #     # Take SVSI ENC endpoints out of standby mode
-        #     self.Hardware[self.PrimarySwitcherId].interface.Set('Standby', 'Off', None)
-        #     # Unmute SVSI DEC endpoints
-        #     self.Hardware[self.PrimarySwitcherId].interface.Set('VideoMute', 'Off', None)
+        # Bring switches out of standby and turn off video mute
+        for switch in self.Devices.Switches:
+            Logger.Log(switch)
+            if 'Standby' in switch.interface.Commands:
+                Logger.Log('Has Standby')
+                switch.interface.Set('Standby', False)
+            
+            if 'VideoMute' in switch.interface.Commands:
+                Logger.Log('Has VideoMute')
+                switch.interface.Set('VideoMute', 'Off')
                 
         # # power on displays
-        # for dest in self.Destinations:
-        #     try:
-        #         self.TP_Main.DispCtl.SetDisplayPower(dest['Id'], 'On')
-        #     except LookupError:
-        #         # display does not have hardware to power on or off
-        #         pass
+        for dest in self.Devices.Destinations:
+            Logger.Log(dest)
+            if hasattr('dest', 'PowerCommand'):
+                dest.interface.Set(dest.PowerCommand['command'], 
+                                   'on', 
+                                   dest.PowerCommand['qualifer'] if 'qualifer' in dest.PowerCommand else None)
     
     def SystemActiveTransition(self, timer, count) -> None:
         timeRemaining = self.Timers.Startup - count

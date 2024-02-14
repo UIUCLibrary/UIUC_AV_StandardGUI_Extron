@@ -34,7 +34,14 @@ from inspect import getmro
 from modules.helper.ConnectionHandler import GetConnectionHandler
 from modules.device.mixins.Interface import InterfaceSystemHost
 from modules.helper.CommonUtilities import Logger
-from modules.device.Classes import Source, Destination, Camera
+from modules.device.Classes import (Source, 
+                                    Destination, 
+                                    Camera, 
+                                    Switch, 
+                                    Microphone, 
+                                    Screen, 
+                                    Light, 
+                                    Shade)
 from modules.helper.MixIns import InitializeMixin
 import Variables
 import System
@@ -187,44 +194,52 @@ class SystemHardwareController(InitializeMixin, object):
                     # be created on the interface
                     if 'callback' in poll:
                         self.AddSubscription(poll, qp)
-                        
+        
+        objDict = None
         if hasattr(self, 'Destination'):
             # Logger.Log('Initializing Destination')
-            destDict = dict(self.Destination)
-            destDict['device'] = self
-            
-            self.Destination = Destination(**destDict)
-            # Logger.Log("Dest Initialized:",  self.Destination, type(self.Destination))
-            
+            objDict = dict(self.Destination)
+            objAttr = 'Destination'
+            objClass = Destination
         elif hasattr(self, 'Source'):
             # Logger.Log('Initializing Source')
-            srcDict = dict(self.Source)
-            srcDict['device'] = self
-            
-            self.Source = Source(**srcDict)
-            # Logger.Log('Src Initialized:', self.Source, type(self.Source))
-            
+            objDict = dict(self.Source)
+            objAttr = 'Source'
+            objClass = Source
         elif hasattr(self, 'Switch'):
-            # configure switch
-            pass
+            # Logger.Log('Initializing Switch')
+            objDict = dict(self.Switch)
+            objAttr = 'Switch'
+            objClass = Switch
         elif hasattr(self, 'Camera'):
-            # Logger.Log('Initializeing Camera')
-            camDict = dict(self.Camera)
-            camDict['device'] = self
-            
-            self.Camera = Camera(**camDict)
+            # Logger.Log('Initializing Camera')
+            objDict = dict(self.Camera)
+            objAttr = 'Camera'
+            objClass = Camera
         elif hasattr(self, 'Microphone'):
-            # configure microphone
-            pass
+            # Logger.Log('Initializing Microphone')
+            objDict = dict(self.Microphone)
+            objAttr = 'Microphone'
+            objClass = Microphone
         elif hasattr(self, 'Screen'):
-            # configure microphone
-            pass
+            # Logger.Log('Initializing Screen')
+            objDict = dict(self.Screen)
+            objAttr = 'Screen'
+            objClass = Screen
         elif hasattr(self, 'Light'):
-            # configure light
-            pass
+            # Logger.Log('Initializing Light')
+            objDict = dict(self.Light)
+            objAttr = 'Light'
+            objClass = Light
         elif hasattr(self, 'Shade'):
-            # configure Shade
-            pass
+            # Logger.Log('Initializing Shade')
+            objDict = dict(self.Shade)
+            objAttr = 'Shade'
+            objClass = Shade
+        
+        if objDict is not None:
+            objDict['device'] = self
+            setattr(self, objAttr, objClass(**objDict))
     
     # Collection attributes
     @property
