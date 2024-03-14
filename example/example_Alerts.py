@@ -26,7 +26,7 @@ if TYPE_CHECKING:                                                               
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.Collections import AlertCollection
+from modules.project.Collections import AlertCollection
 ## End Imports -----------------------------------------------------------------
 
 # Create empty DeviceCollection to populate with system devices below

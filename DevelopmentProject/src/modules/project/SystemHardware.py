@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import DeviceCollection
+    from modules.project.Collections import DeviceCollection
 
 #### Python Imports
 from datetime import datetime
@@ -32,9 +32,9 @@ from inspect import getmro
 
 #### Project Imports
 from modules.helper.ConnectionHandler import GetConnectionHandler
-from modules.device.mixins.Interface import InterfaceSystemHost
+from modules.project.mixins.Interface import InterfaceSystemHost
 from modules.helper.CommonUtilities import Logger
-from modules.device.Classes import (Source, 
+from modules.project.Classes import (Source, 
                                     Destination, 
                                     Camera, 
                                     Switch, 
@@ -42,7 +42,7 @@ from modules.device.Classes import (Source,
                                     Screen, 
                                     Light, 
                                     Shade)
-from modules.helper.MixIns import InitializeMixin
+from modules.project.mixins import InitializeMixin
 import Variables
 import System
 

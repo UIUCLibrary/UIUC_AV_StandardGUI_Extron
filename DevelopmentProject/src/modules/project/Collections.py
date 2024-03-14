@@ -20,8 +20,8 @@
 from typing import (TYPE_CHECKING, Dict, Iterator, List, Union, TypeVar,
                     ValuesView, ItemsView, KeysView)
 if TYPE_CHECKING: # pragma: no cover
-    from modules.device.Classes import Source, Destination
-    from modules.helper.ExtendedDeviceClasses import ExProcessorDevice
+    from modules.project.Classes import Source, Destination
+    from modules.project.ExtendedDeviceClasses import ExProcessorDevice
     
     _KT = TypeVar('_KT')
 
@@ -35,9 +35,9 @@ from extronlib.system import Timer
 from modules.helper.ModuleSupport import WatchVariable
 from modules.project.SystemHardware import SystemHardwareController
 from modules.helper.CommonUtilities import Logger
-from modules.helper.MixIns import InitializeMixin
-from modules.device.mixins.VirtualDevice import VirtualDeviceInterface
-from modules.helper.PrimitiveObjects import Alert
+from modules.project.mixins import InitializeMixin
+from modules.project.mixins.VirtualDevice import VirtualDeviceInterface
+from modules.project.PrimitiveObjects import Alert
 from control.PollController import PollObject
 import Constants
 import Variables

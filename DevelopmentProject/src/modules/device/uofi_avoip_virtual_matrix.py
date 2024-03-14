@@ -27,7 +27,7 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib.system import ProgramLog
 
 #### Project imports
-from modules.device.mixins.VirtualDevice import VirtualDeviceInterface
+from modules.project.mixins.VirtualDevice import VirtualDeviceInterface
 from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------

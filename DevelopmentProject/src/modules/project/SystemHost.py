@@ -19,8 +19,8 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import DeviceCollection, AlertCollection
-    from modules.helper.ExtendedSystemClasses import ExTimer
+    from modules.project.Collections import DeviceCollection, AlertCollection
+    from modules.project.ExtendedSystemClasses import ExTimer
 
 #### Python imports
 
@@ -28,11 +28,11 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
-from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExEBUSDevice
-from modules.helper.Collections import UIDeviceCollection, ProcessorCollection
-from modules.helper.PrimitiveObjects import DictObj, SettingsObject
+from modules.project.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExEBUSDevice
+from modules.project.Collections import UIDeviceCollection, ProcessorCollection
+from modules.project.PrimitiveObjects import DictObj, SettingsObject
 from modules.helper.ModuleSupport import WatchVariable
-from modules.helper.MixIns import InitializeMixin
+from modules.project.mixins import InitializeMixin
 from control.ActivityController import ActivityController
 from control.SourceController import SourceController
 from control.PollController import PollingController

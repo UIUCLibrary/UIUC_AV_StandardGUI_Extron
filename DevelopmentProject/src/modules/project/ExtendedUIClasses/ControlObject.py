@@ -29,7 +29,7 @@ import importlib.util
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.PrimitiveObjects import DictObj
+from modules.project.PrimitiveObjects import DictObj
 from modules.helper.CommonUtilities import isinstanceEx
 
 import control.AV

@@ -20,9 +20,9 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedUIClasses import ExButton
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice
-    from modules.helper.ExtendedUIClasses.UISets import SystemStatusControlGroup
+    from modules.project.ExtendedUIClasses import ExButton
+    from modules.project.ExtendedDeviceClasses import ExUIDevice
+    from modules.project.ExtendedUIClasses.UISets import SystemStatusControlGroup
     from modules.project.SystemHardware import SystemHardwareController
 
 #### Python Imports

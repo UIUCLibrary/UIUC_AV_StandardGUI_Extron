@@ -27,8 +27,8 @@ import json
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.Collections import DeviceCollection
-from modules.helper.PrimitiveObjects import DictObj, Layout
+from modules.project.Collections import DeviceCollection
+from modules.project.PrimitiveObjects import DictObj, Layout
 from ui.Feedback.Device import (DSP_GainHandler,
                                 DSP_MuteHandler, 
                                 DSP_LevelHandler,
@@ -113,7 +113,7 @@ SystemDevices.AddNewDevice(
         'Manufacturer': 'Lenovo',
         'Model': 'M70Q',
         'Interface': {
-            'module': 'generic_pc',
+            'module': 'uofi_pc_generic',
             'interface_class': 'PCClass',
             'interface_configuration': {
                 'host': 'pc001'
@@ -1223,7 +1223,7 @@ SystemDevices.AddNewDevice(
         'Model': 'N2300 Virtual Matrix',
         'Interface':
         {
-            'module': 'avoip_virtual_matrix',
+            'module': 'uofi_avoip_virtual_matrix',
             'interface_class': 'VirtualDeviceClass',
             'interface_configuration': {
                 'VirtualDeviceID': 'VMX001',
@@ -1293,7 +1293,7 @@ SystemDevices.AddNewDevice(
         'Model': '88401L',
         'Interface': 
             {
-                'module': 'generic_prj_screen',
+                'module': 'uofi_scn_LVC_DryContact',
                 'interface_class': 'LVCScreen',
                 'interface_configuration': {
                     'RelayHost': 'CTL001'

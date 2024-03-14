@@ -19,8 +19,8 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice
-    from modules.helper.ExtendedUIClasses import ExButton, ExSlider
+    from modules.project.ExtendedDeviceClasses import ExUIDevice
+    from modules.project.ExtendedUIClasses import ExButton, ExSlider
     from extronlib.device import UIDevice
     from extronlib.ui import Button
     
@@ -33,9 +33,9 @@ import functools
 from extronlib import event
 
 #### Project imports
-from modules.helper.PrimitiveObjects import DictObj, TieType, MatrixAction, ActivityMode, SystemState
+from modules.project.PrimitiveObjects import DictObj, TieType, MatrixAction, ActivityMode, SystemState
 from modules.helper.CommonUtilities import TimeIntToStr, Logger
-from modules.helper.ExtendedSystemClasses import ExTimer
+from modules.project.ExtendedSystemClasses import ExTimer
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
 from ui.Feedback.Source import ShowSourceSelectionFeedback, ShowSourceControlFeedback
 

@@ -21,7 +21,7 @@
 from _collections_abc import Iterable
 from typing import TYPE_CHECKING, Union, Callable, Any, List, Dict
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import AlertCollection
+    from modules.project.Collections import AlertCollection
 
 #### Python imports
 from collections import UserDict, UserList
@@ -34,7 +34,7 @@ from extronlib.system import RFile
 
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable, eventEx
-from modules.helper.MixIns import InitializeMixin
+from modules.project.mixins import InitializeMixin
 from modules.helper.CommonUtilities import Logger, MergeLists
 
 

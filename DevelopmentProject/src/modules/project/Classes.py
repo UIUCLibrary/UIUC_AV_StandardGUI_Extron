@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Dict, Union, cast
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHardware import SystemHardwareController
     from extronlib.ui import Button, Label
-    from modules.helper.PrimitiveObjects import Layout
+    from modules.project.PrimitiveObjects import Layout
 
 #### Python imports
 
@@ -29,9 +29,9 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib import event
 
 #### Project imports
-from modules.device.mixins.Interface import DeviceMixIn
+from modules.project.mixins.Interface import DeviceMixIn
 from modules.device.mersive_solstice_pod import PodFeedbackHelper
-from modules.helper.PrimitiveObjects import MatrixTie
+from modules.project.PrimitiveObjects import MatrixTie
 
 import System
 

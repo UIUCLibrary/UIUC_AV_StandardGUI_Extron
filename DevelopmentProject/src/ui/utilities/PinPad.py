@@ -19,9 +19,9 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice
-    from modules.helper.ExtendedUIClasses import ExButton
-    from modules.helper.ExtendedUIClasses.UISets import PINPadControlGroup
+    from modules.project.ExtendedDeviceClasses import ExUIDevice
+    from modules.project.ExtendedUIClasses import ExButton
+    from modules.project.ExtendedUIClasses.UISets import PINPadControlGroup
 
 #### Python imports
 

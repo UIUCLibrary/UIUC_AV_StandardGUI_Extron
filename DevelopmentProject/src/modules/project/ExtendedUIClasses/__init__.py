@@ -21,7 +21,7 @@
 from typing import TYPE_CHECKING, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
-    from modules.helper.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
+    from modules.project.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 
 #### Python imports
 
@@ -30,8 +30,8 @@ from extronlib.ui import Button, Label, Level, Slider, Knob
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
-from modules.helper.MixIns import InitializeMixin
-from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn, GroupMixIn
+from modules.project.mixins import InitializeMixin
+from modules.project.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn, GroupMixIn
 import Constants
 
 ## End Imports -----------------------------------------------------------------

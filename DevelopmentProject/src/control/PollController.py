@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
-    from uofi_gui import SystemController
+    from modules.project.SystemHost import SystemController
 
 #### Extron Library Imports
 from extronlib.system import Timer

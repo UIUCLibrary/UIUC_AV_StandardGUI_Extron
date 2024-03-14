@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice
+    from modules.project.ExtendedDeviceClasses import ExUIDevice
 
 #### Python imports
 

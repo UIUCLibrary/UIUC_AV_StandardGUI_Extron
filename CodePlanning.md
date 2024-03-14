@@ -1,48 +1,87 @@
-- ir
-- layout
-- rfile
-- sound
-- src
-  - control
-    - av.py
-    - ActivityController.py
-    - PollController.py
-    - SourceController.py
-  - modules
-    - device
-      - classes
-      - Destinations.py
-      - Sources.py
-      - mixins
-      - VirtualDevice.py
-      - … Device Modules
-    - helper
-      - ConnectionHandler.py
-      - ModuleSupport.py
-      - UtilityFunctions.py
-    - project
-      - Collections.py
-      - ExtendedClasses.py
-      - SystemHardware.py
-      - SystemHost.py
-  - ui
-    - feedback
-      - Activity.py
-      - Keyboard.py
-      - PinPin.py
-      - Source.py
-    - interface
-      - ButtonPanel
-        - \_\_init\_\_.py
-        - Objects.py
-      - TouchPanel
-        - \_\_init\_\_.py
-        - Objects.py
-  - Main.py
+- __ir__
+- __layout__
+  - _layout files, including: GUI (.gld) files, object data file, page data files, control data files_
+  - _these files create the displayed GUI and explain to the program how to interact with the GUI_
+  - __UofI_Library.gld__ - _Project main gui file_
+  - __objects.UofI_Library.json__ - _Object data file for UofI\_Library.gld_
+  - __controls.UofI_Library.json__ - _Controls data file for UofI\_Library.gld_
+  - __techPages.UofI_Library.json__ - _Tech Pages data file for UofI\_Library.gld_
+- __rfile__
+  - _Restricted access files. Using this area for pre-loadable non-volatile data_
+  - __camera_presets.json__ - _Camera preset non-volatile data_
+  - __room_schedule.json__ - _Room Schedule non-volatile data_
+- __sound__
+  - _Storage location for custom sound files._
+- __src__
+  - _Python source file storage location_
+  - __control__
+    
+    - __AV.py__
+    - __ActivityController.py__
+    - __PollController.py__
+    - __SourceController.py__
+  - __modules__
+    - __device__
+      - __amx_avoip_n2300_series.py__
+      - __mersive_solstice_pod.py__
+      - __uofi_avoip_virtual_matrix.py__
+      - __uofi_pc_generic.py__
+      - __uofi_scn_LVC_DryContact.py__
+      - __… Extron Provided Device Modules__
+    - __helper__
+      - __ConnectionHandler.py__
+        - _Provided by Extron_ [do not modify]
+        - _Provides connection handling required for some device modules_
+      - __ModuleSupport.py__
+        - _Provided by Extron_ [do not modify]
+        - _Provides extended event objects and other helper classes_
+      - __CommonUtilities.py__ - _Provides common utility functions and classes_
+    - __project__
+      - __callbacks__
+        - __PopupCallbacks.py__
+        - __RefCallbacks.py__
+      - __ExtendedUIClasses__
+        - __\_\_init\_\_.py__
+        - __ControlObject.py__
+        - __MixIns.py__
+        - __UISets.py__
+      - __mixins__
+        - __\_\_init\_\_.py__
+        - __Interface.py__
+        - __VirtualDevice.py__
+      - __Classes.py__
+      - __Collections.py__
+      - __ExtendedDeviceClasses.py__
+      - __ExtendedSystemClasses.py__
+      - __PrimitiveObjects.py__
+      - __SystemHardware.py__
+      - __SystemHost.py__
+  - __ui__
+    - __Feedback__
+      - __\_\_init\_\_.py__
+      - __Activity.py__
+      - __Device.py__
+      - __Source.py__
+    - __interface__
+      - __ButtonPanel__
+        - __\_\_init\_\_.py__
+        - __Objects.py__
+      - __TouchPanel__
+        - __\_\_init\_\_.py__
+        - __Objects.py__
+        - __PanelAbout.py__
+        - __Scheduler.py__
+        - __SystemStatus.py__
+    - __utilities__
+      - __Keyboard.py__
+      - __PinPad.py__
+  - __Main.py__
     - _Entry File_
     - _Logs ControlScript info; loads System.py and Initializes System_
-  - System.py
-    - _Loads SystemController (modules.project.SystemHost), Variables.py, and Devices.py_
-    - Creates 
-  - Devices.py
-  - Variables.py
+  - __System.py__
+    - _Loads SystemController (modules.project.SystemHost), Variables.py, and Devices.py_-
+  - __Alerts.py__
+  - __Devices.py__
+  - __Constants.py__
+  - __Variables.py__
+  - __secrets\_devices.py__

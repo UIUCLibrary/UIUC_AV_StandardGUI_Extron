@@ -18,19 +18,19 @@
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedUIClasses \
+    from modules.project.ExtendedUIClasses \
         import (RefButton, 
                 ExButton, 
                 ExLabel, 
                 ExLevel, 
                 ExSlider, 
                 ExKnob)
-    from modules.helper.ExtendedDeviceClasses \
+    from modules.project.ExtendedDeviceClasses \
         import (ExProcessorDevice,
                 ExUIDevice,
                 ExSPDevice,
                 ExEBUSDevice)
-    from modules.helper.ExtendedUIClasses.UISets \
+    from modules.project.ExtendedUIClasses.UISets \
         import (RadioSet, 
                 SelectSet, 
                 VariableRadioSet, 
@@ -48,9 +48,9 @@ if TYPE_CHECKING: # pragma: no cover
 # Python imports
 
 # Project imports
-from modules.device.Classes import BLANK_SOURCE  # noqa: F401
+from modules.project.Classes import BLANK_SOURCE  # noqa: F401
 from modules.helper.CommonUtilities import MergeLists
-from modules.helper.PrimitiveObjects import ActivityMode, SystemState
+from modules.project.PrimitiveObjects import ActivityMode, SystemState
 
 OFF =  ('off', 
         'Off', 

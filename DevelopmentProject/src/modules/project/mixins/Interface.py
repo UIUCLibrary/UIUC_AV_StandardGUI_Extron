@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.Collections import DeviceCollection
+    from modules.project.Collections import DeviceCollection
     from modules.project.SystemHardware import SystemHardwareController
 
 #### Python imports

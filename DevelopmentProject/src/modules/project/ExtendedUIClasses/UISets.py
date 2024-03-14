@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel, ExSlider#, ExKnob
+    from modules.project.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel, ExSlider#, ExKnob
 
 #### Python imports
 from subprocess import Popen, PIPE
@@ -31,10 +31,10 @@ import datetime
 from extronlib.system import MESet
 
 #### Project imports
-from modules.helper.ExtendedUIClasses.MixIns import ControlMixIn
+from modules.project.ExtendedUIClasses.MixIns import ControlMixIn
 from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys, SchedulePatternToString
 from modules.helper.ModuleSupport import eventEx
-from modules.helper.PrimitiveObjects import SystemState
+from modules.project.PrimitiveObjects import SystemState
 
 import System
 import Variables

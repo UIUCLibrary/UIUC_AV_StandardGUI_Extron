@@ -19,9 +19,9 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Tuple, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.helper.ExtendedDeviceClasses import ExUIDevice
-    from modules.helper.ExtendedUIClasses import ExButton
-    from modules.helper.ExtendedUIClasses.UISets import KeyboardControlGroup
+    from modules.project.ExtendedDeviceClasses import ExUIDevice
+    from modules.project.ExtendedUIClasses import ExButton
+    from modules.project.ExtendedUIClasses.UISets import KeyboardControlGroup
 
 #### Python imports
 
