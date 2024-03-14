@@ -1,5 +1,0 @@
-mersive_password = ''
-biamp_password = ''
-magewell_password = ''
-camera_password = ''
-svsi_password = ''

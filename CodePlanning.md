@@ -1,0 +1,48 @@
+- ir
+- layout
+- rfile
+- sound
+- src
+  - control
+    - av.py
+    - ActivityController.py
+    - PollController.py
+    - SourceController.py
+  - modules
+    - device
+      - classes
+      - Destinations.py
+      - Sources.py
+      - mixins
+      - VirtualDevice.py
+      - … Device Modules
+    - helper
+      - ConnectionHandler.py
+      - ModuleSupport.py
+      - UtilityFunctions.py
+    - project
+      - Collections.py
+      - ExtendedClasses.py
+      - SystemHardware.py
+      - SystemHost.py
+  - ui
+    - feedback
+      - Activity.py
+      - Keyboard.py
+      - PinPin.py
+      - Source.py
+    - interface
+      - ButtonPanel
+        - \_\_init\_\_.py
+        - Objects.py
+      - TouchPanel
+        - \_\_init\_\_.py
+        - Objects.py
+  - Main.py
+    - _Entry File_
+    - _Logs ControlScript info; loads System.py and Initializes System_
+  - System.py
+    - _Loads SystemController (modules.project.SystemHost), Variables.py, and Devices.py_
+    - Creates 
+  - Devices.py
+  - Variables.py
