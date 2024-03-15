@@ -19,8 +19,8 @@
 #### Type Checking
 from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses.UI import ButtonEx, SliderEx
-    from modules.project.ExtendedClasses.UI.ControlObject import ControlObject
+    from modules.project.extended.UI import ButtonEx, SliderEx
+    from modules.project.extended.UI.ControlObject import ControlObject
 
 #### Python imports
 

@@ -93,7 +93,7 @@ class TimerEx(Timer):
     def ChangeDuration(self, Duration: float) -> None:
         if Duration is None:
             self.__Duration = None
-        if type(Duration) in [int, float]:
+        if isinstance(Duration, (int, float)):
             if Duration <= self.Interval:
                 raise ValueError('Duration must be greater than Interval')
             self.__Duration = Duration

@@ -203,10 +203,17 @@ class Logger():
     def Trace(cls, *recordobjs, separator=' ', logSeverity='info') -> None:
         cls.__Trace.Log(*recordobjs, sep=separator, severity=logSeverity)
         
+        if Variables.Loading:
+            msg = separator.join(str(obj) for obj in recordobjs)
+            cls.AppendLoadingMsg(msg)
+        
     @classmethod
     def Debug(cls, *recordobjs, separator=' ', logSeverity='info', callTrace=False) -> None:
         if Variables.TESTING:
             cls.Log(*recordobjs, separator=separator, logSeverity=logSeverity, callTrace=callTrace)
+        else:
+            cls.Trace(*recordobjs, separator=separator, logSeverity=logSeverity)
+            
 
 def TimeIntToStr(time: int, units: bool = True) -> str:
     """Converts integer seconds to human readable string

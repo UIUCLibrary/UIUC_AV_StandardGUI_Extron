@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Dict, List, Union
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import UIDevice
-    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.extended.Device import ExUIDevice
 
 #### Python imports
 import json
@@ -29,8 +29,8 @@ import json
 from extronlib.system import File
 
 #### Project imports
-from modules.project.ExtendedClasses.UI import ButtonEx, LabelEx, LevelEx, SliderEx, KnobEx, ButtonEx_Ref
-from modules.project.ExtendedClasses.UI.ControlObject import ControlObject
+from modules.project.extended.UI import ButtonEx, LabelEx, LevelEx, SliderEx, KnobEx, ButtonEx_Ref
+from modules.project.extended.UI.ControlObject import ControlObject
 from modules.project.Collections import UIObjectCollection, ControlGroupCollection
 from modules.helper.CommonUtilities import Logger
 

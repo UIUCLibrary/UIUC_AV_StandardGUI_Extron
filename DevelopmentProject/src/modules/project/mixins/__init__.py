@@ -18,7 +18,9 @@
 
 #### Type Checking
 from typing import TYPE_CHECKING, Callable
-if TYPE_CHECKING: # pragma: no cover
+
+from DevelopmentProject.src.modules.project.Devices import SystemHardwareController
+if TYPE_CHECKING:                                                               # pragma: no cover
     pass
 
 #### Python imports
@@ -26,6 +28,8 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
+from modules.helper.CommonUtilities import isinstanceEx
+from modules.project.Collections import DeviceCollection
 from modules.helper.CommonUtilities import Logger
 
 ## End Imports -----------------------------------------------------------------
@@ -52,6 +56,41 @@ class InitializeMixin(object):
         self.__Init_Method()
         Logger.Debug('Initializing {} Object: '.format(type(self).__name__), getattr(self, 'Name', self.__repr__()))
         self.__Initialized = True
+
+class InterfaceSystemHost(object):
+    def __init__(self, Collection: "DeviceCollection" = None) -> None:
+        self.__Collection = None
+
+        if Collection is not None:
+            self.Collection = Collection
+
+    @property
+    def Collection(self) -> "DeviceCollection":
+        return self.__Collection
+
+    @Collection.setter
+    def Collection(self, Collection: "DeviceCollection") -> None:
+        if isinstanceEx(Collection, 'DeviceCollection'):
+            self.__Collection = Collection
+        else:
+            raise TypeError("Collection must be of type DeviceCollection")
+
+
+class DeviceMixIn(object):
+    def __init__(self,
+                 device: 'SystemHardwareController'=None,
+                 id: str=None,
+                 name: str=None) -> None:
+        if device is not None and isinstanceEx(device, 'SystemHardwareController'):
+            self.Device = device
+            self.Id = device.Id
+            self.Name = device.Name
+        elif id is not None and name is not None:
+            self.Device = None
+            self.Id = id
+            self.Name = name
+        else:
+            raise ValueError('Device or id and name must be provided')
 
 ## End Class Definitions -------------------------------------------------------
 ##

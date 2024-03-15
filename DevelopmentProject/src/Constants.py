@@ -18,14 +18,14 @@
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses.UI \
+    from modules.project.extended.UI \
         import (ButtonEx_Ref, 
                 ButtonEx, 
                 LabelEx, 
                 LevelEx, 
                 SliderEx, 
                 KnobEx)
-    from modules.project.ExtendedClasses.Device \
+    from modules.project.extended.Device \
         import (ExProcessorDevice,
                 ExUIDevice,
                 ExSPDevice,

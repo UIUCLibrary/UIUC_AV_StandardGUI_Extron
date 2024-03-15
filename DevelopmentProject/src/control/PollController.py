@@ -45,7 +45,7 @@ class PollObject:
                  ActiveDuration: int=None,
                  InactiveDuration: int=None) -> None:
         
-        if type(Device) is SystemHardwareController:
+        if isinstance(Device, SystemHardwareController):
             self.Device = Device
         else:
             raise TypeError('Device ({}) must be of type SystemHardwareController'.format(type(Device)))

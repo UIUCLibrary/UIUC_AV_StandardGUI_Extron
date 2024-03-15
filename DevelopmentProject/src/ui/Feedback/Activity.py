@@ -26,7 +26,7 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.project.ExtendedClasses.System import TimerEx
+from modules.project.extended.System import TimerEx
 from modules.helper.CommonUtilities import isinstanceEx
 from ui.Feedback.Source import ShowSourceControlFeedback
 import Constants

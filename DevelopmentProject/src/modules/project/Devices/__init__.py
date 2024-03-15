@@ -32,17 +32,16 @@ from inspect import getmro
 
 #### Project Imports
 from modules.helper.ConnectionHandler import GetConnectionHandler
-from modules.project.MixIns.Interface import InterfaceSystemHost
 from modules.helper.CommonUtilities import Logger
 from modules.project.Devices.Classes import (Source, 
-                                    Destination, 
-                                    Camera, 
-                                    Switch, 
-                                    Microphone, 
-                                    Screen, 
-                                    Light, 
-                                    Shade)
-from modules.project.MixIns import InitializeMixin
+                                             Destination, 
+                                             Camera, 
+                                             Switch, 
+                                             Microphone, 
+                                             Screen, 
+                                             Light, 
+                                             Shade)
+from modules.project.MixIns import InitializeMixin, InterfaceSystemHost
 import Variables
 import System
 

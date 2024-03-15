@@ -19,9 +19,9 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.extended.Device import ExUIDevice
     from modules.project.Collections.UISets import ScheduleConfigGroup, ScheduleEditGroup
-    from modules.project.ExtendedClasses.UI import ButtonEx
+    from modules.project.extended.UI import ButtonEx
     from datetime import datetime
 
 #### Python imports

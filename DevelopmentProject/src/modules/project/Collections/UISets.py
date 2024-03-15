@@ -20,7 +20,13 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses.UI import ButtonEx_Ref, ButtonEx, LabelEx, LevelEx, SliderEx#, KnobEx
+    from modules.project.extended.UI import (ButtonEx_Ref, 
+                                             ButtonEx, 
+                                             LabelEx, 
+                                             LevelEx, 
+                                             SliderEx, 
+                                             #KnobEx
+                                            )
 
 #### Python imports
 from subprocess import Popen, PIPE
@@ -32,7 +38,11 @@ from extronlib.system import MESet
 
 #### Project imports
 from modules.project.MixIns.UI import ControlMixIn
-from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys, SchedulePatternToString
+from modules.helper.CommonUtilities import (Logger, 
+                                            isinstanceEx, 
+                                            SortKeys, 
+                                            SchedulePatternToString
+                                           )
 from modules.helper.ModuleSupport import eventEx
 from modules.project.PrimitiveObjects import SystemState
 
@@ -63,7 +73,8 @@ class UISetMixin(object):
         
         for grpName in groupNameList:
             if hasattr(self, '_{}__{}'.format(className, grpName)):
-                rtnList.append(getattr(self, '_{}__{}'.format(className, grpName)))
+                rtnList.append(getattr(self, '_{}__{}'.format(className, 
+                                                              grpName)))
         
         return rtnList
 
@@ -102,11 +113,19 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         MESet.Append(self, obj)
         self._MESet__objects.move_to_end(obj, last=False)
     
-    def Remove(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref']) -> None:
+    def Remove(self, 
+               obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], 
+                          str, 
+                          int, 
+                          'ButtonEx', 
+                          'ButtonEx_Ref'
+                         ]
+               ) -> None:
+        
         if isinstance(obj, list):
             for item in obj:
                 self.Remove(item)
-        elif type(obj).__name__ in [type(int).__name__, 'ButtonEx', 'ButtonEx_Ref']:
+        elif isinstanceEx(obj, (int, 'ButtonEx', 'ButtonEx_Ref')):
             if isinstance(obj, int):
                 self.Objects[obj].Group = None
             elif obj in self.Objects:
@@ -126,8 +145,10 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         elif obj is not None:
             raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
     
-    def SetCurrent(self, obj: Union[int, str, 'ButtonEx', 'ButtonEx_Ref', None]) -> None:
-        if isinstanceEx(obj, ('ButtonEx', 'ButtonEx_Ref')):
+    def SetCurrent(self, 
+                   obj: Union[int, str, 'ButtonEx', 'ButtonEx_Ref', None]
+                  ) -> None:
+        if isinstanceEx(obj, (int, 'ButtonEx', 'ButtonEx_Ref')):
             MESet.SetCurrent(self, obj)
         elif obj is None:
             MESet.SetCurrent(self, obj)
@@ -141,8 +162,6 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
                 MESet.SetCurrent(self, i)
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
-        elif isinstance(obj, int):
-            MESet.SetCurrent(self, obj)
         else:
             raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
         # Logger.Debug('Radio Set {} Current Selection Updated:'.format(self.Name), obj, '|', MESet.GetCurrent(self))
@@ -743,7 +762,7 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
         else:
             self.DisplayName = Name
             
-        if type(Range) is tuple and len(Range) == 3:
+        if isinstance(Range, tuple) and len(Range) == 3:
             for i in Range:
                 if not isinstance(i, int):
                     raise TypeError('Range tuple may only consist of int values')

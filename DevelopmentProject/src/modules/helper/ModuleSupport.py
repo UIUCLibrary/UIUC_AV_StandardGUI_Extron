@@ -292,8 +292,14 @@ class ProgramLogLogger:
             msg = 'log record.'
             logger.Log('This is', 'a', msg)
         """
-        msg = severity + ': ' + sep.join(str(obj) for obj in recordobjs)
-        ProgramLog(msg, 'info')
+        # Neil F - 03/15/2024
+        # I am removing the severity + ": " from the msg string
+        # This is unnessesary as severity is both included with the ProgramLog
+        #     datestamp and appended during trace logging
+        # msg = severity + ': ' + sep.join(str(obj) for obj in recordobjs)
+        msg = sep.join(str(obj) for obj in recordobjs)
+        # ProgramLog(msg, 'info')
+        ProgramLog(msg, severity)
 
 
 class TcpServerLogger:

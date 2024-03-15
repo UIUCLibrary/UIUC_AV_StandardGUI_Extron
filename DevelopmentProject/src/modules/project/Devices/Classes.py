@@ -29,7 +29,7 @@ if TYPE_CHECKING: # pragma: no cover
 from extronlib import event
 
 #### Project imports
-from modules.project.MixIns.Interface import DeviceMixIn
+from modules.project.MixIns import DeviceMixIn
 from modules.device.mersive_solstice_pod import PodFeedbackHelper
 from modules.project.PrimitiveObjects import MatrixTie
 
@@ -308,6 +308,7 @@ class Destination(DeviceMixIn, object):
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
     def DestAudioFeedbackHandler(self, Configuration: Union[int, str]):
+        # TODO: Change AudDict to an Enum object
         AudDict = \
             {
                 0: 'System Source',
@@ -320,7 +321,7 @@ class Destination(DeviceMixIn, object):
         elif isinstance(Configuration, str) and Configuration in list(AudDict.values()):
             Configuration = list(AudDict.values()).index(Configuration)
         else:
-            if type(Configuration) not in [int, str]:
+            if not isinstance(Configuration, (int, str)):
                 raise TypeError("Configuration must be a str or int")
             else:
                 raise ValueError("Configuration must be a valid state int or str")
@@ -374,7 +375,7 @@ class Destination(DeviceMixIn, object):
         if not (tieType == 'Aud' or tieType == 'Vid' or tieType == 'AV' or tieType == 'untie'):
             raise ValueError("TieType must either be 'AV', 'Aud', 'Vid', or 'untie'. Provided TieType: {}".format(tieType))
         
-        if type(source) is not Source:
+        if not isinstance(source, Source):
             raise ValueError('Source must be a Source object')
         
         if tieType == 'Vid' or tieType == 'AV':

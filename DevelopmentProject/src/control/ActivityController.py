@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHost import SystemController
     from extronlib.ui import Button
-    from modules.project.ExtendedClasses.UI import ButtonEx
+    from modules.project.extended.UI import ButtonEx
 
 #### Python imports
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
-from modules.project.ExtendedClasses.System import TimerEx
+from modules.project.extended.System import TimerEx
 from modules.project.PrimitiveObjects import (DictObj, 
                                              ActivityMode, 
                                              SystemState, 

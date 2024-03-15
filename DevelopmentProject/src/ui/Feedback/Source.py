@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, List
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedClasses.UI import ButtonEx_Ref
+    from modules.project.extended.UI import ButtonEx_Ref
 
 #### Python imports
 

@@ -21,7 +21,7 @@ from typing import (TYPE_CHECKING, Dict, Iterator, List, Union, TypeVar,
                     ValuesView, ItemsView, KeysView)
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.Devices.Classes import Source, Destination
-    from modules.project.ExtendedClasses.Device import ExProcessorDevice
+    from modules.project.extended.Device import ExProcessorDevice
     
     _KT = TypeVar('_KT')
 
@@ -74,7 +74,7 @@ class DeviceCollection(InitializeMixin, UserDict):
     # Overwrite __setitem__
     # TEST_THIS: test this for being able to set a value with a blank index, ie Devices[] = SystemHardwareControllerObject
     def __setitem__(self, key: '_KT', item: 'SystemHardwareController') -> None:
-        if type(item) is not SystemHardwareController:
+        if not isinstance(item, SystemHardwareController):
             raise ValueError('DeviceCollection items must be of type SystemHardwareController')
         
         if item.Id in list(self.data.keys()):

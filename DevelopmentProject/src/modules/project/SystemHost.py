@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.Collections import DeviceCollection, AlertCollection
-    from modules.project.ExtendedClasses.System import TimerEx
+    from modules.project.extended.System import TimerEx
 
 #### Python imports
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
-from modules.project.ExtendedClasses.Device import ExProcessorDevice, ExUIDevice, ExEBUSDevice
+from modules.project.extended.Device import ExProcessorDevice, ExUIDevice, ExEBUSDevice
 from modules.project.Collections import UIDeviceCollection, ProcessorCollection
 from modules.project.PrimitiveObjects import DictObj, SettingsObject
 from modules.helper.ModuleSupport import WatchVariable
@@ -175,7 +175,7 @@ class SystemController(InitializeMixin, object):
     @SystemActivity.setter
     def SystemActivity(self, val: Union[Constants.ActivityMode, str, int]) -> None:
         Logger.Log("Setting SystemActivity:", val)
-        if type(val) is Constants.ActivityMode:
+        if isinstance(val, Constants.ActivityMode):
             enumVal = val
         elif isinstance(val, int):
             enumVal = Constants.ActivityMode(val)

@@ -21,7 +21,7 @@
 from typing import TYPE_CHECKING, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
-    from modules.project.ExtendedClasses.Device import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
+    from modules.project.extended.Device import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 
 #### Python imports
 
