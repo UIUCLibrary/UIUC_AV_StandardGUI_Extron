@@ -17,7 +17,7 @@
 from typing import TYPE_CHECKING, Dict, List, Union, Callable, Any, Tuple
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.ui import Button
-    from modules.project.SystemHardware import SystemHardwareController
+    from modules.project.Devices import SystemHardwareController
     import Constants
 
 ## Begin ControlScript Import --------------------------------------------------

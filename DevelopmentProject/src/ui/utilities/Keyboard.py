@@ -19,9 +19,9 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Tuple, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
-    from modules.project.ExtendedUIClasses import ExButton
-    from modules.project.ExtendedUIClasses.UISets import KeyboardControlGroup
+    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.ExtendedClasses.UI import ButtonEx
+    from modules.project.Collections.UISets import KeyboardControlGroup
 
 #### Python imports
 
@@ -179,35 +179,35 @@ class KeyboardController:
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def KeyboardCharHandler(source: 'ExButton', event: str) -> None:
+def KeyboardCharHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.CharBtnHandler(source.char)
 
-def RemoveCharHandler(source: 'ExButton', event: str) -> None:
+def RemoveCharHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.RemoveCharBtnHandler(source.remove)
 
-def CancelHandler(source: 'ExButton', event: str) -> None:
+def CancelHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.Close()
 
-def SaveHandler(source: 'ExButton', event: str) -> None:
+def SaveHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.Save()
 
-def CapsLockHandler(source: 'ExButton', event: str) -> None:
+def CapsLockHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.CapsLockBtnHandler()
 
-def ShiftHandler(source: 'ExButton', event: str) -> None:
+def ShiftHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.ShiftBtnHandler()
 
-def CursorHandler(source: 'ExButton', event: str) -> None:
+def CursorHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.ArrowBtnHandler(source.shift)
 
-def SpaceHandler(source: 'ExButton', event: str) -> None:
+def SpaceHandler(source: 'ButtonEx', event: str) -> None:
     kb = source.UIHost.Keyboard
     kb.SpaceBtnHandler()
 

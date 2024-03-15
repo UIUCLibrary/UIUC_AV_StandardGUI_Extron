@@ -19,7 +19,7 @@
 #### Type Checking
 from typing import TYPE_CHECKING, List
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedUIClasses import RefButton
+    from modules.project.ExtendedClasses.UI import ButtonEx_Ref
 
 #### Python imports
 
@@ -44,7 +44,7 @@ def ShowSourceSelectionFeedback(devices: List[Constants.UI_HOSTS], selection: Co
         if uiDev is not selectionUIDev:
             uiDev.Interface.Objects.ControlGroups['Source-Select'].SetCurrentRef(selection.Name)
 
-def ShowSourceControlFeedback(devices: List[Constants.UI_HOSTS], refBtn: 'RefButton' = None) -> None:
+def ShowSourceControlFeedback(devices: List[Constants.UI_HOSTS], refBtn: 'ButtonEx_Ref' = None) -> None:
     if refBtn is None:
         refBtn = devices[0].Interface.Objects.ControlGroups['Source-Select'].GetCurrentRef()
     srcCtl = System.CONTROLLER.Devices.GetSourceByInput(refBtn.input).SourceControlPage

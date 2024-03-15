@@ -44,6 +44,7 @@ from ui.interface.TouchPanel.PanelAbout import PanelAboutController
 from ui.interface.TouchPanel.Scheduler import ScheduleController
 from ui.utilities.Keyboard import KeyboardController
 from ui.utilities.PinPad import PINController
+from modules.project.MixIns import InitializeMixin
 
 ## End Imports -----------------------------------------------------------------
 ##
@@ -74,6 +75,10 @@ class ExProcessorDevice(ProcessorDevice):
         valid_list.extend(cls.ipcp_pro_xi_part_list)
         return valid_list
     
+    @validation_part_list.setter
+    def validation_part_list(cls, val) -> None:
+        raise AttributeError('Setting validation_part_list is disallowed.')
+    
     def __init__(self, DeviceAlias: str, PartNumber: str = None):
         ProcessorDevice.__init__(self, DeviceAlias, PartNumber)
         self.Id = DeviceAlias
@@ -83,7 +88,7 @@ class ExProcessorDevice(ProcessorDevice):
     
     
 
-class ExUIDevice(UIDevice):
+class ExUIDevice(InitializeMixin, UIDevice):
     tp_part_list = ['60-1791-02', '60-1791-12', '60-1792-02', '60-1792-12', # 17" panels
                     '60-1789-02', '60-1789-12', '60-1790-02', '60-1790-12', # 15" panels
                     '60-1668-02', '60-1668-03', '60-1340-02', '60-1787-02', '60-1787-12', '60-1788-02', '60-1788-12', # 12" panels
@@ -106,6 +111,10 @@ class ExUIDevice(UIDevice):
         valid_list.extend(cls.bp_part_list)
         return valid_list
     
+    @validation_part_list.setter
+    def validation_part_list(cls, val) -> None:
+        raise AttributeError('Setting validation_part_list is disallowed.')
+    
     def __init__(self, 
                  DeviceAlias: str, 
                  UI: str, 
@@ -113,14 +122,14 @@ class ExUIDevice(UIDevice):
                  Name: str=None, 
                  WebControlId: str=None):
         UIDevice.__init__(self, DeviceAlias, PartNumber)
+        InitializeMixin.__init__(self, self.__Initialize)
+        
         self.Id = DeviceAlias
         self.Name = Name
         self.WebControlId = WebControlId
         self.PINAccess = None
         self.Keyboard = None
         self.SysStatusCtl = None
-        
-        self.Initialized = False
         
         if isinstance(UI, str):
             self.UI = UI
@@ -195,7 +204,7 @@ class ExUIDevice(UIDevice):
     def Volume(self, val) -> None:
         raise AttributeError('Setting Volume is disallowed. Use SetVolume for the Master channel.')
     
-    def Initialize(self) -> None:
+    def __Initialize(self) -> None:
         
         ## Hide any popups from previous program loads
         self.HideAllPopups()
@@ -239,8 +248,6 @@ class ExUIDevice(UIDevice):
             Logger.Log(key)
             curVal = getattr(self, key)
             self.__PanelFeedbackTimer.LastData[key] = curVal
-        
-        self.Initialized = True
     
     def BlinkLights(self, 
                     Rate: str='Medium', 

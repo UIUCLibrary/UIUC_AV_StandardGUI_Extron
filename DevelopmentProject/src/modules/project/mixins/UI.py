@@ -19,8 +19,8 @@
 #### Type Checking
 from typing import TYPE_CHECKING, List, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedUIClasses import ExButton, ExSlider
-    from modules.project.ExtendedUIClasses.ControlObject import ControlObject
+    from modules.project.ExtendedClasses.UI import ButtonEx, SliderEx
+    from modules.project.ExtendedClasses.UI.ControlObject import ControlObject
 
 #### Python imports
 
@@ -124,20 +124,20 @@ class EventMixIn():
         pass
     
     def _Initialize(self) -> None:
-        if isinstanceEx(self, 'ExButton'):
+        if isinstanceEx(self, 'ButtonEx'):
             @eventEx(self, Constants.EVENTS_BUTTON)
-            def ExButtonHandler(source, event) -> None:
-                self.__ExButtonHandler(source, event)
-        elif isinstanceEx(self, 'ExSlider'):
+            def ButtonExHandler(source, event) -> None:
+                self.__ButtonExHandler(source, event)
+        elif isinstanceEx(self, 'SliderEx'):
             @eventEx(self, Constants.EVENTS_SLIDER)
-            def ExSliderHdnler(source, event, value) -> None:
-                self.__ExSliderHandler(source, event, value)
-        elif isinstanceEx(self, 'ExKnob'):
+            def SliderExHdnler(source, event, value) -> None:
+                self.__SliderExHandler(source, event, value)
+        elif isinstanceEx(self, 'KnobEx'):
             # TODO: knob event definition
             Logger.Log('Knob event def goes here')
     
-    def __ExButtonHandler(self, source: 'ExButton', event: str) -> None:
-        Logger.Debug('ExButton Event', source, event)
+    def __ButtonExHandler(self, source: 'ButtonEx', event: str) -> None:
+        Logger.Debug('ButtonEx Event', source, event)
         if event == 'Pressed':
             # Capture initial press state
             source.SetInitialPressState()
@@ -212,7 +212,7 @@ class EventMixIn():
             # Clear initial press state
             source.ClearInitialPressState()
 
-    def __SetButtonLatchingState(self, source: 'ExButton'):
+    def __SetButtonLatchingState(self, source: 'ButtonEx'):
         if source.GetInitialPressState() == source.GetControlState('Inactive'):
                             # Change state to Active state if initially Inactive
             if source.Group is not None:
@@ -236,7 +236,7 @@ class EventMixIn():
             else:
                 source.SetState(source.GetControlState('Inactive'))
 
-    def __SetButtonState(self, source: 'ExButton', state: str):
+    def __SetButtonState(self, source: 'ButtonEx', state: str):
         if hasattr(source, 'Group') and \
                    hasattr(source.Group, 'Group') and \
                    isinstanceEx(source.Group.Group, 'ScrollingRadioSet'):
@@ -252,8 +252,8 @@ class EventMixIn():
         else:
             source.SetState(source.GetControlState(state))
 
-    def __ExSliderHandler(self, source: 'ExSlider', event: str, value: Union[int, float]) -> None:
-        Logger.Debug('ExSlider Event', source, event, value)
+    def __SliderExHandler(self, source: 'SliderEx', event: str, value: Union[int, float]) -> None:
+        Logger.Debug('SliderEx Event', source, event, value)
         
         if event == 'Pressed':
             source.SetInitialPressFill()

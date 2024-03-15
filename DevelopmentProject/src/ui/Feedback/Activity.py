@@ -26,7 +26,7 @@ if TYPE_CHECKING: # pragma: no cover
 #### Extron Library Imports
 
 #### Project imports
-from modules.project.ExtendedSystemClasses import ExTimer
+from modules.project.ExtendedClasses.System import TimerEx
 from modules.helper.CommonUtilities import isinstanceEx
 from ui.Feedback.Source import ShowSourceControlFeedback
 import Constants
@@ -49,7 +49,7 @@ def NewActivityFeedback(devices: List[Constants.UI_HOSTS], activity: Constants.A
     for uiDev in devices:
         uiDev.HidePopup('Power-Transition')
 
-def TipRunnerCallback(timer: 'ExTimer', count: int) -> None:
+def TipRunnerCallback(timer: 'TimerEx', count: int) -> None:
     closeTipBtns = [uiDev.Interface.Objects.Buttons['Activity-Splash-Close'] for uiDev in timer.devices]
     
     for closeBtn in closeTipBtns:
@@ -82,7 +82,7 @@ def CloseTips(*args) -> None:
 
 ## End Function Definitions ----------------------------------------------------
 
-TipTimer = ExTimer(1, TipRunnerCallback, Variables.TIP_TIMER_DUR, CloseTips)
+TipTimer = TimerEx(1, TipRunnerCallback, Variables.TIP_TIMER_DUR, CloseTips)
 TipTimer.Stop()
 TipTimer.devices = []
 TipTimer.activity = None

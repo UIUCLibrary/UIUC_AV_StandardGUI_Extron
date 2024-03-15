@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Dict, List, Union
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import UIDevice
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
+    from modules.project.ExtendedClasses.Device import ExUIDevice
 
 #### Python imports
 import json
@@ -29,12 +29,12 @@ import json
 from extronlib.system import File
 
 #### Project imports
-from modules.project.ExtendedUIClasses import ExButton, ExLabel, ExLevel, ExSlider, ExKnob, RefButton
-from modules.project.ExtendedUIClasses.ControlObject import ControlObject
+from modules.project.ExtendedClasses.UI import ButtonEx, LabelEx, LevelEx, SliderEx, KnobEx, ButtonEx_Ref
+from modules.project.ExtendedClasses.UI.ControlObject import ControlObject
 from modules.project.Collections import UIObjectCollection, ControlGroupCollection
 from modules.helper.CommonUtilities import Logger
 
-import modules.project.ExtendedUIClasses.UISets
+import modules.project.Collections.UISets
 import modules.project.callbacks.RefCallbacks
 import modules.project.callbacks.PopupCallbacks
 
@@ -86,11 +86,11 @@ class TouchPanelObjects():
                     refDict: Dict) -> List:
         RefList = []
         for ref in refDict:
-            # fix attributes for ExButton
+            # fix attributes for ButtonEx
             kwargs = dict(ref)
             kwargs.pop('Name')
             
-            self.Refs[ref['Name']] = RefButton(UIHost=UIHost,
+            self.Refs[ref['Name']] = ButtonEx_Ref(UIHost=UIHost,
                                                ID_Name=self.__GetSelectId(),
                                                **kwargs)
             self.Refs[ref['Name']].SetRefName(ref['Name'])
@@ -129,12 +129,12 @@ class TouchPanelObjects():
         
         ## format button info into self.Buttons
         for button in jsonObj['buttons']:
-            # fix attributes for ExButton
+            # fix attributes for ButtonEx
             kwargs = dict(button)
             kwargs.pop('Name')
             kwargs.pop('ID')
             
-            self.Buttons[button['Name']] = ExButton(UIHost=UIHost,
+            self.Buttons[button['Name']] = ButtonEx(UIHost=UIHost,
                                                     ID_Name=button['ID'],
                                                     **kwargs)
             self.Buttons[button['Name']].SetState(0)
@@ -173,12 +173,12 @@ class TouchPanelObjects():
         
         ## format knob info into self.Knobs
         for knob in jsonObj['knobs']:
-            # fix attributes for ExButton
+            # fix attributes for ButtonEx
             kwargs = dict(knob)
             kwargs.pop('Name')
             kwargs.pop('ID')
             
-            self.Knobs[knob['Name']] = ExKnob(UIHost=UIHost, **kwargs)
+            self.Knobs[knob['Name']] = KnobEx(UIHost=UIHost, **kwargs)
 
     def LoadLevels(self,
                    UIHost: Union['ExUIDevice', 'UIDevice'],
@@ -212,12 +212,12 @@ class TouchPanelObjects():
         
         ## format level info into self.Lvls
         for lvl in jsonObj['levels']:
-            # fix attributes for ExButton
+            # fix attributes for ButtonEx
             kwargs = dict(lvl)
             kwargs.pop('Name')
             kwargs.pop('ID')
             
-            self.Levels[lvl['Name']] = ExLevel(UIHost=UIHost,
+            self.Levels[lvl['Name']] = LevelEx(UIHost=UIHost,
                                                ID_Name=lvl['ID'],
                                                **kwargs)
 
@@ -253,12 +253,12 @@ class TouchPanelObjects():
             
         ## format slider info into self.Slds
         for slider in jsonObj['sliders']:
-            # fix attributes for ExButton
+            # fix attributes for ButtonEx
             kwargs = dict(slider)
             kwargs.pop('Name')
             kwargs.pop('ID')
             
-            self.Sliders[slider['Name']] = ExSlider(UIHost=UIHost,
+            self.Sliders[slider['Name']] = SliderEx(UIHost=UIHost,
                                                     ID_Name=slider['ID'],
                                                     **kwargs)
 
@@ -294,11 +294,11 @@ class TouchPanelObjects():
         
         ## format label info into self.Lbls
         for lbl in jsonObj['labels']:
-            # fix attributes for ExButton
+            # fix attributes for ButtonEx
             kwargs = dict(lbl)
             kwargs.pop('Name')
             kwargs.pop('ID')
-            self.Labels[lbl['Name']] = ExLabel(UIHost=UIHost,
+            self.Labels[lbl['Name']] = LabelEx(UIHost=UIHost,
                                                ID_Name=lbl['ID'],
                                                **kwargs)
 
@@ -390,7 +390,7 @@ class TouchPanelObjects():
         ## create MESets and build self.ButtonGroups
         for group in jsonObj['buttonGroups']:
             kwargs = {"Name": group['Name']}
-            CollectionModule = modules.project.ExtendedUIClasses.UISets
+            CollectionModule = modules.project.Collections.UISets
             Constructor = getattr(CollectionModule, group['Class'])
             
             ## reset btnList and populate it from the jsonObj

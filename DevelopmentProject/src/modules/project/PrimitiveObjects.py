@@ -19,7 +19,7 @@
 
 #### Type Checking
 from _collections_abc import Iterable
-from typing import TYPE_CHECKING, Union, Callable, Any, List, Dict
+from typing import TYPE_CHECKING, Union, Callable, Any, Dict, List
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.Collections import AlertCollection
 
@@ -34,7 +34,7 @@ from extronlib.system import RFile
 
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable, eventEx
-from modules.project.mixins import InitializeMixin
+from modules.project.MixIns import InitializeMixin
 from modules.helper.CommonUtilities import Logger, MergeLists
 
 
@@ -64,10 +64,14 @@ MatrixAction = namedtuple('MatrixAction', ['output', 'input', 'type'])
 Layout = namedtuple('Layout', ['row', 'col'])
 
 class classproperty(property):
+    """
+    Property decorator for class-level properties.
+    Subclasses 'property'. 
+    """    
     def __get__(self, owner_self, owner_cls):
         return self.fget(owner_cls)
 
-class Alias:
+class Alias(object):
     def __init__(self, source_name):
         self.source_name = source_name
 
@@ -80,7 +84,7 @@ class Alias:
     def __set__(self, obj, value):
         setattr(obj, self.source_name, value)
 
-class DictObj:
+class DictObj(object):
     def __init__(self, src_dict: dict, recurse: bool=True):
         if not isinstance(src_dict, dict):
             raise TypeError('DictObj src_dict must be of type dict')
@@ -97,19 +101,20 @@ class DictObj:
     def __repr__(self) -> str:
         return str(self.__dict__)
 
-class FeedbackObject():
+class FeedbackObject(object):
     def __init__(self) -> None:
         pass
     
-class WatchMixIn():
+    
+class WatchMixIn(object):
     def __init__(self, watchType: type) -> None:
         if watchType is list:
             watchStr = "List Changed"
         elif watchType is dict:
             watchStr = "Dictionary Changed"
-            
+
         self.Watch = WatchVariable(watchStr)
-    
+
     def __GetKey(self, key: str, eventKey: Union[str, list]) -> list:
         if key is None:
             if isinstance(eventKey, list):
@@ -122,19 +127,19 @@ class WatchMixIn():
                 watchKey.extend(eventKey)
             else:
                 watchKey = [key, eventKey]
-                
+
         return watchKey
-    
+
     def CreateWatchList(self, value: List, key: str=None) -> 'WatchList':
         rtnList = WatchList(*value)
         @eventEx(rtnList.Watch, 'Changed')
         def WatchListHandler(source, event, evKey=None, evValue=None):
             watchKey = self.__GetKey(key, evKey)
-                    
+
             self.Watch.Change(event, watchKey, evValue)
-            
+
         return rtnList
-            
+
     def CreateWatchDict(self, value: Dict, key: str=None) -> 'WatchDict':
         rtnDict = WatchDict(**value)
         @eventEx(rtnDict.Watch, 'Changed')
@@ -142,8 +147,9 @@ class WatchMixIn():
             watchKey = self.__GetKey(key, evKey)
 
             self.Watch.Change(event, watchKey, evValue)
-            
+
         return rtnDict
+    
     
 class WatchDict(WatchMixIn, UserDict):
     def __init__(self, mapping: dict=None, **kwargs):

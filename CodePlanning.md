@@ -40,21 +40,24 @@
       - __callbacks__
         - __PopupCallbacks.py__
         - __RefCallbacks.py__
-      - __ExtendedUIClasses__
+      - __Collections__
         - __\_\_init\_\_.py__
-        - __ControlObject.py__
-        - __MixIns.py__
         - __UISets.py__
-      - __mixins__
+      - __Devices__
+        - __\_\_init\_\_.py__
+        - __Classes.py__
+      - __ExtendedClasses__
+        - __UI__
+          - __\_\_init\_\_.py__
+          - __ControlObject.py__
+        - __Device.py__
+        - __System.py__
+      - __MixIns__
         - __\_\_init\_\_.py__
         - __Interface.py__
+        - __UI.py__
         - __VirtualDevice.py__
-      - __Classes.py__
-      - __Collections.py__
-      - __ExtendedDeviceClasses.py__
-      - __ExtendedSystemClasses.py__
       - __PrimitiveObjects.py__
-      - __SystemHardware.py__
       - __SystemHost.py__
   - __ui__
     - __Feedback__

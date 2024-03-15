@@ -21,7 +21,7 @@
 from typing import TYPE_CHECKING, List, Union, Callable
 if TYPE_CHECKING: # pragma: no cover
     from extronlib.device import ProcessorDevice, UIDevice, SPDevice, eBUSDevice
-    from modules.project.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
+    from modules.project.ExtendedClasses.Device import ExProcessorDevice, ExUIDevice, ExSPDevice, ExEBUSDevice
 
 #### Python imports
 
@@ -30,15 +30,15 @@ from extronlib.ui import Button, Label, Level, Slider, Knob
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger
-from modules.project.mixins import InitializeMixin
-from modules.project.ExtendedUIClasses.MixIns import ControlMixIn, EventMixIn, GroupMixIn
+from modules.project.MixIns import InitializeMixin
+from modules.project.MixIns.UI import ControlMixIn, EventMixIn, GroupMixIn
 import Constants
 
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class RefButton(InitializeMixin, ControlMixIn, Button):
+class ButtonEx_Ref(InitializeMixin, ControlMixIn, Button):
     def __init__(self,
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
@@ -86,7 +86,7 @@ class RefButton(InitializeMixin, ControlMixIn, Button):
     def __Initialize(self) -> None:
         ControlMixIn._Initialize(self)
 
-class ExButton(InitializeMixin, EventMixIn, ControlMixIn, Button):
+class ButtonEx(InitializeMixin, EventMixIn, ControlMixIn, Button):
     def __init__(self, 
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str], 
@@ -142,7 +142,7 @@ class ExButton(InitializeMixin, EventMixIn, ControlMixIn, Button):
             setattr(self, "char", (self.lc_char, self.uc_char))
     
     @property
-    def Indicator(self) -> 'ExButton':
+    def Indicator(self) -> 'ButtonEx':
         return self.__Indicator
         
     @Indicator.setter
@@ -265,7 +265,7 @@ class ExButton(InitializeMixin, EventMixIn, ControlMixIn, Button):
         
         return self.__FunctDict[Mode]
     
-class ExLabel(InitializeMixin, GroupMixIn, Label):
+class LabelEx(InitializeMixin, GroupMixIn, Label):
     def __init__(self, 
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
@@ -296,7 +296,7 @@ class ExLabel(InitializeMixin, GroupMixIn, Label):
     def __Initialize(self) -> None:
         GroupMixIn._Initialize(self)
 
-class ExLevel(InitializeMixin, GroupMixIn, Level):
+class LevelEx(InitializeMixin, GroupMixIn, Level):
     def __init__(self, 
                  UIHost: Constants.UI_HOSTS, 
                  ID_Name: Union[int, str],
@@ -328,7 +328,7 @@ class ExLevel(InitializeMixin, GroupMixIn, Level):
     def __Initialize(self) -> None:
         GroupMixIn._Initialize(self)
 
-class ExSlider(InitializeMixin, EventMixIn, ControlMixIn, Slider):
+class SliderEx(InitializeMixin, EventMixIn, ControlMixIn, Slider):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'ProcessorDevice', 'SPDevice', 'ExUIDevice', 'ExProcessorDevice', 'ExSPDevice'], 
                  ID_Name: Union[int, str],
@@ -394,7 +394,7 @@ class ExSlider(InitializeMixin, EventMixIn, ControlMixIn, Slider):
         
         return self.__FunctDict[Mode]
 
-class ExKnob(InitializeMixin, EventMixIn, ControlMixIn, Knob):
+class KnobEx(InitializeMixin, EventMixIn, ControlMixIn, Knob):
     def __init__(self, 
                  UIHost: Union['UIDevice', 'eBUSDevice', 'ProcessorDevice', 'ExUIDevice', 'ExEBUSDevice', 'ExProcessorDevice'],
                  **kwargs) -> None:

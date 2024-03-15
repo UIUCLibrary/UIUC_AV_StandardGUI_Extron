@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Dict, Tuple, List, Union, Callable
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedUIClasses import RefButton, ExButton, ExLabel, ExLevel, ExSlider#, ExKnob
+    from modules.project.ExtendedClasses.UI import ButtonEx_Ref, ButtonEx, LabelEx, LevelEx, SliderEx#, KnobEx
 
 #### Python imports
 from subprocess import Popen, PIPE
@@ -31,7 +31,7 @@ import datetime
 from extronlib.system import MESet
 
 #### Project imports
-from modules.project.ExtendedUIClasses.MixIns import ControlMixIn
+from modules.project.MixIns.UI import ControlMixIn
 from modules.helper.CommonUtilities import Logger, isinstanceEx, SortKeys, SchedulePatternToString
 from modules.helper.ModuleSupport import eventEx
 from modules.project.PrimitiveObjects import SystemState
@@ -70,7 +70,7 @@ class UISetMixin(object):
 class RadioSet(ControlMixIn, UISetMixin, MESet):
     def __init__(self, 
                  Name: str,
-                 Objects: List[Union['ExButton', 'RefButton']]) -> None:
+                 Objects: List[Union['ButtonEx', 'ButtonEx_Ref']]) -> None:
         MESet.__init__(self, Objects)
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
@@ -83,30 +83,30 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         return 'RadioSet {} (Current: {}) [{}]'.format(self.Name, self.GetCurrent(), sep.join([str(val) for val in self.Objects]))
     
     @property
-    def Objects(self) -> List[Union['ExButton', 'RefButton']]:
+    def Objects(self) -> List[Union['ButtonEx', 'ButtonEx_Ref']]:
         return super().Objects
     
     @Objects.setter
     def Objects(self, val) -> None:
         raise AttributeError('Overriding the Objects property is not allowed')
     
-    def GetCurrent(self) -> Union['ExButton', 'RefButton']:
+    def GetCurrent(self) -> Union['ButtonEx', 'ButtonEx_Ref']:
         return MESet.GetCurrent(self)
     
-    def Append(self, obj: 'ExButton') -> None:
+    def Append(self, obj: 'ButtonEx') -> None:
         setattr(obj, 'Group', self)
         MESet.Append(self, obj)
     
-    def Prepend(self, obj: 'ExButton') -> None:
+    def Prepend(self, obj: 'ButtonEx') -> None:
         setattr(obj, 'Group', self)
         MESet.Append(self, obj)
         self._MESet__objects.move_to_end(obj, last=False)
     
-    def Remove(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
+    def Remove(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref']) -> None:
         if isinstance(obj, list):
             for item in obj:
                 self.Remove(item)
-        elif type(obj).__name__ in [type(int).__name__, 'ExButton', 'RefButton']:
+        elif type(obj).__name__ in [type(int).__name__, 'ButtonEx', 'ButtonEx_Ref']:
             if isinstance(obj, int):
                 self.Objects[obj].Group = None
             elif obj in self.Objects:
@@ -124,10 +124,10 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
-            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
     
-    def SetCurrent(self, obj: Union[int, str, 'ExButton', 'RefButton', None]) -> None:
-        if isinstanceEx(obj, ('ExButton', 'RefButton')):
+    def SetCurrent(self, obj: Union[int, str, 'ButtonEx', 'ButtonEx_Ref', None]) -> None:
+        if isinstanceEx(obj, ('ButtonEx', 'ButtonEx_Ref')):
             MESet.SetCurrent(self, obj)
         elif obj is None:
             MESet.SetCurrent(self, obj)
@@ -144,14 +144,14 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
         elif isinstance(obj, int):
             MESet.SetCurrent(self, obj)
         else:
-            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
         # Logger.Debug('Radio Set {} Current Selection Updated:'.format(self.Name), obj, '|', MESet.GetCurrent(self))
     
-    def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
+    def SetStates(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref'], offState: int, onState: int) -> None:
         if isinstance(obj, list):
             for item in obj:
                 self.SetStates(item, offState, onState)
-        elif isinstanceEx(obj, (int, 'ExButton', 'RefButton')):
+        elif isinstanceEx(obj, (int, 'ButtonEx', 'ButtonEx_Ref')):
             MESet.SetStates(self, obj, offState, onState)
         elif isinstance(obj, str):
             i = None
@@ -164,12 +164,12 @@ class RadioSet(ControlMixIn, UISetMixin, MESet):
             else:
                 raise ValueError('No object found for name ({}) in radio set'.format(obj))
         elif obj is not None:
-            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
 
 class SelectSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
-                 Objects: List[Union['ExButton', 'RefButton']]) -> None:
+                 Objects: List[Union['ButtonEx', 'ButtonEx_Ref']]) -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -185,19 +185,19 @@ class SelectSet(ControlMixIn, UISetMixin, object):
         return 'SelectSet {} (Current: [{}]) [{}]'.format(self.Name, sep.join([str(val) for val in self.GetActive()]), sep.join([str(val) for val in self.Objects]))
     
     @property
-    def Objects(self) -> List[Union['ExButton', 'RefButton']]:
+    def Objects(self) -> List[Union['ButtonEx', 'ButtonEx_Ref']]:
         return self.__Objects
     
     @Objects.setter
     def Objects(self, val) -> None:
         raise AttributeError('Overriding the Objects property is not allowed')
     
-    def Append(self, obj: Union['ExButton', 'RefButton']) -> None:
+    def Append(self, obj: Union['ButtonEx', 'ButtonEx_Ref']) -> None:
         setattr(obj, 'Group', self)
         self.__Objects.append(obj)
         self.__StateList.append({'onState': 0, 'offState': 1})
         
-    def GetActive(self) -> List[Union['ExButton', 'RefButton']]:
+    def GetActive(self) -> List[Union['ButtonEx', 'ButtonEx_Ref']]:
         activeList = []
         
         for o in self.__Objects:
@@ -206,7 +206,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
         
         return activeList
     
-    def Remove(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
+    def Remove(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref']) -> None:
         if isinstance(obj, list):
             for item in obj:
                 self.Remove(item)
@@ -214,7 +214,7 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             self.__Objects[obj].Group = None
             self.__Objects.pop(obj)
             self.__StateList.pop(obj)
-        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
+        elif isinstanceEx(obj, ('ButtonEx', 'ButtonEx_Ref')):
             obj.Group = None
             i = self.__Objects.index(obj)
             self.__Objects.pop(obj)
@@ -232,9 +232,9 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
         elif obj is not None:
-            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
     
-    def SetActive(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
+    def SetActive(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref']) -> None:
         if isinstance(obj, list):
             for item in obj:
                 self.SetActive(item)
@@ -256,15 +256,15 @@ class SelectSet(ControlMixIn, UISetMixin, object):
                 self.__Objects[i].SetState(self.__StateList[i]['onState'])
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
-        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
+        elif isinstanceEx(obj, ('ButtonEx', 'ButtonEx_Ref')):
             if obj in self.__Objects:
                 obj.SetState(self.__StateList[self.__Objects.index(obj)]['onState'])
             else:
                 raise IndexError('Object not found in select list')
         elif obj is not None:
-            raise TypeError('Object must be an object name, int index, the button object (ExButton or RefButton class), or List of these')
+            raise TypeError('Object must be an object name, int index, the button object (ButtonEx or ButtonEx_Ref class), or List of these')
 
-    def SetInactive(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton']) -> None:
+    def SetInactive(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref']) -> None:
         if isinstance(obj, list):
             for item in obj:
                 self.SetInactive(item)
@@ -283,23 +283,23 @@ class SelectSet(ControlMixIn, UISetMixin, object):
                 self.__Objects[i].SetState(self.__StateList[i]['offState'])
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
-        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
+        elif isinstanceEx(obj, ('ButtonEx', 'ButtonEx_Ref')):
             if obj in self.__Objects:
                 obj.SetState(self.__StateList[self.__Objects.index(obj)]['offState'])
             else:
                 raise IndexError('Object not found in select list')
         else:
-            raise TypeError('Object must be an object name, int index, the button object (ExButton or RefButton class), or List of these')
+            raise TypeError('Object must be an object name, int index, the button object (ButtonEx or ButtonEx_Ref class), or List of these')
         
 
-    def SetStates(self, obj: Union[List[Union[str, int, 'ExButton', 'RefButton']], str, int, 'ExButton', 'RefButton'], offState: int, onState: int) -> None:
+    def SetStates(self, obj: Union[List[Union[str, int, 'ButtonEx', 'ButtonEx_Ref']], str, int, 'ButtonEx', 'ButtonEx_Ref'], offState: int, onState: int) -> None:
         if isinstance(obj, list):
             for item in obj:
                 self.SetStates(item, offState, onState)
         elif isinstance(obj, int):
             self.__StateList[obj]['onState'] = onState
             self.__StateList[obj]['offState'] = offState
-        elif isinstanceEx(obj, ('ExButton', 'RefButton')):
+        elif isinstanceEx(obj, ('ButtonEx', 'ButtonEx_Ref')):
             i = self.__Objects.index(obj)
             self.__StateList[i]['onState'] = onState
             self.__StateList[i]['offState'] = offState
@@ -315,12 +315,12 @@ class SelectSet(ControlMixIn, UISetMixin, object):
             else:
                 raise ValueError('No object found for name ({}) in select set'.format(obj))
         elif obj is not None:
-            raise TypeError('Object must be string object name, int index, or the button object (Button or ExButton class)')
+            raise TypeError('Object must be string object name, int index, or the button object (Button or ButtonEx class)')
 
 class VariableRadioSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
-                 Objects: List['ExButton'],
+                 Objects: List['ButtonEx'],
                  PopupCallback: Callable,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
         ControlMixIn.__init__(self)
@@ -337,7 +337,7 @@ class VariableRadioSet(ControlMixIn, UISetMixin, object):
         return 'VariableRadioSet {} (Current: {}, Popup: {}) [{}]'.format(self.Name, self.GetCurrent(), self.PopupName, sep.join([str(val) for val in self.Objects]))
     
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__BtnSet.Objects
     
     @Objects.setter
@@ -352,16 +352,16 @@ class VariableRadioSet(ControlMixIn, UISetMixin, object):
     def PopupName(self, val) -> None:
         raise AttributeError('Overriding the PopupName property is disallowed')    
     
-    def Append(self, obj: 'ExButton' = None) -> None:
+    def Append(self, obj: 'ButtonEx' = None) -> None:
         if obj is not None:
             setattr(obj, 'Group', self)
             self.__BtnSet.Append(obj)
             
-    def GetCurrent(self) -> 'ExButton':
+    def GetCurrent(self) -> 'ButtonEx':
         return self.__BtnSet.GetCurrent()
     
     def Remove(self, 
-               Object: Union[int, str, 'ExButton'] = None, 
+               Object: Union[int, str, 'ButtonEx'] = None, 
                Popup: Union[int, str] = None) -> None:
         
         if Object is not None:
@@ -380,14 +380,14 @@ class VariableRadioSet(ControlMixIn, UISetMixin, object):
             
         self.__PopupKey = self.__GetPopupKey()
             
-    def SetCurrent(self, obj: Union[int, str, 'ExButton']) -> None:
+    def SetCurrent(self, obj: Union[int, str, 'ButtonEx']) -> None:
         self.__BtnSet.SetCurrent(obj)
         
     def SetStates(self, 
-                  obj: Union[List[Union[int, str, 'ExButton']], 
+                  obj: Union[List[Union[int, str, 'ButtonEx']], 
                              int, 
                              str, 
-                             'ExButton'], 
+                             'ButtonEx'], 
                   offState: int, 
                   onState: int) -> None:
         
@@ -406,10 +406,10 @@ class VariableRadioSet(ControlMixIn, UISetMixin, object):
 class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str,
-                 Objects: List['ExButton'], 
-                 RefObjects: List['RefButton'],
-                 PrevBtn: 'ExButton', 
-                 NextBtn: 'ExButton', 
+                 Objects: List['ButtonEx'], 
+                 RefObjects: List['ButtonEx_Ref'],
+                 PrevBtn: 'ButtonEx', 
+                 NextBtn: 'ButtonEx', 
                  PopupCallback: Callable,
                  OffsetShift: int=1,
                  PopupGroups: List[Dict[str, str]] = None) -> None:
@@ -441,7 +441,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         return '<ScrollingRadioSet {} (Current: {}, Popup: {}) [{}]>'.format(self.Name, self.GetCurrentRef(), self.PopupName, sep.join([str(val) for val in self.RefObjects]))
     
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__BtnSet.Objects
     
     @Objects.setter
@@ -449,7 +449,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the Objects property is disallowed')
     
     @property
-    def RefObjects(self) -> List['RefButton']:
+    def RefObjects(self) -> List['ButtonEx_Ref']:
         return self.__RefSet.Objects
     
     @RefObjects.setter
@@ -457,7 +457,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the RefObjects property is disallowed')
     
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'Previous': self.__Prev,
             'Next': self.__Next
@@ -505,7 +505,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         
         return int(page)
     
-    def GetRefByObject(self, obj: Union[int, str, 'ExButton']) -> 'RefButton':
+    def GetRefByObject(self, obj: Union[int, str, 'ButtonEx']) -> 'ButtonEx_Ref':
         if isinstance(obj, int):
             return self.__RefSet.Objects[obj + self.__Offset]
         elif isinstance(obj, str):
@@ -513,12 +513,12 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
                 if btn.Name == obj:
                     return self.__RefSet.Objects[self.__BtnSet.Objects.index(btn) + self.__Offset]
             return None
-        elif isinstanceEx(obj, 'ExButton'):
+        elif isinstanceEx(obj, 'ButtonEx'):
             return self.__RefSet.Objects[self.__BtnSet.Objects.index(obj) + self.__Offset]
         else:
-            raise TypeError('obj must be an index int, name str, Button or ExButton object')
+            raise TypeError('obj must be an index int, name str, Button or ButtonEx object')
     
-    def GetObjectByRef(self, ref: Union[int, str, 'RefButton']) -> Union[None, 'ExButton']:
+    def GetObjectByRef(self, ref: Union[int, str, 'ButtonEx_Ref']) -> Union[None, 'ButtonEx']:
         objIndex = None
         
         if isinstance(ref, int):
@@ -529,7 +529,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
                 if refBtn.Name == ref:
                     objIndex = self.__RefSet.Objects.index(refBtn) - self.__Offset
                     
-        elif isinstanceEx(ref, 'RefButton'):
+        elif isinstanceEx(ref, 'ButtonEx_Ref'):
             objIndex = self.__RefSet.Objects.index(ref) - self.__Offset
         
         if objIndex is None:
@@ -539,35 +539,35 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         else:
             return None
     
-    def GetCurrentButton(self) -> 'ExButton':
+    def GetCurrentButton(self) -> 'ButtonEx':
         return self.__BtnSet.GetCurrent()
     
-    def GetCurrentRef(self) -> 'RefButton':
+    def GetCurrentRef(self) -> 'ButtonEx_Ref':
         return self.__RefSet.GetCurrent()
     
-    def AppendButton(self, btn: 'ExButton') -> None:
+    def AppendButton(self, btn: 'ButtonEx') -> None:
         self.__BtnSet.Append(btn)
         btn.Group = self
     
-    def PrependButton(self, btn: 'ExButton') -> None:
+    def PrependButton(self, btn: 'ButtonEx') -> None:
         self.__BtnSet.Prepend(btn)
         btn.Group = self
     
-    def AppendRef(self, ref: 'RefButton') -> None:
+    def AppendRef(self, ref: 'ButtonEx_Ref') -> None:
         self.__RefSet.Append(ref)
         ref.Group = self
         
-    def PrependRef(self, ref: 'RefButton') -> None:
+    def PrependRef(self, ref: 'ButtonEx_Ref') -> None:
         self.__RefSet.Prepend(ref)
         ref.Group = self
         
-    def RemoveButton(self, btn: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton']) -> None:
+    def RemoveButton(self, btn: Union[List[Union[int, str, 'ButtonEx']], int, str, 'ButtonEx']) -> None:
         self.__BtnSet.Remove(btn)
         
-    def RemoveRef(self, btn: Union[List[Union[int, str, 'RefButton']], int, str, 'RefButton']) -> None:
+    def RemoveRef(self, btn: Union[List[Union[int, str, 'ButtonEx_Ref']], int, str, 'ButtonEx_Ref']) -> None:
         self.__RefSet.Remove(btn)
         
-    def SetCurrentButton(self, btn: Union[int, str, 'ExButton']) -> None:
+    def SetCurrentButton(self, btn: Union[int, str, 'ButtonEx']) -> None:
         if btn is None:
             raise ValueError('None cannot be set using SetCurrentButton')
         
@@ -577,7 +577,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         refIndex = index + self.__Offset
         self.__RefSet.SetCurrent(refIndex)
         
-    def SetCurrentRef(self, ref: Union[int, str, 'RefButton']) -> None:
+    def SetCurrentRef(self, ref: Union[int, str, 'ButtonEx_Ref']) -> None:
         self.__RefSet.SetCurrent(ref)
         
         index = self.__RefSet.Objects.index(self.__RefSet.GetCurrent())
@@ -590,7 +590,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
         elif btnIndex > len(self.__BtnSet.Objects):
             self.__BtnSet.SetCurrent(None)
             
-    def SetCurrentButtonByRef(self, ref: Union[int, str, 'RefButton', None]) -> None:
+    def SetCurrentButtonByRef(self, ref: Union[int, str, 'ButtonEx_Ref', None]) -> None:
         if ref is None:
             self.__BtnSet.SetCurrent(None)
             return
@@ -604,7 +604,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
                     break
             if index is None:
                 raise LookupError('No RefObject found for string Name of Id')
-        elif isinstanceEx(ref, 'RefButton'):
+        elif isinstanceEx(ref, 'ButtonEx_Ref'):
             index = self.RefObjects.index(ref)
             
         btnIndex = index - self.__Offset
@@ -617,7 +617,7 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
             self.__BtnSet.SetCurrent(None)
             
             
-    def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
+    def SetStates(self, obj: Union[List[Union[int, str, 'ButtonEx']], int, str, 'ButtonEx'], offState: int, onState: int) -> None:
         self.__BtnSet.SetStates(obj, offState, onState)
         
     def ShowPopup(self, suffix: str=None) -> None:
@@ -697,42 +697,42 @@ class ScrollingRadioSet(ControlMixIn, UISetMixin, object):
 class VolumeControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
-                 VolUp: 'ExButton',
-                 VolDown: 'ExButton',
-                 Mute: 'ExButton',
-                 Feedback: 'ExLevel',
-                 ControlLabel: 'ExLabel'=None,
+                 VolUp: 'ButtonEx',
+                 VolDown: 'ButtonEx',
+                 Mute: 'ButtonEx',
+                 Feedback: 'LevelEx',
+                 ControlLabel: 'LabelEx'=None,
                  DisplayName: str=None,
                  Range: Tuple[int, int, int]=(0, 100, 1)
                  ) -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
-        if isinstanceEx(VolUp, 'ExButton'):
+        if isinstanceEx(VolUp, 'ButtonEx'):
             self.VolUpBtn = VolUp
             self.VolUpBtn.Group = self
         else:
             raise TypeError('VolUp must be an Extron Button object')
         
-        if isinstanceEx(VolDown, 'ExButton'):
+        if isinstanceEx(VolDown, 'ButtonEx'):
             self.VolDownBtn = VolDown
             self.VolDownBtn.Group = self
         else:
             raise TypeError('VolDown must be an Extron Button object')
         
-        if isinstanceEx(Mute, 'ExButton'):
+        if isinstanceEx(Mute, 'ButtonEx'):
             self.MuteBtn = Mute
             self.MuteBtn.Group = self
         else:
             raise TypeError('Mute must be an Extron Button object')
         
-        if isinstanceEx(Feedback, 'ExLevel'):
+        if isinstanceEx(Feedback, 'LevelEx'):
             self.FeedbackLvl = Feedback
             self.FeedbackLvl.Group = self
         else:
             raise TypeError('Feedback must be an Extron Level object')
         
-        if isinstanceEx(ControlLabel, 'ExLabel') or ControlLabel is None:
+        if isinstanceEx(ControlLabel, 'LabelEx') or ControlLabel is None:
             self.ControlLbl = ControlLabel
             self.ControlLbl.Group = self
         else:
@@ -756,13 +756,13 @@ class VolumeControlGroup(ControlMixIn, UISetMixin, object):
 class HeaderControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name, 
-                 RoomButton: 'ExButton',
-                 HelpButton: 'ExButton',
-                 AudioButton: 'ExButton',
-                 LightsButton: 'ExButton',
-                 CameraButton: 'ExButton',
-                 AlertButton: 'ExButton',
-                 CloseButton: 'ExButton') -> None:
+                 RoomButton: 'ButtonEx',
+                 HelpButton: 'ButtonEx',
+                 AudioButton: 'ButtonEx',
+                 LightsButton: 'ButtonEx',
+                 CameraButton: 'ButtonEx',
+                 AlertButton: 'ButtonEx',
+                 CloseButton: 'ButtonEx') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -807,7 +807,7 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
         return 'HeaderControlGroup {}'.format(self.Name)
     
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'Room': self.__RoomButton,
             'Help': self.__HelpButton, 
@@ -831,7 +831,7 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
     def __LightsSuffixCallback(self) -> str:
         return str(len(System.CONTROLLER.Devices.Lights))
     
-    def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
+    def SetStates(self, obj: Union[List[Union[int, str, 'ButtonEx']], int, str, 'ButtonEx'], offState: int, onState: int) -> None:
         Logger.Debug('Attempting to set states of Header Control Group')
         
     def SetRoomName(self, RoomName: str) -> None:
@@ -840,10 +840,10 @@ class HeaderControlGroup(ControlMixIn, UISetMixin, object):
 class PINPadControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str, 
-                 Objects: List['ExButton'], 
-                 BackspaceButton: 'ExButton', 
-                 CancelButton: 'ExButton',
-                 TextAreaLabel: 'ExLabel') -> None:
+                 Objects: List['ButtonEx'], 
+                 BackspaceButton: 'ButtonEx', 
+                 CancelButton: 'ButtonEx',
+                 TextAreaLabel: 'LabelEx') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -863,7 +863,7 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
         return 'PINPadControlGroup {}'.format(self.Name)
     
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__BtnSet.Objects
     
     @Objects.setter
@@ -871,7 +871,7 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the Objects property is disallowed')
     
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'Backspace': self.__BackspaceBtn,
             'Cancel': self.__CancelBtn
@@ -881,7 +881,7 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
     def UIControls(self) -> None:
         raise AttributeError('Overriding the Objects property is disallowed')
     
-    def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
+    def SetStates(self, obj: Union[List[Union[int, str, 'ButtonEx']], int, str, 'ButtonEx'], offState: int, onState: int) -> None:
         self.__BtnSet.SetStates(obj, offState, onState)
         
     def SetText(self, value: str) -> None:
@@ -890,17 +890,17 @@ class PINPadControlGroup(ControlMixIn, UISetMixin, object):
 class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self, 
                  Name: str, 
-                 Objects: List['ExButton'], 
-                 BackspaceButton: 'ExButton', 
-                 DeleteButton: 'ExButton',
-                 CancelButton: 'ExButton',
-                 SaveButton: 'ExButton',
-                 CapsLockButton: 'ExButton',
-                 ShiftButton: 'ExButton',
-                 SpaceButton: 'ExButton',
-                 CursorLeftButton: 'ExButton',
-                 CursorRightButton: 'ExButton',
-                 TextAreaLabel: 'ExLabel') -> None:
+                 Objects: List['ButtonEx'], 
+                 BackspaceButton: 'ButtonEx', 
+                 DeleteButton: 'ButtonEx',
+                 CancelButton: 'ButtonEx',
+                 SaveButton: 'ButtonEx',
+                 CapsLockButton: 'ButtonEx',
+                 ShiftButton: 'ButtonEx',
+                 SpaceButton: 'ButtonEx',
+                 CursorLeftButton: 'ButtonEx',
+                 CursorRightButton: 'ButtonEx',
+                 TextAreaLabel: 'LabelEx') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -927,7 +927,7 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
         return 'KeyboardControlGroup {}'.format(self.Name)
     
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__BtnSet.Objects
     
     @Objects.setter
@@ -935,7 +935,7 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the Objects property is disallowed')
     
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'Backspace': self.__BackspaceBtn,
             'Delete': self.__DeleteBtn,
@@ -955,19 +955,19 @@ class KeyboardControlGroup(ControlMixIn, UISetMixin, object):
     def SetText(self, value: str) -> None:
         self.__TextArea.SetText(value)
         
-    def SetStates(self, obj: Union[List[Union[int, str, 'ExButton']], int, str, 'ExButton'], offState: int, onState: int) -> None:
+    def SetStates(self, obj: Union[List[Union[int, str, 'ButtonEx']], int, str, 'ButtonEx'], offState: int, onState: int) -> None:
         self.__BtnSet.SetStates(obj, offState, onState)
         
 class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
-                 Objects: List['ExButton'],
-                 ObjectLabels: List['ExLabel'],
-                 PreviousButton: 'ExButton',
-                 NextButton: 'ExButton',
-                 CurrentPageLabel: 'ExLabel',
-                 TotalPageLabel: 'ExLabel',
-                 DividerLabel: 'ExLabel') -> None:
+                 Objects: List['ButtonEx'],
+                 ObjectLabels: List['LabelEx'],
+                 PreviousButton: 'ButtonEx',
+                 NextButton: 'ButtonEx',
+                 CurrentPageLabel: 'LabelEx',
+                 TotalPageLabel: 'LabelEx',
+                 DividerLabel: 'LabelEx') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -1000,7 +1000,7 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
         self.__Divider.Group = self
         
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__ObjectSet
     
     @Objects.setter
@@ -1008,7 +1008,7 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the Objects property is disallowed')
     
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'Previous': self.__PrevBtn,
             'Next': self.__NextBtn
@@ -1037,19 +1037,19 @@ class SystemStatusControlGroup(ControlMixIn, UISetMixin, object):
 class AboutPageGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
-                 CopyrightLabel: 'ExLabel',
-                 ModelLabel: 'ExLabel',
-                 SNLabel: 'ExLabel',
-                 MACLabel: 'ExLabel',
-                 HostLabel: 'ExLabel',
-                 IPLabel: 'ExLabel',
-                 FWLabel: 'ExLabel',
-                 ProgLabel: 'ExLabel',
-                 VersionLabel: 'ExLabel',
-                 AuthorLabel: 'ExLabel',
-                 DiskLabel: 'ExLabel',
-                 CPULabel: 'ExLabel',
-                 RAMLabel: 'ExLabel'):
+                 CopyrightLabel: 'LabelEx',
+                 ModelLabel: 'LabelEx',
+                 SNLabel: 'LabelEx',
+                 MACLabel: 'LabelEx',
+                 HostLabel: 'LabelEx',
+                 IPLabel: 'LabelEx',
+                 FWLabel: 'LabelEx',
+                 ProgLabel: 'LabelEx',
+                 VersionLabel: 'LabelEx',
+                 AuthorLabel: 'LabelEx',
+                 DiskLabel: 'LabelEx',
+                 CPULabel: 'LabelEx',
+                 RAMLabel: 'LabelEx'):
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -1156,19 +1156,19 @@ class AboutPageGroup(ControlMixIn, UISetMixin, object):
 class PanelSetupGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
-                 BrightnessSlider: 'ExSlider',
-                 AutoBrightnessButton: 'ExButton',
-                 VolumeSlider: 'ExSlider',
-                 SleepSlider: 'ExSlider',
-                 AutoSleepButton: 'ExButton',
-                 WakeOnMotionButton: 'ExButton',
-                 SleepLabel: 'ExLabel',
-                 ModelLabel: 'ExLabel',
-                 SerialLabel: 'ExLabel',
-                 MACLabel: 'ExLabel',
-                 HostLabel: 'ExLabel',
-                 IPLabel: 'ExLabel',
-                 FirmwareLabel: 'ExLabel'
+                 BrightnessSlider: 'SliderEx',
+                 AutoBrightnessButton: 'ButtonEx',
+                 VolumeSlider: 'SliderEx',
+                 SleepSlider: 'SliderEx',
+                 AutoSleepButton: 'ButtonEx',
+                 WakeOnMotionButton: 'ButtonEx',
+                 SleepLabel: 'LabelEx',
+                 ModelLabel: 'LabelEx',
+                 SerialLabel: 'LabelEx',
+                 MACLabel: 'LabelEx',
+                 HostLabel: 'LabelEx',
+                 IPLabel: 'LabelEx',
+                 FirmwareLabel: 'LabelEx'
                  ):
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
@@ -1218,7 +1218,7 @@ class PanelSetupGroup(ControlMixIn, UISetMixin, object):
         self.__UIDev = self.__Brightness.UIHost
     
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'Brightness': self.__Brightness,
             'AutoBrightness': self.__AutoBrightness,
@@ -1269,11 +1269,11 @@ class PanelSetupGroup(ControlMixIn, UISetMixin, object):
 class ScheduleConfigGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
-                 Objects: List['ExButton'],
-                 AutoStartButton: 'ExButton',
-                 AutoShutdownButton: 'ExButton',
-                 StartPatternButton: 'ExButton',
-                 ShutdownPatternButton: 'ExButton') -> None:
+                 Objects: List['ButtonEx'],
+                 AutoStartButton: 'ButtonEx',
+                 AutoShutdownButton: 'ButtonEx',
+                 StartPatternButton: 'ButtonEx',
+                 ShutdownPatternButton: 'ButtonEx') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -1289,7 +1289,7 @@ class ScheduleConfigGroup(ControlMixIn, UISetMixin, object):
             btn.Group = self
         
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__BtnSet.Objects
     
     @Objects.setter
@@ -1297,7 +1297,7 @@ class ScheduleConfigGroup(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the Objects property is disallowed')
         
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'AutoStart': self.__AutoStartBtn,
             'AutoShutdown': self.__AutoShutdownBtn,
@@ -1330,20 +1330,20 @@ class ScheduleConfigGroup(ControlMixIn, UISetMixin, object):
 class ScheduleEditGroup(ControlMixIn, UISetMixin, object):
     def __init__(self,
                  Name: str,
-                 Objects: List['ExButton'],
-                 SelectAllButton: 'ExButton',
-                 SelectWeekdaysButton: 'ExButton',
-                 HourUpButton: 'ExButton',
-                 HourDnButton: 'ExButton',
-                 HourLabel: 'ExLabel',
-                 MinUpButton: 'ExButton',
-                 MinDnButton: 'ExButton',
-                 MinLabel: 'ExLabel',
-                 AMButton: 'ExButton',
-                 PMButton: 'ExButton',
-                 ScheduleLabel: 'ExLabel',
-                 SaveButton: 'ExButton',
-                 CancelButton: 'ExButton') -> None:
+                 Objects: List['ButtonEx'],
+                 SelectAllButton: 'ButtonEx',
+                 SelectWeekdaysButton: 'ButtonEx',
+                 HourUpButton: 'ButtonEx',
+                 HourDnButton: 'ButtonEx',
+                 HourLabel: 'LabelEx',
+                 MinUpButton: 'ButtonEx',
+                 MinDnButton: 'ButtonEx',
+                 MinLabel: 'LabelEx',
+                 AMButton: 'ButtonEx',
+                 PMButton: 'ButtonEx',
+                 ScheduleLabel: 'LabelEx',
+                 SaveButton: 'ButtonEx',
+                 CancelButton: 'ButtonEx') -> None:
         ControlMixIn.__init__(self)
         UISetMixin.__init__(self, Name)
         
@@ -1381,7 +1381,7 @@ class ScheduleEditGroup(ControlMixIn, UISetMixin, object):
         self.__CurAmPm = None
         
     @property
-    def Objects(self) -> List['ExButton']:
+    def Objects(self) -> List['ButtonEx']:
         return self.__BtnSet.Objects
     
     @Objects.setter
@@ -1389,7 +1389,7 @@ class ScheduleEditGroup(ControlMixIn, UISetMixin, object):
         raise AttributeError('Overriding the Objects property is disallowed')
         
     @property
-    def UIControls(self) -> Dict[str, 'ExButton']:
+    def UIControls(self) -> Dict[str, 'ButtonEx']:
         return {
             'SelectAllDays': self.__SelectAllBtn,
             'SelectAllWeekdays': self.__SelectWkDysBtn,
@@ -1425,7 +1425,7 @@ class ScheduleEditGroup(ControlMixIn, UISetMixin, object):
         
         self.__SchedLabel.SetText(SchedulePatternToString(Pattern))
         
-    def GetActive(self) -> List['ExButton']:
+    def GetActive(self) -> List['ButtonEx']:
         return self.__BtnSet.GetActive()
     
     def GetTime(self) -> Dict:

@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHost import SystemController
     from extronlib.ui import Button
-    from modules.project.ExtendedUIClasses import ExButton
+    from modules.project.ExtendedClasses.UI import ButtonEx
 
 #### Python imports
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
-from modules.project.ExtendedSystemClasses import ExTimer
+from modules.project.ExtendedClasses.System import TimerEx
 from modules.project.PrimitiveObjects import (DictObj, 
                                              ActivityMode, 
                                              SystemState, 
@@ -37,6 +37,7 @@ from modules.project.PrimitiveObjects import (DictObj,
                                              MatrixAction)
 from ui.interface.TouchPanel import StartShutdownConfirmation
 from ui.Feedback.Activity import NewActivityFeedback
+from modules.project.MixIns import InitializeMixin
 
 import System
 import Constants
@@ -46,24 +47,26 @@ import Constants
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class ActivityController:
+class ActivityController(InitializeMixin, object):
     def __init__(self, SystemHost: 'SystemController') -> None:
+        InitializeMixin.__init__(self, self.__Initialize)
+        
         self.SystemHost = SystemHost
         
         self.Timers = DictObj({
-            'Startup':  ExTimer(1, 
+            'Startup':  TimerEx(1, 
                                 self.SystemHost.SystemActiveTransition, 
                                 self.SystemHost.Timers.Startup, 
                                 self.SystemHost.SystemActiveComplete),
-            'Switch':   ExTimer(1, 
+            'Switch':   TimerEx(1, 
                                 self.ActivitySwitchTransition, 
                                 SystemHost.Timers.Switch, 
                                 self.ActivitySwitchComplete),
-            'Shutdown': ExTimer(1, 
+            'Shutdown': TimerEx(1, 
                                 self.SystemHost.SystemStandbyTransition, 
                                 self.SystemHost.Timers.Shutdown, 
                                 self.SystemHost.SystemStandbyComplete),
-            'Splash':   ExTimer(30,
+            'Splash':   TimerEx(30,
                                 self.SystemHost.SplashChecker,
                                 self.SystemHost.Timers.SplashPage,
                                 self.SystemHost.ShowSplash)
@@ -72,8 +75,6 @@ class ActivityController:
         self.Timers.Switch.Stop()
         self.Timers.Shutdown.Stop()
         self.Timers.Splash.Stop()
-        
-        self.Initialized = False
             
     @property
     def CurrentActivity(self) -> ActivityMode:
@@ -130,8 +131,7 @@ class ActivityController:
         
         self.ActivitySwitchInit()
 
-    def Initialize(self) -> None:        
-        self.Initialized = True
+    def __Initialize(self) -> None: ...
         
     def SystemModeChangeHandler(self, Transition: Tuple[Tuple[bool, SystemState], Tuple[bool, ActivityMode]]) -> None:
         Logger.Log('System Transition:', Transition)
@@ -223,7 +223,7 @@ class ActivityController:
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def ActivitySelect(button: Union['Button', 'ExButton'], action: str) -> None:
+def ActivitySelect(button: Union['Button', 'ButtonEx'], action: str) -> None:
     if button.activity not in Constants.STANDBY:
         System.CONTROLLER.SystemActivity = ActivityMode[button.activity]
     else:

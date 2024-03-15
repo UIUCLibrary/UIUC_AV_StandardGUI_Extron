@@ -19,9 +19,9 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
-    from modules.project.ExtendedUIClasses import ExButton
-    from modules.project.ExtendedUIClasses.UISets import PINPadControlGroup
+    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.ExtendedClasses.UI import ButtonEx
+    from modules.project.Collections.UISets import PINPadControlGroup
 
 #### Python imports
 
@@ -116,15 +116,15 @@ class PINController:
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def PINPadHandler(source: 'ExButton', event: str) -> None:
+def PINPadHandler(source: 'ButtonEx', event: str) -> None:
     PINCtl = source.UIHost.PINAccess
     PINCtl.UpdatePINHandler(source.pinValue)
             
-def PINBackspaceHandler(source: 'ExButton', event: str) -> None:
+def PINBackspaceHandler(source: 'ButtonEx', event: str) -> None:
     PINCtl = source.UIHost.PINAccess
     PINCtl.BackspacePINHandler()
 
-def PINCancelHandler(source: 'ExButton', event: str) -> None:
+def PINCancelHandler(source: 'ButtonEx', event: str) -> None:
     PINCtl = source.UIHost.PINAccess
     PINCtl.CancelBtnHandler()
 

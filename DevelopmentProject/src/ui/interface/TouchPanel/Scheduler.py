@@ -19,9 +19,9 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
-    from modules.project.ExtendedUIClasses.UISets import ScheduleConfigGroup, ScheduleEditGroup
-    from modules.project.ExtendedUIClasses import ExButton
+    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.Collections.UISets import ScheduleConfigGroup, ScheduleEditGroup
+    from modules.project.ExtendedClasses.UI import ButtonEx
     from datetime import datetime
 
 #### Python imports
@@ -195,36 +195,36 @@ class ScheduleController():
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def ScheduleToggleHandler(source: 'ExButton', event: str) -> None:
+def ScheduleToggleHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.ScheduleCtl.UpdateClockState(source.mode, bool(source.State))
     uiDev.ScheduleCtl.UpdateTechPage(force=True)
 
-def ScheduleEditHandler(source: 'ExButton', event: str) -> None:
+def ScheduleEditHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.ScheduleCtl.ShowEditor(source.mode)
 
-def ScheduleModeHandler(source: 'ExButton', event: str) -> None:
+def ScheduleModeHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.ScheduleCtl.ConfigSettings.Settings['auto_start']['mode'] = source.value
     uiDev.ScheduleCtl.UpdateTechPage(force=True)
 
-def ScheduleDayHandler(source: 'ExButton', event: str) -> None:
+def ScheduleDayHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.ScheduleCtl.UpdateEditor()
 
-def ScheduleAllDaysHandler(source: 'ExButton', event: str) -> None:
+def ScheduleAllDaysHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     daysGroup = source.Group
     
     daysGroup.SetActive('All')
     uiDev.ScheduleCtl.UpdateEditor()
 
-def ScheduleWeekDaysHandler(source: 'ExButton', event: str) -> None:
+def ScheduleWeekDaysHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     daysGroup = source.Group
     
@@ -236,22 +236,22 @@ def ScheduleWeekDaysHandler(source: 'ExButton', event: str) -> None:
                          'Schedule-Fri'])
     uiDev.ScheduleCtl.UpdateEditor()
 
-def ScheduleTimeHandler(source: 'ExButton', event: str) -> None:
+def ScheduleTimeHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.ScheduleCtl.UpdateEditorTime(source.mode, source.Offset)
     uiDev.ScheduleCtl.UpdateEditor()
 
-def ScheduleAmPmHandler(source: 'ExButton', event: str) -> None:
+def ScheduleAmPmHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.ScheduleCtl.UpdateEditor()
 
-def ScheduleSaveHandler(source: 'ExButton', event: str) -> None:
+def ScheduleSaveHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     uiDev.ScheduleCtl.SaveEditor()
 
-def ScheduleCancelHandler(source: 'ExButton', event: str) -> None:
+def ScheduleCancelHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     uiDev.ScheduleCtl.CancelEditor()
 

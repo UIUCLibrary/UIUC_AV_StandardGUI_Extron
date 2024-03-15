@@ -19,8 +19,8 @@
 #### Type Checking
 from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
-    from modules.project.ExtendedUIClasses import ExButton, ExSlider
+    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.ExtendedClasses.UI import ButtonEx, SliderEx
     from extronlib.device import UIDevice
     from extronlib.ui import Button
     
@@ -35,9 +35,10 @@ from extronlib import event
 #### Project imports
 from modules.project.PrimitiveObjects import DictObj, TieType, MatrixAction, ActivityMode, SystemState
 from modules.helper.CommonUtilities import TimeIntToStr, Logger
-from modules.project.ExtendedSystemClasses import ExTimer
+from modules.project.ExtendedClasses.System import TimerEx
 from ui.interface.TouchPanel.Objects import TouchPanelObjects
 from ui.Feedback.Source import ShowSourceSelectionFeedback, ShowSourceControlFeedback
+from modules.project.MixIns import InitializeMixin
 
 import System
 import Variables
@@ -46,13 +47,15 @@ import Variables
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class TouchPanelInterface():
+class TouchPanelInterface(InitializeMixin, object):
     def __init__(self, device: Union['ExUIDevice', 'UIDevice'], interfaceType: str) -> None:
+        InitializeMixin.__init__(self, self.__Initialize)
+        
         self.__LayoutPath = '/var/nortxe/gcp/layout'
         self.__LayoutGLD = '{}.gdl'.format(Variables.UI_LAYOUT)
-        self.__LayoutJSON = '{}_objects.json'.format(Variables.UI_LAYOUT)
-        self.__ControlJSON = '{}_controls.json'.format(Variables.UI_LAYOUT)
-        self.__TechPgsJSON = '{}_techPages.json'.format(Variables.UI_LAYOUT)
+        self.__LayoutJSON = 'objects.{}.json'.format(Variables.UI_LAYOUT)
+        self.__ControlJSON = 'controls.{}.json'.format(Variables.UI_LAYOUT)
+        self.__TechPgsJSON = 'techPages.{}.json'.format(Variables.UI_LAYOUT)
 
         self.LayoutDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__LayoutJSON)))
         self.ControlDict = json.load(open('{}/{}'.format(self.__LayoutPath, self.__ControlJSON)))
@@ -66,10 +69,8 @@ class TouchPanelInterface():
             "Level": None,
             "Count": None
         })
-        
-        self.Initialized = False
     
-    def Initialize(self) -> None:
+    def __Initialize(self) -> None:
         ## Load UI Objects
         self.Objects.LoadButtons(UIHost=self.Device, jsonObj=self.LayoutDict)
         self.Objects.LoadKnobs(UIHost=self.Device, jsonObj=self.LayoutDict)
@@ -101,8 +102,6 @@ class TouchPanelInterface():
             lvl.Initialize()
         for sld in self.Objects.Sliders.values():
             sld.Initialize()
-
-        self.Initialized = True
     
     def TransitionSystemState(self, state: SystemState) -> None:
         if state is SystemState.Active:
@@ -134,7 +133,7 @@ class TouchPanelInterface():
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def SplashStartHandler(button: Union['Button', 'ExButton'], action: str) -> None:
+def SplashStartHandler(button: Union['Button', 'ButtonEx'], action: str) -> None:
     uiDev = button.UIHost
     
     if System.CONTROLLER.SystemPIN is not None:
@@ -151,7 +150,7 @@ def StartShutdownConfirmation(prevActivity: ActivityMode, click: bool=False) -> 
     
     # due to how these are called, don't use eventEx
     @event(cancelBtns, ['Pressed', 'Released'])
-    def CancelBtnHandler(button: 'ExButton', event: str):
+    def CancelBtnHandler(button: 'ButtonEx', event: str):
         if event == 'Pressed':
             button.SetState(1)
         elif event == 'Released':
@@ -165,14 +164,14 @@ def StartShutdownConfirmation(prevActivity: ActivityMode, click: bool=False) -> 
     
     # due to how these are called, don't use eventEx
     @event(endNowBtns, ['Pressed', 'Released'])
-    def EndNowBtnHandler(button: 'ExButton', event: str):
+    def EndNowBtnHandler(button: 'ButtonEx', event: str):
         if event == 'Pressed':
             button.SetState(1)
         elif event == 'Released':
             ShutdownTimer.Wrapup()
             button.SetState(0)
     
-    def CountdownHandler(timer: 'ExTimer', count: int):
+    def CountdownHandler(timer: 'TimerEx', count: int):
         timeTillShutdown = int(System.CONTROLLER.Timers.ShutdownConf - (count * timer.Interval))
         
         for uiDev in System.CONTROLLER.UIDevices:
@@ -185,7 +184,7 @@ def StartShutdownConfirmation(prevActivity: ActivityMode, click: bool=False) -> 
             if timeTillShutdown <= 5:
                 uiDev.Click()
             
-    def ShutdownHandler(timer: 'ExTimer', count: int):
+    def ShutdownHandler(timer: 'TimerEx', count: int):
         for uiDev in System.CONTROLLER.UIDevices:
             uiDev.LightsOff()
         System.CONTROLLER.SystemActivity = ActivityMode.Standby
@@ -202,9 +201,9 @@ def StartShutdownConfirmation(prevActivity: ActivityMode, click: bool=False) -> 
         uiDev.Click(5, 0.2)
         uiDev.BlinkLights(Rate='Fast', StateList=['Red', 'Off'])
         
-    ShutdownTimer = ExTimer(1, CountdownHandler, System.CONTROLLER.Timers.ShutdownConf, ShutdownHandler)
+    ShutdownTimer = TimerEx(1, CountdownHandler, System.CONTROLLER.Timers.ShutdownConf, ShutdownHandler)
 
-def HeaderSelect(button: 'ExButton', action: str) -> None:
+def HeaderSelect(button: 'ButtonEx', action: str) -> None:
     uiDev = button.UIHost
     if button.HeaderAction == 'Room':
         uiDev.ShowPopup('Popover-Room')
@@ -216,7 +215,7 @@ def HeaderSelect(button: 'ExButton', action: str) -> None:
         for popover in uiDev.Interface.Objects.PopoverPages:
             uiDev.HidePopup(popover)
             
-def OpenTechPages(button: 'ExButton', action: str) -> None:
+def OpenTechPages(button: 'ButtonEx', action: str) -> None:
     uiDev = button.UIHost
     
     if System.CONTROLLER.TechPIN is not None:
@@ -232,19 +231,19 @@ def TechPinSuccess(uiDev: 'ExUIDevice') -> None:
     uiDev.ShowPopup(uiSet.GetCurrentRef().page)
     uiDev.ShowPage('Tech')
     
-def CloseTechPages(button: 'ExButton', action: str) -> None:
+def CloseTechPages(button: 'ButtonEx', action: str) -> None:
     uiDev = button.UIHost
     
     uiDev.Interface.CloseTechMenu()
         
-def TechPageMenuNav(button: 'ExButton', action: str) -> None:
+def TechPageMenuNav(button: 'ButtonEx', action: str) -> None:
     # uiDev = button.UIHost
     uiSet = button.Group
     
     newOff = uiSet.Offset + button.Offset
     uiSet.SetOffset(newOff)
     
-def TechPageSelect(button: 'ExButton', action: str) -> None:
+def TechPageSelect(button: 'ButtonEx', action: str) -> None:
     uiDev = button.UIHost
     uiSet = button.Group.Group
     
@@ -253,27 +252,27 @@ def TechPageSelect(button: 'ExButton', action: str) -> None:
     
     uiDev.ShowPopup(refBtn.page)
     
-def PanelBrightnessHandler(source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+def PanelBrightnessHandler(source: 'SliderEx', event: str, value: Union[int, float]) -> None:
     uiDev = source.UIHost
     
     uiDev.SetBrightness(int(value))
 
-def PanelAutoBrightnessHandler(source: 'ExButton', event: str) -> None:
+def PanelAutoBrightnessHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.SetAutoBrightness(bool(source.State))
 
-def PanelVolumeHandler(source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+def PanelVolumeHandler(source: 'SliderEx', event: str, value: Union[int, float]) -> None:
     uiDev = source.UIHost
     
     uiDev.SetVolume('Master', int(value))
 
-def PanelSleepHandler(source: 'ExSlider', event: str, value: Union[int, float]) -> None:
+def PanelSleepHandler(source: 'SliderEx', event: str, value: Union[int, float]) -> None:
     uiDev = source.UIHost
     
     uiDev.SetSleepTimer(True, int(value * 60))
 
-def PanelAutoSleepHandler(source: 'ExButton', event: str) -> None:
+def PanelAutoSleepHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     state = bool(source.State)
@@ -286,25 +285,25 @@ def PanelAutoSleepHandler(source: 'ExButton', event: str) -> None:
     uiDev.SetSleepTimer(state, sleepTime)
         
 
-def PanelWakeOnMotionHandler(source: 'ExButton', event: str) -> None:
+def PanelWakeOnMotionHandler(source: 'ButtonEx', event: str) -> None:
     uiDev = source.UIHost
     
     uiDev.SetWakeOnMotion(bool(source.State))
 
-def SourceMenuNav(button: 'ExButton', action: str) -> None:
+def SourceMenuNav(button: 'ButtonEx', action: str) -> None:
     # uiDev = button.UIHost
     uiSet = button.Group
     
     newOff = uiSet.Offset + button.Offset
     uiSet.SetOffset(newOff)
 
-def SourceSelect(button: 'ExButton', action: str) -> None:
+def SourceSelect(button: 'ButtonEx', action: str) -> None:
     uiSet = button.Group.Group
     
     refBtn = uiSet.GetRefByObject(button)
     uiSet.SetCurrentRef(refBtn)
     
-    Logger.Debug("Button", button, "RefButton", refBtn)
+    Logger.Debug("Button", button, "ButtonEx_Ref", refBtn)
     
     if System.CONTROLLER.SystemActivity == ActivityMode.Share:
         # Source Switch

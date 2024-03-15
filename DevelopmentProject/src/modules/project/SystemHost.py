@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.Collections import DeviceCollection, AlertCollection
-    from modules.project.ExtendedSystemClasses import ExTimer
+    from modules.project.ExtendedClasses.System import TimerEx
 
 #### Python imports
 
@@ -28,11 +28,11 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 from modules.helper.CommonUtilities import Logger, TimeIntToStr
-from modules.project.ExtendedDeviceClasses import ExProcessorDevice, ExUIDevice, ExEBUSDevice
+from modules.project.ExtendedClasses.Device import ExProcessorDevice, ExUIDevice, ExEBUSDevice
 from modules.project.Collections import UIDeviceCollection, ProcessorCollection
 from modules.project.PrimitiveObjects import DictObj, SettingsObject
 from modules.helper.ModuleSupport import WatchVariable
-from modules.project.mixins import InitializeMixin
+from modules.project.MixIns import InitializeMixin
 from control.ActivityController import ActivityController
 from control.SourceController import SourceController
 from control.PollController import PollingController
@@ -378,7 +378,7 @@ class SystemController(InitializeMixin, object):
         self.ActCtl.Timers.Splash.Restart()
         
         
-    def SplashChecker(self, timer: 'ExTimer', count: int) -> None:
+    def SplashChecker(self, timer: 'TimerEx', count: int) -> None:
         elapsedTime = timer.Interval * count
         inactivities = {}
         reset = False

@@ -20,7 +20,7 @@
 from typing import TYPE_CHECKING
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.Collections import DeviceCollection
-    from modules.project.SystemHardware import SystemHardwareController
+    from modules.project.Devices import SystemHardwareController
 
 #### Python imports
 

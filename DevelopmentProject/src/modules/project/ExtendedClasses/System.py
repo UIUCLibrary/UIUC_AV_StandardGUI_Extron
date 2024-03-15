@@ -32,7 +32,7 @@ from extronlib.system import Timer
 ##
 ## Begin Class Definitions -----------------------------------------------------
 
-class ExTimer(Timer):
+class TimerEx(Timer):
     def __init__(self, 
                  Interval: float, 
                  Function: Callable = None,

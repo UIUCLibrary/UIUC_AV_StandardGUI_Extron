@@ -45,7 +45,7 @@ def SourceSelectPopupCallback(UISet) -> str:
     length = len(UISet.RefObjects)
     
     if length < 2:
-        raise ValueError("Objects must contain at least two RefButtons")
+        raise ValueError("Objects must contain at least two ButtonEx_Refs")
     elif length >=2 and length <=5:
         return "Menu-Source-{}".format(length)
     elif length > 5:

@@ -18,19 +18,19 @@
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedUIClasses \
-        import (RefButton, 
-                ExButton, 
-                ExLabel, 
-                ExLevel, 
-                ExSlider, 
-                ExKnob)
-    from modules.project.ExtendedDeviceClasses \
+    from modules.project.ExtendedClasses.UI \
+        import (ButtonEx_Ref, 
+                ButtonEx, 
+                LabelEx, 
+                LevelEx, 
+                SliderEx, 
+                KnobEx)
+    from modules.project.ExtendedClasses.Device \
         import (ExProcessorDevice,
                 ExUIDevice,
                 ExSPDevice,
                 ExEBUSDevice)
-    from modules.project.ExtendedUIClasses.UISets \
+    from modules.project.Collections.UISets \
         import (RadioSet, 
                 SelectSet, 
                 VariableRadioSet, 
@@ -48,7 +48,7 @@ if TYPE_CHECKING: # pragma: no cover
 # Python imports
 
 # Project imports
-from modules.project.Classes import BLANK_SOURCE  # noqa: F401
+from modules.project.Devices.Classes import BLANK_SOURCE                                # noqa: F401
 from modules.helper.CommonUtilities import MergeLists
 from modules.project.PrimitiveObjects import ActivityMode, SystemState
 
@@ -134,23 +134,23 @@ UI_SETS_MATCH =    ('RadioSet',
                     'ScheduleConfigGroup',
                     'ScheduleEditGroup')
 
-UI_OBJECTS =  Union['RefButton', 
-                    'ExButton', 
-                    'ExLabel', 
-                    'ExLevel', 
-                    'ExSlider', 
-                    'ExKnob']
-UI_OBJECTS_MATCH = ('RefButton', 
-                    'ExButton', 
-                    'ExLabel', 
-                    'ExLevel', 
-                    'ExSlider', 
-                    'ExKnob')
+UI_OBJECTS =  Union['ButtonEx_Ref', 
+                    'ButtonEx', 
+                    'LabelEx', 
+                    'LevelEx', 
+                    'SliderEx', 
+                    'KnobEx']
+UI_OBJECTS_MATCH = ('ButtonEx_Ref', 
+                    'ButtonEx', 
+                    'LabelEx', 
+                    'LevelEx', 
+                    'SliderEx', 
+                    'KnobEx')
 
-UI_BUTTONS =  Union['RefButton', 
-                    'ExButton']
-UI_BUTTONS_MATCH = ('RefButton', 
-                    'ExButton')
+UI_BUTTONS =  Union['ButtonEx_Ref', 
+                    'ButtonEx']
+UI_BUTTONS_MATCH = ('ButtonEx_Ref', 
+                    'ButtonEx')
 
 UI_ALL =  Union['RadioSet', 
                 'SelectSet', 
@@ -165,12 +165,12 @@ UI_ALL =  Union['RadioSet',
                 'PanelSetupGroup',
                 'ScheduleConfigGroup',
                 'ScheduleEditGroup',
-                'RefButton', 
-                'ExButton', 
-                'ExLabel', 
-                'ExLevel', 
-                'ExSlider', 
-                'ExKnob']
+                'ButtonEx_Ref', 
+                'ButtonEx', 
+                'LabelEx', 
+                'LevelEx', 
+                'SliderEx', 
+                'KnobEx']
 UI_ALL_MATCH = ('RadioSet', 
                 'SelectSet', 
                 'VariableRadioSet', 
@@ -184,12 +184,12 @@ UI_ALL_MATCH = ('RadioSet',
                 'PanelSetupGroup',
                 'ScheduleConfigGroup',
                 'ScheduleEditGroup',
-                'RefButton', 
-                'ExButton', 
-                'ExLabel', 
-                'ExLevel', 
-                'ExSlider', 
-                'ExKnob')
+                'ButtonEx_Ref', 
+                'ButtonEx', 
+                'LabelEx', 
+                'LevelEx', 
+                'SliderEx', 
+                'KnobEx')
 
 UI_HOSTS =    Union['ExUIDevice', 
                     'ExEBUSDevice', 

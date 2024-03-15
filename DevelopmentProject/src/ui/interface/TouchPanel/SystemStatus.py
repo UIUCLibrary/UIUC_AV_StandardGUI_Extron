@@ -20,10 +20,10 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING: # pragma: no cover
-    from modules.project.ExtendedUIClasses import ExButton
-    from modules.project.ExtendedDeviceClasses import ExUIDevice
-    from modules.project.ExtendedUIClasses.UISets import SystemStatusControlGroup
-    from modules.project.SystemHardware import SystemHardwareController
+    from modules.project.ExtendedClasses.UI import ButtonEx
+    from modules.project.ExtendedClasses.Device import ExUIDevice
+    from modules.project.Collections.UISets import SystemStatusControlGroup
+    from modules.project.Devices import SystemHardwareController
 
 #### Python Imports
 import math
@@ -220,7 +220,7 @@ class SystemStatusController:
 ##
 ## Begin Function Definitions --------------------------------------------------
 
-def SystemStatusPagination(source: 'ExButton', value: str) -> None:
+def SystemStatusPagination(source: 'ButtonEx', value: str) -> None:
     uiDev = source.UIHost
     uiDev.SysStatusCtl.PaginationHandler(source.Offset)
 

@@ -20,8 +20,8 @@
 from typing import TYPE_CHECKING, List, Dict, Tuple, Union
 if TYPE_CHECKING: # pragma: no cover
     from modules.project.SystemHost import SystemController
-    from modules.project.SystemHardware import SystemHardwareController
-    from modules.project.Classes import Destination, Source
+    from modules.project.Devices import SystemHardwareController
+    from modules.project.Devices.Classes import Destination, Source
 
 #### Python imports
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING: # pragma: no cover
 
 #### Project imports
 from modules.helper.CommonUtilities import isinstanceEx, SortKeys, Logger
-from modules.project.mixins import InitializeMixin
+from modules.project.MixIns import InitializeMixin
 from modules.project.PrimitiveObjects import MatrixTie, MatrixAction, TieType, ActivityMode
 import Constants
 import Variables

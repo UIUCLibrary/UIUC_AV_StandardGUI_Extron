@@ -32,9 +32,9 @@ from inspect import getmro
 
 #### Project Imports
 from modules.helper.ConnectionHandler import GetConnectionHandler
-from modules.project.mixins.Interface import InterfaceSystemHost
+from modules.project.MixIns.Interface import InterfaceSystemHost
 from modules.helper.CommonUtilities import Logger
-from modules.project.Classes import (Source, 
+from modules.project.Devices.Classes import (Source, 
                                     Destination, 
                                     Camera, 
                                     Switch, 
@@ -42,7 +42,7 @@ from modules.project.Classes import (Source,
                                     Screen, 
                                     Light, 
                                     Shade)
-from modules.project.mixins import InitializeMixin
+from modules.project.MixIns import InitializeMixin
 import Variables
 import System
 

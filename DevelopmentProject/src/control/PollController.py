@@ -26,7 +26,8 @@ from extronlib.system import Timer
 
 #### Project Imports
 from modules.helper.CommonUtilities import Logger
-from modules.project.SystemHardware import SystemHardwareController
+from modules.project.Devices import SystemHardwareController
+from modules.project.MixIns import InitializeMixin
 import Variables
 
 ## End Imports -----------------------------------------------------------------
@@ -77,12 +78,12 @@ class PollObject:
         else:
             raise TypeError('InactiveDuration ({}) must be either of type int or None'.format(type(InactiveDuration)))
 
-class PollingController:
+class PollingController(InitializeMixin, object):
     def __init__(self, SystemHost: 'SystemController') -> None:
+        InitializeMixin.__init__(self, self.__Initialize)
         
         self.SystemHost = SystemHost
         self.Polling = self.SystemHost.Devices.Polling
-        self.Initialized = False
         
         self.__PollingState = 'stopped'
         
@@ -154,10 +155,9 @@ class PollingController:
     
     # Public Methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     
-    def Initialize(self) -> None:
+    def __Initialize(self) -> None:
         self.PollEverything()
         self.SetPollingMode('inactive')
-        self.Initialized = True
     
     def PollEverything(self):
         for poll in self.Polling:

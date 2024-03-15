@@ -35,7 +35,10 @@ from modules.helper.CommonUtilities import Logger
 class InitializeMixin(object):
     def __init__(self, init_method: Callable) -> None:
         self.__Initialized = False
-        self.__Init_Method = init_method
+        if callable(init_method):
+            self.__Init_Method = init_method
+        else:
+            raise TypeError('init_method parameter must be callable')
         
     @property
     def Initialized(self) -> bool:
