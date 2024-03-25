@@ -179,7 +179,7 @@ cameras = \
       },
       {
          'Id': 'CAM002',
-         'Name': 'Sourth Camera',
+         'Name': 'South Camera',
          'Input': 2
       }
    ]
