@@ -669,7 +669,7 @@ hardware = [
             'SwitchCommand': 
                {
                   'command': 'SourcePresetCommand',
-                  'qualifier': {'NDI Source': 'True'}
+                  'qualifier': {'NDI Source': 'False'}
                }
          }
    },
