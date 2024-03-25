@@ -37,7 +37,7 @@ import datetime
 from extronlib.system import MESet
 
 #### Project imports
-from modules.project.MixIns.UI import ControlMixIn
+from modules.project.MixIns.UI import UISetMixin, ControlMixIn
 from modules.helper.CommonUtilities import (Logger, 
                                             isinstanceEx, 
                                             SortKeys, 
@@ -52,31 +52,6 @@ import Variables
 ## End Imports -----------------------------------------------------------------
 ##
 ## Begin Class Definitions -----------------------------------------------------
-
-class UISetMixin(object):
-    def __init__(self, Name: str) -> None:
-        self.__Name = Name
-    
-    @property
-    def Name(self) -> str:
-        return self.__Name
-    
-    @Name.setter
-    def Name(self, val) -> None:
-        raise AttributeError('Overriding the Name property is disallowed')
-    
-    def GetSubGroups(self) -> List:
-        className = type(self).__name__
-        groupNameList = ['BtnSet', 'RefSet']
-        groupNameList.extend(['AuxSet{}'.format(x) for x in range(10)])
-        rtnList = []
-        
-        for grpName in groupNameList:
-            if hasattr(self, '_{}__{}'.format(className, grpName)):
-                rtnList.append(getattr(self, '_{}__{}'.format(className, 
-                                                              grpName)))
-        
-        return rtnList
 
 class RadioSet(ControlMixIn, UISetMixin, MESet):
     def __init__(self, 

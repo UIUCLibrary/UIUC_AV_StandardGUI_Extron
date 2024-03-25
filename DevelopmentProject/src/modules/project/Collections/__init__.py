@@ -34,7 +34,7 @@ from extronlib.system import Timer
 #### Project imports
 from modules.helper.ModuleSupport import WatchVariable
 from modules.project.Devices import SystemHardwareController
-from modules.helper.CommonUtilities import Logger
+from modules.helper.CommonUtilities import Logger, isinstanceEx
 from modules.project.MixIns import InitializeMixin
 from modules.project.MixIns.VirtualDevice import VirtualDeviceInterface
 from modules.project.PrimitiveObjects import Alert
@@ -74,7 +74,7 @@ class DeviceCollection(InitializeMixin, UserDict):
     # Overwrite __setitem__
     # TEST_THIS: test this for being able to set a value with a blank index, ie Devices[] = SystemHardwareControllerObject
     def __setitem__(self, key: '_KT', item: 'SystemHardwareController') -> None:
-        if not isinstance(item, SystemHardwareController):
+        if not isinstanceEx(item, 'SystemHardwareController'):
             raise ValueError('DeviceCollection items must be of type SystemHardwareController')
         
         if item.Id in list(self.data.keys()):
@@ -158,7 +158,7 @@ class DeviceCollection(InitializeMixin, UserDict):
             dev.Initialize()
             
         # Associate Virtual Device Hardware after Hardware Initialization
-        vDevList = [vDev for vDev in list(self.data.values()) if issubclass(type(getattr(vDev, 'interface', None)), VirtualDeviceInterface)]
+        vDevList = [vDev for vDev in list(self.data.values()) if issubclass(type(getattr(vDev, 'interface', None)), VirtualDeviceInterface)] # TODO: create issubclassEx which doesn't require run-time loading of VirtualDeviceInterface
         Logger.Debug('VDEV List', vDevList)
         for dev in vDevList:
             dev.interface.FindAssociatedHardware()

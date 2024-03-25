@@ -41,6 +41,7 @@ class TimerEx(Timer):
         self.__IntervalFunction = Function
         super().__init__(Interval, self.__ExFunction)
         self.__Duration = None
+        self.__RecentReset = False
         if Duration is not None:
             self.ChangeDuration(Duration)
         self.DurationFunction = DurationFunction
@@ -81,11 +82,12 @@ class TimerEx(Timer):
         raise AttributeError('Setting Remaining is disallowed.')
     
     def __ExFunction(self, Timer: Timer, Count: int) -> None:
+        self.__RecentReset = False
         if callable(self.__IntervalFunction):
             self.__IntervalFunction(Timer, Count)
         
         elapsed = self.Interval * Count
-        if self.__Duration is not None and elapsed >= self.__Duration:
+        if self.__Duration is not None and elapsed >= self.__Duration and not self.__RecentReset:
             self.Stop()
             if callable(self.DurationFunction):
                 self.DurationFunction(Timer, Count)
@@ -108,6 +110,10 @@ class TimerEx(Timer):
     def Stop(self) -> None:
         if self.State in ['Running', 'Paused']:
             super().Stop()
+            
+    def Restart(self) -> None:
+        self.__RecentReset = True
+        super().Restart()
         
 
 ## End Class Definitions -------------------------------------------------------

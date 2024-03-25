@@ -18,19 +18,16 @@
 
 #### Type Checking
 from typing import TYPE_CHECKING, Callable
-
-from DevelopmentProject.src.modules.project.Devices import SystemHardwareController
 if TYPE_CHECKING:                                                               # pragma: no cover
-    pass
+    from modules.project.Collections import DeviceCollection
+    from modules.project.Devices import SystemHardwareController
 
 #### Python imports
 
 #### Extron Library Imports
 
 #### Project imports
-from modules.helper.CommonUtilities import isinstanceEx
-from modules.project.Collections import DeviceCollection
-from modules.helper.CommonUtilities import Logger
+from modules.helper.CommonUtilities import isinstanceEx, Logger
 
 ## End Imports -----------------------------------------------------------------
 ##

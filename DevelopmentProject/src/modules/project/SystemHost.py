@@ -380,15 +380,19 @@ class SystemController(InitializeMixin, object):
         
     def SplashChecker(self, timer: 'TimerEx', count: int) -> None:
         elapsedTime = timer.Interval * count
-        inactivities = {}
+        Logger.Debug('Spash Checker Elapsed Time', elapsedTime)
+        # inactivities = {}
         reset = False
         for uiDev in self.UIDevices:
-            inactivities[uiDev.Id] = uiDev.InactivityTime
+            # inactivities[uiDev.Id] = uiDev.InactivityTime
+            Logger.Debug(uiDev.Id, "Inactivity Time", uiDev.InactivityTime)
             if uiDev.InactivityTime < elapsedTime:
                 reset = True
         if reset:
+            Logger.Debug('Resetting Splash Timer')
             timer.Restart()
     
     def ShowSplash(self, timer = None, count = None) -> None:
+        Logger.Debug('Splash Timer Ended - Show Splash Screen')
         for uiDev in self.UIDevices:
             uiDev.ShowPage('Splash')

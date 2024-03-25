@@ -32,8 +32,6 @@ from extronlib.device import ProcessorDevice, SPDevice, UIDevice, eBUSDevice
 from extronlib.system import Wait, Timer
 
 #### Project Imports
-import System
-
 from modules.helper.CommonUtilities import Logger
 from modules.helper.ModuleSupport import WatchVariable, eventEx
 from modules.project.PrimitiveObjects import Alias, classproperty, SystemState
@@ -45,6 +43,8 @@ from ui.interface.TouchPanel.Scheduler import ScheduleController
 from ui.utilities.Keyboard import KeyboardController
 from ui.utilities.PinPad import PINController
 from modules.project.MixIns import InitializeMixin
+
+import System
 
 ## End Imports -----------------------------------------------------------------
 ##
